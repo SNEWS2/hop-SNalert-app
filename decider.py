@@ -1,6 +1,4 @@
-import argparse
 import deque
-
 
 class Decider(object):
     def __init__(self, time_threshold, datetime_format):
@@ -17,6 +15,8 @@ class Decider(object):
         dic = self.de.get_messages()
 
         # Run analysis code
+        # For now:
+
         None
 
     def add_log(self, time, message):
@@ -27,24 +27,4 @@ class Decider(object):
         """
         # insert it the deque
         self.de.insert(time, message)
-
-
-
-
-# def main(args=None):
-#     """
-#     The main function.
-#     :param args:
-#     :return:
-#     """
-#     parser = argparse.ArgumentParser(description='Argument Parser')
-#     # parser.add_argument('--subscribe-url', type=int, metavar='N',
-#     #                     help='kafka://SERVER/USER-TOPIC')
-#     parser.add_argument('--publish-url', type=int, metavar='N',
-#                         help='kafka://SERVER/USER-TOPIC')
-#     parser.add_argument('--f', type=str, metavar='N',
-#                         help='The path to the configuration file.')
-#     args = parser.parse_args()
-#
-
 

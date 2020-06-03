@@ -37,10 +37,13 @@ def prepare_gcn(gcn_dict, json_dump=False):
         return message
 
 
-def run_task(message, receivers):
+def add_gcn(gcn, the_decider):
     """
     Initial alert model upon receiving published information.
     """
+    time = gcn['header']['date']
+    message = gcn['body']
+    the_decider.add_log(time, message)
 
 
 # ------------------------------------------------
@@ -59,6 +62,10 @@ def _main(args=None):
                             help='The configuration file.')
         parser.add_argument('--t', type=int, metavar='N',
                             help='The time period where observations of a supernova could occur. unit: seconds')
+        parser.add_argument('--time-format', type=str, metavar='N',
+                            help='The format of the time string in all messages.')
+        # parser.add_argument('--emails-file', type=str, metavar='N',
+        #                     help='Send alerts to these emails upon possible SN.')
         args = parser.parse_args()
 
     # # load config if specified
@@ -70,23 +77,18 @@ def _main(args=None):
     gcn_format = "json"
     # receivers = [email for email in args.email]
 
-    # with stream.open(args.url, "r", format=gcn_format, config=config, start_at=start_offset) as s:
-    #     for gcn_dict in s(timeout=args.timeout):
-    #         run_task(message, receivers)
-
-    the_decider = decider.Decider(args.t, )
+    the_decider = decider.Decider(args.t, args.time_format)
 
     with stream.open("kafka://dev.hop.scimma.org:9092/snews-testing", "r", config=args.f, format=gcn_format) as s:
-        print(type(s))
-        n = 1
-        for gcn_dict in s(timeout=0):
-            print(type(gcn_dict))
-            print(n)
+        for gcn_dict in s(timeout=0): # set timeout=0 so it doesn't stop listening to the topic
+            # print(type(gcn_dict))
             # print(prepare_gcn(gcn_dict))
-            pprint(gcn_dict)
-            print("")
-            n += 1
-
+            # pprint(gcn_dict)
+            add_gcn(gcn_dict, the_decider)
+            alert = the_decider.deciding()
+            if alert == True:
+                # publish to TOPIC2 and alert astronomers
+            # print("")
 
 
 # temporary

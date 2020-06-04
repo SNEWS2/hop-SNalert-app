@@ -10,6 +10,7 @@ from hop import subscribe
 import sys
 import decider
 from pprint import pprint
+import subprocess
 
 
 # https://github.com/scimma/may2020-techthon-demo/blob/master/hop/apps/email/example.py
@@ -64,6 +65,8 @@ def _main(args=None):
                             help='The time period where observations of a supernova could occur. unit: seconds')
         parser.add_argument('--time-format', type=str, metavar='N',
                             help='The format of the time string in all messages.')
+        # parser.add_argument('--alert-url', type=str, metavar='N',
+        #                     help='The kafka url the every experiment listen to.')
         # parser.add_argument('--emails-file', type=str, metavar='N',
         #                     help='Send alerts to these emails upon possible SN.')
         args = parser.parse_args()
@@ -83,11 +86,22 @@ def _main(args=None):
         for gcn_dict in s(timeout=0): # set timeout=0 so it doesn't stop listening to the topic
             # print(type(gcn_dict))
             # print(prepare_gcn(gcn_dict))
-            # pprint(gcn_dict)
+            pprint(gcn_dict)
             add_gcn(gcn_dict, the_decider)
             alert = the_decider.deciding()
             if alert == True:
                 # publish to TOPIC2 and alert astronomers
+                print("haha")
+                publish_process = subprocess.Popen(['hop',
+                                                    'publish',
+                                                    'kafka://dev.hop.scimma.org:9092/snews-experiments',
+                                                    '-F',
+                                                    args.f,
+                                                    '../../../utils/example2.gcn3'])
+                print(publish_process.stdout)
+                print(type(publish_process.stdout))
+                # out = subprocess.check_output(["ntpq", "-p"])
+                # print(out)
             # print("")
 
 

@@ -16,8 +16,7 @@ class Decider(object):
 
         # Run analysis code
         # For now:
-
-        None
+        return True
 
     def add_log(self, time, message):
         """

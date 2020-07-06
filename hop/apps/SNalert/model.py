@@ -8,6 +8,7 @@ from hop.models import GCNCircular
 # from hop import cli
 from hop import subscribe
 import sys
+# import decider_deque
 import decider
 from pprint import pprint
 import subprocess
@@ -44,7 +45,9 @@ def add_gcn(gcn, the_decider):
     """
     time = gcn['header']['date']
     message = gcn['body']
-    the_decider.add_log(time, message)
+    # print("---")
+    # print(type(message))
+    the_decider.add_log(time, gcn)
 
 
 # ------------------------------------------------
@@ -65,6 +68,8 @@ def _main(args=None):
                             help='The time period where observations of a supernova could occur. unit: seconds')
         parser.add_argument('--time-format', type=str, metavar='N',
                             help='The format of the time string in all messages.')
+        parser.add_argument('--temp-gcnfile-path', type=str, metavar='N',
+                            help='The temporary path to the gcn file published to all experiments. At later stage, generate this at run time.')
         # parser.add_argument('--alert-url', type=str, metavar='N',
         #                     help='The kafka url the every experiment listen to.')
         # parser.add_argument('--emails-file', type=str, metavar='N',
@@ -86,23 +91,27 @@ def _main(args=None):
         for gcn_dict in s(timeout=0): # set timeout=0 so it doesn't stop listening to the topic
             # print(type(gcn_dict))
             # print(prepare_gcn(gcn_dict))
-            pprint(gcn_dict)
+            print("--THE MODEL")
+            # pprint(type(gcn_dict))
             add_gcn(gcn_dict, the_decider)
             alert = the_decider.deciding()
             if alert == True:
                 # publish to TOPIC2 and alert astronomers
-                print("haha")
+                # print("haha")
                 publish_process = subprocess.Popen(['hop',
                                                     'publish',
                                                     'kafka://dev.hop.scimma.org:9092/snews-experiments',
                                                     '-F',
                                                     args.f,
-                                                    '../../../utils/example2.gcn3'])
-                print(publish_process.stdout)
-                print(type(publish_process.stdout))
+                                                    args.temp_gcnfile_path])
+                                                    # '../../../utils/messages/unitTest.gcn3'])
+                # print(publish_process.stdout)
+                # print(type(publish_process.stdout))
                 # out = subprocess.check_output(["ntpq", "-p"])
                 # print(out)
             # print("")
+            print("--THE MODEL")
+            print("")
 
 
 # temporary

@@ -1,18 +1,26 @@
-import db_storage
+import deque
 
 class Decider(object):
     def __init__(self, time_threshold, datetime_format):
-        # intialize and use redis storage
-        self.db = db_storage.storage(time_threshold, datetime_format)
+        # link to a database???
+        # self.timestamp = []
+        # self.message_dic = {}
+        self.de = deque.Deque(time_threshold, datetime_format)
 
     def deciding(self):
         """
 
         :return: True or false indicating the possibility of a supernova
         """
-        # if self.db.cacheEmpty() == True:
-        #     return False
-        return not self.db.cacheEmpty()
+        dic = self.de.get_messages()
+
+        # Run analysis code
+        # For now:
+        if self.de.getNumMessages() > 1:
+            return True
+        else:
+            return False
+        # return True
 
     def add_log(self, time, message):
         """
@@ -21,4 +29,5 @@ class Decider(object):
         :return:
         """
         # insert it the deque
-        self.db.insert(time, message)
+        self.de.insert(time, message)
+

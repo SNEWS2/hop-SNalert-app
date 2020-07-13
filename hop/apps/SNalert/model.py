@@ -47,7 +47,7 @@ def add_gcn(gcn, the_decider):
     message = gcn['body']
     # print("---")
     # print(type(message))
-    the_decider.add_log(time, gcn)
+    the_decider.addMessage(time, gcn)
 
 
 # ------------------------------------------------
@@ -74,6 +74,10 @@ def _main(args=None):
         #                     help='The kafka url the every experiment listen to.')
         # parser.add_argument('--emails-file', type=str, metavar='N',
         #                     help='Send alerts to these emails upon possible SN.')
+        parser.add_argument('--mongo-server', type=str, metavar='N',
+                            help='The MongoDB server to be used.')
+        parser.add_argument('--drop-db', type=bool, metavar='N',
+                            help='Whether to drop and restart a database or not.')
         args = parser.parse_args()
 
     # # load config if specified
@@ -85,7 +89,7 @@ def _main(args=None):
     gcn_format = "json"
     # receivers = [email for email in args.email]
 
-    the_decider = decider.Decider(args.t, args.time_format)
+    the_decider = decider.Decider(args.t, args.time_format,args.mongo_server, args.drop_db)
 
     with stream.open("kafka://dev.hop.scimma.org:9092/snews-testing", "r", config=args.f, format=gcn_format) as s:
         for gcn_dict in s(timeout=0): # set timeout=0 so it doesn't stop listening to the topic

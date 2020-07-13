@@ -1,8 +1,9 @@
 from pymongo import MongoClient
 import datetime
 from bson.objectid import ObjectId
+import IStorage
 
-class storage(object):
+class storage(IStorage.IStorage):
     def __init__(self, timeout, datetime_format, server, drop_db):
         '''
 

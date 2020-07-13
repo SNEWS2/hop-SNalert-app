@@ -1,6 +1,7 @@
 import db_storage
+import IDecider
 
-class Decider(object):
+class Decider(IDecider.IDecider):
     def __init__(self, time_threshold, datetime_format, mongoServer, drop_db):
         # intialize and use redis storage
         self.db = db_storage.storage(time_threshold, datetime_format, mongoServer, drop_db)

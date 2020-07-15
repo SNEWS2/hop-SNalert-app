@@ -6,8 +6,8 @@ import IStorage
 class storage(IStorage.IStorage):
     def __init__(self, timeout, datetime_format, server, drop_db):
         '''
-
-        :param timeout:
+        The constructor.
+        :param timeout: The concidence 
         :param datetime_format:
         '''
         # Construct Mongodb first, used to store the json dictionary
@@ -38,6 +38,7 @@ class storage(IStorage.IStorage):
         :param message: MUST be a dictionary
         :return:
         """
+        # Convert the string time into datetime format
         time2 = datetime.datetime.strptime(time, self.datetime_format)
         message2 = message
         message2["DATE"] = time2
@@ -47,9 +48,6 @@ class storage(IStorage.IStorage):
         # insert it into cache with timeout
         self.cache.insert_one(message2)
 
-        # Convert the string time into datetime format
-        # time2 = datetime.datetime.strptime(time, self.datetime_format)
-        # time2 = time
         # print("All_messages size before: %d" % self.all_messages.dbsize())
         # self.all_messages.set(time2, message)
         # print("All_messages size after: %d" % self.all_messages.dbsize())

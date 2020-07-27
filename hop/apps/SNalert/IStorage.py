@@ -1,5 +1,5 @@
 class IStorage(object):
-    def insert(self, time, message):
+    def insert(self, time, neutrino_time, message):
         pass
 
     def getAllMessages(self):

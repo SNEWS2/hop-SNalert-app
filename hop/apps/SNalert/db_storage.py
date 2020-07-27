@@ -7,7 +7,7 @@ class storage(IStorage.IStorage):
     def __init__(self, timeout, datetime_format, server, drop_db):
         '''
         The constructor.
-        :param timeout: The concidence 
+        :param timeout: The concidence
         :param datetime_format:
         '''
         # Construct Mongodb first, used to store the json dictionary
@@ -24,14 +24,16 @@ class storage(IStorage.IStorage):
         if drop_db == True:
             self.all_messages.delete_many({})
             self.cache.delete_many({})
+            self.all_messages.drop_indexes()
+            self.cache.drop_indexes()
         # don't drop
-        self.all_messages.create_index("time")
-        self.cache.create_index("time", expireAfterSeconds=timeout)
+        self.all_messages.create_index("SENT TIME")
+        self.cache.create_index("SENT TIME", expireAfterSeconds=timeout)
 
         self.timeout = timeout
         self.datetime_format = datetime_format
 
-    def insert(self, time, message):
+    def insert(self, sent_time, neutrino_time, message):
         """
         Need to CONVERT STRING TIME to DATETIME OBJECT
         :param time:
@@ -39,9 +41,11 @@ class storage(IStorage.IStorage):
         :return:
         """
         # Convert the string time into datetime format
-        time2 = datetime.datetime.strptime(time, self.datetime_format)
+        time2 = datetime.datetime.strptime(sent_time, self.datetime_format)
+        time3 = datetime.datetime.strptime(neutrino_time, self.datetime_format)
         message2 = message
-        message2["DATE"] = time2
+        message2["SENT TIME"] = time2
+        message2["NEUTRINO TIME"] = time3
         # first insert into MongoDB
         msg_id = self.all_messages.insert_one(message2).inserted_id
         # str_msg_id = str(msg_id)
@@ -66,11 +70,13 @@ class storage(IStorage.IStorage):
         sort by 2 gives dates from recent to old
         :return:
         """
-        return self.all_messages.find().sort("DATE", -1)
+        return self.all_messages.find().sort("SENT TIME", -1)
 
+    def getCacheMsgs(self):
+        return self.cache.find().sort("SENT TIME", -1)
 
     def cacheEmpty(self):
-        if self.cache.count() < 1:
+        if self.cache.count() <= 1:
             return True
         else:
             return False

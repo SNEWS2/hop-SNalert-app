@@ -15,6 +15,10 @@ import subprocess
 import threading
 from dataPacket import RegularDataPacket
 import pickle
+import time
+import datetime
+import jsonschema
+from jsonschema import validate
 
 
 # https://github.com/scimma/may2020-techthon-demo/blob/master/hop/apps/email/example.py
@@ -42,12 +46,44 @@ def prepare_gcn(gcn_dict, json_dump=False):
         return message
 
 
+# verify json
+def validateJson(jsonData, jsonSchema):
+    try:
+        validate(instance=jsonData, schema=jsonSchema)
+    except jsonschema.exceptions.ValidationError as err:
+        return False
+    return True
+
+
 class Model(object):
     def __init__(self, args):
         self.args = args
         self.gcnFormat = "json"
+        # if args.drop_db == "t":
+        #     self.dropDB = True
+        # else:
+        #     self.dropDB = False
         self.myDecider = decider.Decider(args.t, args.time_format,args.mongo_server, args.drop_db)
         self.deciderUp = False
+        # self.heartbeatMsgPath = "dataPacket/heartBeatMsg.gcn3"
+        self.heartbeatMsgPath = args.heartbeat_path
+
+        self.regularMsgSchema = {
+            "type": "object",
+            "properties": {
+                "header": {
+                    "type": 'object',
+                    "properties": {
+                        "title": {"type": "string"},
+                        "number": {"type": "string"},
+                        "subject": {"type": "string"},
+                        "date": {"type": "string"},
+                        "from": {"type": "string"}
+                    }
+                },
+                "body": {"type": "string"}
+            }
+        }
 
         # m = threading.Thread(target=self.run)
 
@@ -55,7 +91,8 @@ class Model(object):
         # while True:
         #     if self.deciderUp:
         #         break
-        # h = threading.Thread(target=self.sendHeartbeatMessage)
+        h = threading.Thread(target=self.sendHeartbeatMessage)
+        h.start()
         self.run()
 
 
@@ -66,20 +103,9 @@ class Model(object):
                 # print(type(gcn_dict))
                 # print(prepare_gcn(gcn_dict))
                 print("--THE MODEL")
-                # add_gcn(gcn_dict, self.myDecider)
-                # alert = self.myDecider.deciding()
-                # if alert == True:
-                #     # publish to TOPIC2 and alert astronomers
-                #     # print("haha")
-                #     publish_process = subprocess.Popen(['hop',
-                #                                         'publish',
-                #                                         'kafka://dev.hop.scimma.org:9092/snews-experiments',
-                #                                         '-F',
-                #                                         self.args.f,
-                #                                         self.args.temp_gcnfile_path])
-                    # '../../../utils/messages/unitTest.gcn3'])
+                print(gcn_dict)
+                print(gcn_dict['header']['subject'])
                 self.processMessage(gcn_dict)
-
                 print("--THE MODEL")
                 print("")
 
@@ -88,11 +114,15 @@ class Model(object):
         """
         Initial alert model upon receiving published information.
         """
-        time = gcn['header']['date']
+        # sent_time = gcn['header']['message sent time']
+        # neutrino_time = gcn['header']['neutrino time']
+        sent_time = gcn['header']['date']
+        neutrino_time = gcn['header']['date']
+
         message = gcn['body']
         # print("---")
         # print(type(message))
-        self.myDecider.addMessage(time, gcn)
+        self.myDecider.addMessage(sent_time, neutrino_time, gcn)
 
 
     def processMessage(self, message):
@@ -104,22 +134,40 @@ class Model(object):
 
 
     def processRegularMessage(self, message):
-        self.add_gcn(message, self.myDecider)
-        alert = self.myDecider.deciding()
-        if alert == True:
-            # publish to TOPIC2 and alert astronomers
-            publish_process = subprocess.Popen(['hop',
-                                                'publish',
-                                                'kafka://dev.hop.scimma.org:9092/snews-experiments',
-                                                '-F',
-                                                self.args.f,
-                                                self.args.temp_gcnfile_path])
-            # '../../../utils/messages/unitTest.gcn3'])
-            # self.sendRegularMessage()
+        # verify the schema
+        isValid = validateJson(message, self.regularMsgSchema)
+        if isValid == True:
+            self.add_gcn(message)
+            alert = self.myDecider.deciding()
+            print("-- Model ???????")
+            for i in self.myDecider.getCacheMessages():
+                print(i)
+            print("-- Model ???????")
+            if alert == True:
+                # print("hhhhhhhhhhhhhhhhhhhhhhhhhh")
+                # publish to TOPIC2 and alert astronomers
+                publish_process = subprocess.Popen(['hop',
+                                                    'publish',
+                                                    'kafka://dev.hop.scimma.org:9092/snews-experiments',
+                                                    '-F',
+                                                    self.args.f,
+                                                    self.args.temp_gcnfile_path])
+                # '../../../utils/messages/unitTest.gcn3'])
+                # self.sendRegularMessage()
+        # else:
+        #     # alert the experiment of the wrong message format
 
 
     def sendHeartbeatMessage(self):
-        pass
+        while True:
+            if self.deciderUp:
+                hb_process = subprocess.Popen(['hop',
+                                               'publish',
+                                               'kafka://dev.hop.scimma.org:9092/snews-heartbeat',
+                                               '-F',
+                                               self.args.f,
+                                               self.heartbeatMsgPath])
+            time.sleep(10)
 
 
     # def sendRegularMessage(self):
@@ -132,6 +180,11 @@ class Model(object):
     #                                             self.args.f,
     #                                             m])
     #         pickle.dump(m, )
+
+    def generateAlertMsg(self):
+        time = datetime.datetime.utcnow()
+        fileName = time.strptime("%y/%m/%d%H:%M:%S")
+        pass
 
 
 # ------------------------------------------------
@@ -216,8 +269,6 @@ if __name__ == '__main__':
                         help='The format of the time string in all messages.')
     parser.add_argument('--temp-gcnfile-path', type=str, metavar='N',
                         help='The temporary path to the gcn file published to all experiments. At later stage, generate this at run time.')
-    # parser.add_argument('--alert-url', type=str, metavar='N',
-    #                     help='The kafka url the every experiment listen to.')
     # parser.add_argument('--emails-file', type=str, metavar='N',
     #                     help='Send alerts to these emails upon possible SN.')
     # parser.add_argument('--subscribe-topic', type=str, metavar='N',
@@ -228,6 +279,8 @@ if __name__ == '__main__':
                         help='The MongoDB server to be used.')
     parser.add_argument('--drop-db', type=bool, metavar='N',
                         help='Whether to drop and restart a database or not.')
+    parser.add_argument('--heartbeat-path', type=str, metavar='N',
+                        help='The heartbeat message file.')
     args = parser.parse_args()
 
     model = Model(args)

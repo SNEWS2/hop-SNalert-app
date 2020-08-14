@@ -19,8 +19,6 @@ class storage(IStorage.IStorage):
         self.all_messages = self.db.test_collection
         self.cache = self.db.test_cache
         # drop the database and previous records
-        # self.all_messages.remove({})
-        # self.cache.remove({})
         if drop_db == True:
             self.all_messages.delete_many({})
             self.cache.delete_many({})
@@ -51,13 +49,6 @@ class storage(IStorage.IStorage):
         # str_msg_id = str(msg_id)
         # insert it into cache with timeout
         self.cache.insert_one(message2)
-
-        # print("All_messages size before: %d" % self.all_messages.dbsize())
-        # self.all_messages.set(time2, message)
-        # print("All_messages size after: %d" % self.all_messages.dbsize())
-        # print("Cache size before: %d" % self.cache.dbsize())
-        # self.cache.set('hey', message, ex=self.timeout)
-        # print("Cache size after: %d" % self.cache.dbsize())
 
 
     # def getMsgWithinTime(self, start, end=None):

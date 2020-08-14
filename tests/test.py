@@ -1,5 +1,7 @@
 import subprocess
-from hop import stream
+from hop import Stream
+from hop.auth import Auth
+from hop import auth
 from hop.models import GCNCircular
 import argparse
 import random
@@ -8,14 +10,19 @@ import time
 from functools import wraps
 import datetime
 import numpy
+import uuid
 
 from unittest.mock import Mock
 import unittest
 from mongoengine import connect, disconnect
 
-# from ..hop.apps.SNalert import model as M
-# from ..hop.apps.SNalert import decider
-# from ..hop.apps.SNalert import db_storage
+# from hypothesis import given
+# from hypothesis.strategies  import lists, integers
+
+
+# from hop.apps.SNalert import model as M
+# from hop.apps.SNalert import decider
+# from hop.apps.SNalert import db_storage
 # from . import demo
 # from .. import test_anything
 
@@ -57,39 +64,51 @@ def clear_prof_data():
 
 
 def exponentialDistribution(mean):
+    """
+    Produce exponential distribution data.
+    :param mean: Mean of exponential distribution.
+    :return:
+    """
     return numpy.random.exponential(mean)
 
 class integrationTest(object):
-    def __init__(self, timeout, mean, totalTime, min, max):
+    # @given(
+    #     timeout=integers(min_value=1),
+    #     mean=integers(min_value=1),
+    #     totalTime=integers(min_value=1)
+    # )
+    def __init__(self, timeout, mean, totalTime):
+        """
+        The constructor.
+        :param timeout: Time expiration parameter
+        :param mean:
+        :param totalTime:
+        """
         self.count = 0
         self.topic = "kafka://dev.hop.scimma.org:9092/snews-experiments"
         self.configF = "../utils/config.conf"
         self.mean = mean
         self.totalTime = totalTime
-        self.minTime = min
-        self.maxTime = max
+        # self.minTime = min
+        # self.maxTime = max
         self.timeOut = timeout
 
+        self.auth = Auth("snews", "afe3.sl!f9a", method=auth.SASLMethod.PLAIN)
+
     def run(self):
-        t1 = threading.Thread(target=self.readNumMsg, args={self.topic, self.configF})
+        """
+        Run the model for the integration test.
+        :return: none
+        """
+        t1 = threading.Thread(target=self.readNumMsg, args=(self.topic,))
         t1.start()
 
         m = subprocess.Popen(['python3',
                               '../hop/apps/SNalert/model.py',
                               '--f',
-                              self.configF,
-                              '--t',
-                              str(self.timeOut),
-                              '--time-format',
-                              '%y/%m/%d %H:%M:%S',
-                              '--temp-gcnfile-path',
-                              './../utils/messages/unitTest.gcn3',
-                              '--mongo-server',
-                              'mongodb://localhost:27017/',
-                              '--drop-db',
-                              'True',
-                              '--heartbeat-path',
-                              '../hop/apps/SNalert/dataPacket/heartbeatMsg.gcn3'])
+                              './../.env',
+                              '--default-authentication',
+                              'False'])
 
         startTime = time.monotonic()
         # randomly publish messages
@@ -102,33 +121,27 @@ class integrationTest(object):
                     break
             # write message with current time
             now = datetime.datetime.utcnow().strftime("%y/%m/%d %H:%M:%S")
-            newFileName = self.writeMessage(now)
-            experiment = subprocess.call(['hop',
-                                          'publish',
-                                          'kafka://dev.hop.scimma.org:9092/snews-testing',
-                                          '-F',
-                                          self.configF,
-                                          newFileName])
+            # newFileName = self.writeMessage(now)
+            stream = Stream(auth=self.auth)
+            with stream.open("kafka://dev.hop.scimma.org:9092/snews-testing", "w") as s:
+                s.write(self.writeMessage(now))
 
         m.kill()
 
-    def readNumMsg(self, topic, configFilePath):
-        # p = subprocess.Popen(["hop",
-        #                       "subscribe",
-        #                       topic,
-        #                       "-F",
-        #                       configFilePath,
-        #                       "-t",
-        #                       "0"])
-        gcnFormat = "json"
-        with stream.open(topic, "r", config=configFilePath,
-                         format=gcnFormat) as s:
-            for gcn_dict in s(timeout=0):  # set timeout=0 so it doesn't stop listening to the topic
+    def readNumMsg(self, topic):
+        """
+        Read the number of alert messages.
+        :param topic:
+        :param configFilePath:
+        :return:
+        """
+        # gcnFormat = "json"
+        stream = Stream(persist=True, auth=self.auth)
+        # print("===")
+        # print(topic)
+        with stream.open(topic, "r") as s:
+            for msg in s:  # set timeout=0 so it doesn't stop listening to the topic
                 print("====")
-                # print(gcn_dict)
-                # print(gcn_dict['SUBJECT'])
-                # print(self.count)
-                # print('')
                 # if gcn_dict['header']['subject'] == "TEST":
                 #     self.count += 1
                 self.count += 1
@@ -137,66 +150,187 @@ class integrationTest(object):
         return self.count
 
     def writeMessage(self, time):
-        time2 = time.replace(' ', '-').replace('/', '').replace(':','')
-        fileName = "../utils/messages/integrationTest/" + time2 + ".gcn3"
-        with open(fileName, 'w') as f:
-            f.write("TITLE:   GCN CIRCULAR\n")
-            f.write("NUMBER:  SOME NUMBER\n")
-            f.write("SUBJECT: TEST\n")
-            f.write("DATE:    ")
-            f.write(time)
-            # f.write("P VALUE: 0.5\n")
-            f.write("\n")
-            f.write("FROM:    Skylar Xu  <yx48@rice.edu>\n")
-            f.write("\n")
-            f.write("This is a message generated at run time for testing purposes.\n")
-
-            # f.write("DETECTOR NAME:     TEST DETECTOR\n")
-            # f.write("SUBJECT:       Test\n")
-            # f.write("MESSAGE SENT TIME:     ")
-            # f.write(time)
-            # f.write("\n")
-            # f.write("NEUTRINO TIME:     ")
-            # f.write(time)
-            # f.write("\n")
-            # f.write("LOCATION:      ")
-            # f.write("%s" % test_locations[random.randint(0, 3)])
-            # f.write("P VALUE: 0.5\n")
-            # f.write("STATUS:  ON\n")
-            # f.write("MESSAGE TYPE:      TEST\n")
-            # f.write("FROM:    Skylar Xu  <yx48@rice.edu>\n")
-            # f.write("\n")
-            # f.write("This is a message generated at run time for testing purposes.")
-        return fileName
-
-def unitTest():
-    pass
+        msg = {}
+        msg["header"] = {}
+        msg["header"]["MESSAGE ID"] = str(uuid.uuid4())
+        msg["header"]["DETECTOR"] = "Test Detector"
+        msg["header"]["SUBJECT"] = "Test"
+        msg["header"]["MESSAGE SENT TIME"] = time
+        msg["header"]["NEUTRINO TIME"] = time
+        msg["header"]["LOCATION"] = test_locations[random.randint(0, 3)]
+        msg["header"]["P VALUE"] = "0.5"
+        msg["header"]["STATUS"] = "On"
+        msg["header"]["MESSAGE TYPE"] = "Observation"
+        msg["header"]["FROM"] = "Skylar Xu  <yx48@rice.edu>"
+        msg["body"] = "This is an alert message generated at run time for testing purposes."
+        return msg
 
 
-def functionalTest():
+# def functionalTest():
+#
+#     pass
 
-    pass
 
 
-def testLatency():
-    pass
+class latencyTest(object):
+    def __init__(self, topic, numDetector=50, time=3000):
+        """
+        The constructor.
+        """
+        self.numMsgPublished = 0
+        self.numMsgReceived = 0
+        self.totalLatency = 0
+        self.numDetector = numDetector
+        self.detectorThreads = {}
+        self.countMsg = {}
+        self.totalTime = time
+        self.topic = topic
+        self.auth = Auth("snews", "afe3.sl!f9a", method=auth.SASLMethod.PLAIN)
+        self.idsWritten = set()
+        self.idsReceived = set()
+
+        self.lock = threading.Lock()
+
+    def oneDetectorThread(self, uuid):
+        lock = threading.Lock()
+        print(uuid)
+        # print(timeout)
+        startTime = time.monotonic()
+        # randomly publish messages
+        while time.monotonic() - startTime < self.totalTime:
+            # print(time.monotonic() - startTime)
+            # print(self.totalTime)
+            # msg = self.writeMessage(uuid)
+            stream = Stream(auth=self.auth)
+            with stream.open(self.topic, "w") as s:
+                msg = self.writeMessage(uuid)
+                s.write(msg)
+                with lock:
+                    self.numMsgPublished += 1
+                    self.idsWritten.add(msg["header"]["MESSAGE ID"])
+
+    # def countWrittenMsgThread(self):
+
+    def runTest(self):
+        """
+        Run the latency test.
+        :return:
+        """
+        # create the topic if doesn't exist
+        stream = Stream(auth=self.auth)
+        with stream.open(self.topic, "w") as s:
+            s.write({"TEST": "TEST"})
+
+        # first run the thread that logs every message received
+        logThread = threading.Thread(target=self.logMsgs)
+        logThread.start()
+
+        for i in range(self.numDetector):
+            # print(i)
+            id = uuid.uuid4()
+            # print(id)
+            t = threading.Thread(target=self.oneDetectorThread, args=(str(id),))
+            # self.oneDetectorThread(id)
+            self.detectorThreads[id] = t
+            t.start()
+
+
+    def countMsgThread(self, msg_dict):
+        """
+        A single thread for process the message received for Latency test.
+        :param msg_dict:
+        :return:
+        """
+        # msg_dict = msg.asdict()['content']
+        id = msg_dict['header']['DETECTOR']
+        msg_id = msg_dict["header"]["MESSAGE ID"]
+        receivedTime = datetime.datetime.utcnow().strftime("%y/%m/%d %H:%M:%S")
+        sentTime = msg_dict['header']['MESSAGE SENT TIME']
+        timeDiff = datetime.datetime.strptime(receivedTime, "%y/%m/%d %H:%M:%S") - datetime.datetime.strptime(sentTime, "%y/%m/%d %H:%M:%S")
+        timeDiff_inSeconds = timeDiff.total_seconds()
+        # print("HERE")
+        with self.lock:
+            # print("____")
+            self.numMsgReceived += 1
+            self.totalLatency += timeDiff_inSeconds
+            self.idsReceived.add(msg_id)
+
+    def logMsgs(self):
+        stream = Stream(persist=True, auth=self.auth)
+        with stream.open(self.topic, "r") as s:
+            for msg in s:  # set timeout=0 so it doesn't stop listening to the topic
+                t = threading.Thread(target=self.countMsgThread, args=(msg.asdict()['content'],))
+                t.start()
+
+
+    def calculateAvgLatency(self):
+        """
+        Calculate the latency.
+        :return:
+        """
+        return self.totalLatency * 1.0 / self.numMsgReceived
+
+
+    def writeMessage(self, detector_id):
+        """
+        Return a dictionary of the message in the required format.
+        :param uuid:
+        :return:
+        """
+        now = datetime.datetime.utcnow().strftime("%y/%m/%d %H:%M:%S")
+        msg = {}
+        msg["header"] = {}
+        msg["header"]["MESSAGE ID"] = str(uuid.uuid4())
+        msg["header"]["DETECTOR"] = detector_id
+        msg["header"]["SUBJECT"] = "Test"
+        msg["header"]["MESSAGE SENT TIME"] = now
+        msg["header"]["NEUTRINO TIME"] = now
+        msg["header"]["LOCATION"] = test_locations[random.randint(0, 3)]
+        msg["header"]["P VALUE"] = "0.5"
+        msg["header"]["STATUS"] = "On"
+        msg["header"]["MESSAGE TYPE"] = "Latency Testing"
+        msg["header"]["FROM"] = "Skylar Xu  <yx48@rice.edu>"
+        msg["body"] = "This is an alert message generated at run time for testing message latency."
+        return msg
+
+
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-
+    # parser = argparse.ArgumentParser()
     # # temporary. May switch to subscribe(parser) later
-    # parser.add_argument('--f', type=str, metavar='N',
-    #                     help='The configuration file.')
+    # # parser.add_argument('--f', type=str, metavar='N',
+    # #                     help='The configuration file.')
     # args = parser.parse_args()
+    #
+    #
+    # print("Perform Integration Testing:")
+    # # run a model
+    # # m1 = subprocess.Popen(["python3",
+    # #                        "../hop/app/SNalert/model.py"])
+    # print("----------------------------------------")
+    # print("Integration Test #1")
+    # print("     Frequency of SNs:  ")
+    # test1 = integrationTest(10, 60, 2000)
+    # test1.run()
+    # print("     The number of concidences:  %d" % test1.getCount())
 
-    print("Perform Integration Testing:")
-    # run a model
-    # m1 = subprocess.Popen(["python3",
-    #                        "../hop/app/SNalert/model.py"])
+
+    print("Latency Test")
     print("----------------------------------------")
     print("Integration Test #1")
-    print("     Frequency of SNs:  ")
-    test1 = integrationTest(10, 20, 600, 2, 38)
-    test1.run()
-    print("     The number of concidences:  %d" % test1.getCount())
+    test = latencyTest("kafka://dev.hop.scimma.org:9092/snews-latencyTest", 5, 50)
+    print(test.totalTime)
+    test.runTest()
+    print("------")
+    startTime = time.monotonic()
+    # randomly publish messages
+    while time.monotonic() - startTime < 300:
+        foo = 1
+        # print(time.monotonic() - startTime)
+    print(test.calculateAvgLatency())
+    # print("     %d messages written." % test.numMsgPublished)
+    # print("     %d messages received and read." % test.numMsgReceived)
+    print("     %d messages written." % len(test.idsWritten))
+    print("     %d messages received and read." % len(test.idsReceived))
+    print("     %d messages read in written." % len(test.idsReceived.intersection(test.idsWritten)))

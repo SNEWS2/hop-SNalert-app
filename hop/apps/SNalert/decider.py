@@ -4,6 +4,13 @@ import datetime
 
 class Decider(IDecider.IDecider):
     def __init__(self, time_threshold, datetime_format, mongoServer, drop_db):
+        """
+        The constructor.
+        :param time_threshold:
+        :param datetime_format:
+        :param mongoServer:
+        :param drop_db:
+        """
         # intialize and use redis storage
         self.db = db_storage.storage(time_threshold, datetime_format, mongoServer, drop_db)
         self.tightThreshold = 10
@@ -27,21 +34,21 @@ class Decider(IDecider.IDecider):
         #         # if not, no-op or print a message
         #
 
-        # if not self.db.cacheEmpty():
-        #     cacheMsgs = self.db.getCacheMsgs()
-        #     prev = datetime.datetime.min
-        #     prev_location = "FOO LOCATION"
-        #     for msg in cacheMsgs:
-        #         neutrinoTime = msg["NEUTRINO TIME"]
-        #         if neutrinoTime - datetime.timedelta(seconds=self.tightThreshold) <= prev:
-        #             # verify location
-        #             if msg["header"]["location"] != prev_location:
-        #                 return True
-        #         prev = neutrinoTime
-        #         prev_location = msg["header"]["location"]
-        # return False
+        if not self.db.cacheEmpty():
+            cacheMsgs = self.db.getCacheMsgs()
+            prev = datetime.datetime.min
+            prev_location = "FOO LOCATION"
+            for msg in cacheMsgs:
+                neutrinoTime = msg["NEUTRINO TIME"]
+                if neutrinoTime - datetime.timedelta(seconds=self.tightThreshold) <= prev:
+                    # verify location
+                    if msg["header"]["LOCATION"] != prev_location:
+                        return True
+                prev = neutrinoTime
+                prev_location = msg["header"]["LOCATION"]
+        return False
 
-        return not self.db.cacheEmpty()
+        # return not self.db.cacheEmpty()
 
     def addMessage(self, sent_time, neutrino_time, message):
         """
@@ -53,11 +60,15 @@ class Decider(IDecider.IDecider):
         self.db.insert(sent_time, neutrino_time, message)
 
     def getCacheMessages(self):
+        """
+        Get messages that have not expired.
+        :return:
+        """
         return self.db.getCacheMsgs()
 
     def getAllMessages(self):
         """
-
+        Get all messages in history.
         :return:
         """
         return self.db.getAllMessages()

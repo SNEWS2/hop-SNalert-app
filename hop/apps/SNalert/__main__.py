@@ -4,7 +4,24 @@ import argparse
 import signal
 
 from . import __version__
+from . import model
 
+
+def append_subparser(subparser, cmd, func):
+
+    assert func.__doc__, "empty docstring: {}".format(func)
+    help_ = func.__doc__.split("\n")[0].lower().strip(".")
+    desc = func.__doc__.strip()
+
+    parser = subparser.add_parser(
+        cmd,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        help=help_,
+        description=desc,
+    )
+
+    parser.set_defaults(func=func)
+    return parser
 
 def _set_up_parser():
     """Set up parser for hop-SNalert app entry point.
@@ -16,6 +33,19 @@ def _set_up_parser():
     )
 
     # my arguments here
+    subparser = parser.add_subparsers(
+        title="Commands",
+        metavar="",
+        dest="cmd"
+    )
+
+    subparser.required = True
+
+
+    # registering the app
+    p = append_subparser(subparser, "model", model.main)
+    model._add_parser_args(p)
+
 
     return parser
 
@@ -25,6 +55,7 @@ def _set_up_cli():
 
     """
     signal.signal(signal.SIGINT, signal.SIG_DFL)
+
     parser = _set_up_parser()
     return parser.parse_args()
 

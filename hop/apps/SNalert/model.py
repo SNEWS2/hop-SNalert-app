@@ -3,13 +3,14 @@
 import smtplib
 import argparse
 import json
-from hop import stream
+from hop import Stream
+from hop import auth
+from hop.auth import Auth
 from hop.models import GCNCircular
-# from hop import cli
 from hop import subscribe
 import sys
-# import decider_deque
 import decider
+import msgSchema
 from pprint import pprint
 import subprocess
 import threading
@@ -19,6 +20,13 @@ import time
 import datetime
 import jsonschema
 from jsonschema import validate
+from dotenv import load_dotenv
+import dotenv
+import os
+import uuid
+
+from hypothesis import given
+from hypothesis.strategies  import lists, integers
 
 
 # https://github.com/scimma/may2020-techthon-demo/blob/master/hop/apps/email/example.py
@@ -26,7 +34,13 @@ def _add_parser_args(parser):
     """Parse arguments for broker, configurations and options
     """
     # All args from the subscriber
-    # subscribe._add_parser_args(parser)
+    subscribe._add_parser_args(parser)
+
+    parser.add_argument('--f', type=str, metavar='N',
+                        help="The path to the .env file.")
+    parser.add_argument('--default-authentication', type=str,
+                        help='Whether to use local ~/.config/hop-client/config.toml file or not.')
+
 
 # https://github.com/scimma/may2020-techthon-demo/blob/master/hop/apps/email/example.py
 def prepare_gcn(gcn_dict, json_dump=False):
@@ -48,6 +62,12 @@ def prepare_gcn(gcn_dict, json_dump=False):
 
 # verify json
 def validateJson(jsonData, jsonSchema):
+    """
+    Function for validate a json data using a json schema.
+    :param jsonData: the data to validate.
+    :param jsonSchema: the schema assumed to be correct.
+    :return: true or false
+    """
     try:
         validate(instance=jsonData, schema=jsonSchema)
     except jsonschema.exceptions.ValidationError as err:
@@ -57,55 +77,73 @@ def validateJson(jsonData, jsonSchema):
 
 class Model(object):
     def __init__(self, args):
+        """
+        The constructor of the model class.
+        :param args: the command line arguments
+        """
+        # load environment variables
+        load_dotenv(dotenv_path=args.f)
+
         self.args = args
         self.gcnFormat = "json"
-        # if args.drop_db == "t":
-        #     self.dropDB = True
-        # else:
-        #     self.dropDB = False
-        self.myDecider = decider.Decider(args.t, args.time_format,args.mongo_server, args.drop_db)
+        if os.getenv("NEW_DATABASE") in ('True', 'T', 't', 'true', 'TRUE', 'Yes', 'yes', 'Y', 'y'):
+            self.drop_db = True
+        else:
+            self.drop_db = False
+        print("--------")
+        print(type(os.getenv("NEW_DATABASE")))
+        self.myDecider = decider.Decider(int(os.getenv("TIMEOUT")), os.getenv("TIME_STRING_FORMAT"), os.getenv("DATABASE_SERVER"), self.drop_db)
         self.deciderUp = False
-        # self.heartbeatMsgPath = "dataPacket/heartBeatMsg.gcn3"
-        self.heartbeatMsgPath = args.heartbeat_path
 
-        self.regularMsgSchema = {
-            "type": "object",
-            "properties": {
-                "header": {
-                    "type": 'object',
-                    "properties": {
-                        "title": {"type": "string"},
-                        "number": {"type": "string"},
-                        "subject": {"type": "string"},
-                        "date": {"type": "string"},
-                        "from": {"type": "string"}
-                    }
-                },
-                "body": {"type": "string"}
-            }
-        }
+        # self.auth = Auth("snews", "afe3.sl!f9a", method=auth.SASLMethod.PLAIN)
+
+        self.regularMsgSchema = msgSchema.regularMsgSchema
 
         # m = threading.Thread(target=self.run)
 
-        # Ask for heartbeat message once the decider is up
-        # while True:
-        #     if self.deciderUp:
-        #         break
-        h = threading.Thread(target=self.sendHeartbeatMessage)
-        h.start()
+
+        if args.default_authentication in ('True', 'T', 't', 'true', 'TRUE', 'Yes', 'yes', 'Y', 'y'):
+            self.default_auth = True
+        else:
+            self.default_auth = False
+        # print(args.drop_db)
+        # print(type(args.default_authentication))
+        if self.default_auth == False:
+            username = os.getenv("USERNAME")
+            password = os.getenv("PASSWORD")
+            self.auth = Auth(username, password, method=auth.SASLMethod.PLAIN)
+        self.experiment_topic = os.getenv("OBSERVATION_TOPIC")
+        self.testing_topic = os.getenv("TESTING_TOPIC")
+        self.heartbeat_topic = os.getenv("HEARTBEAT_TOPIC")
+
+
+        # # Ask for heartbeat message once the decider is up
+        # # while True:
+        # #     if self.deciderUp:
+        # #         break
+        # h = threading.Thread(target=self.sendHeartbeatMessage)
+        # h.start()
+
         self.run()
 
 
     def run(self):
-        with stream.open("kafka://dev.hop.scimma.org:9092/snews-testing", "r", config=self.args.f, format=self.gcnFormat) as s:
+        """
+        Execute the model.
+        :return: none
+        """
+        stream = Stream(persist=True, auth=self.auth)
+        with stream.open(self.testing_topic, "r") as s:
             self.deciderUp = True
-            for gcn_dict in s(timeout=0):  # set timeout=0 so it doesn't stop listening to the topic
+            for msg in s:  # set timeout=0 so it doesn't stop listening to the topic
                 # print(type(gcn_dict))
                 # print(prepare_gcn(gcn_dict))
                 print("--THE MODEL")
-                print(gcn_dict)
-                print(gcn_dict['header']['subject'])
-                self.processMessage(gcn_dict)
+                msg_dict = msg.asdict()['content']
+                print(msg_dict)
+                print(type(msg_dict))
+                print(msg_dict['header']['SUBJECT'])
+                self.processMessage(msg_dict)
                 print("--THE MODEL")
                 print("")
 
@@ -114,10 +152,10 @@ class Model(object):
         """
         Initial alert model upon receiving published information.
         """
-        # sent_time = gcn['header']['message sent time']
-        # neutrino_time = gcn['header']['neutrino time']
-        sent_time = gcn['header']['date']
-        neutrino_time = gcn['header']['date']
+        sent_time = gcn['header']['MESSAGE SENT TIME']
+        neutrino_time = gcn['header']['NEUTRINO TIME']
+        # sent_time = gcn['header']['date']
+        # neutrino_time = gcn['header']['date']
 
         message = gcn['body']
         # print("---")
@@ -134,6 +172,11 @@ class Model(object):
 
 
     def processRegularMessage(self, message):
+        """
+        Process an observation message from experiments.
+        :param message:
+        :return: none
+        """
         # verify the schema
         isValid = validateJson(message, self.regularMsgSchema)
         if isValid == True:
@@ -144,16 +187,11 @@ class Model(object):
                 print(i)
             print("-- Model ???????")
             if alert == True:
-                # print("hhhhhhhhhhhhhhhhhhhhhhhhhh")
                 # publish to TOPIC2 and alert astronomers
-                publish_process = subprocess.Popen(['hop',
-                                                    'publish',
-                                                    'kafka://dev.hop.scimma.org:9092/snews-experiments',
-                                                    '-F',
-                                                    self.args.f,
-                                                    self.args.temp_gcnfile_path])
-                # '../../../utils/messages/unitTest.gcn3'])
-                # self.sendRegularMessage()
+                stream = Stream(auth=self.auth)
+                with stream.open(self.experiment_topic, "w") as s:
+                    s.write(self.writeAlertMsg())
+
         # else:
         #     # alert the experiment of the wrong message format
 
@@ -161,12 +199,9 @@ class Model(object):
     def sendHeartbeatMessage(self):
         while True:
             if self.deciderUp:
-                hb_process = subprocess.Popen(['hop',
-                                               'publish',
-                                               'kafka://dev.hop.scimma.org:9092/snews-heartbeat',
-                                               '-F',
-                                               self.args.f,
-                                               self.heartbeatMsgPath])
+                stream = Stream(auth=self.auth)
+                with stream.open(self.heartbeat_topic, "w") as s:
+                    s.write(self.writeRequestHeartbeatMsg())
             time.sleep(10)
 
 
@@ -183,104 +218,74 @@ class Model(object):
 
     def generateAlertMsg(self):
         time = datetime.datetime.utcnow()
-        fileName = time.strptime("%y/%m/%d%H:%M:%S")
+        fileName = time.strftime("%y/%m/%d%H:%M:%S")
         pass
+    
+    # def sendOutEmails(self):
+    #     pass
+
+    def writeAlertMsg(self):
+        msg = {}
+        msg["header"] = {}
+        msg["header"]["MESSAGE ID"] = str(uuid.uuid4())
+        msg["header"]["SUBJECT"] = "Test Alert"
+        msg["header"]["MESSAGE SENT TIME"] = datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT"))
+        msg["header"]["LOCATION"] = "Houston"
+        msg["header"]["STATUS"] = "On"
+        msg["header"]["MESSAGE TYPE"] = "TEST"
+        msg["header"]["FROM"] = "Skylar Xu  <yx48@rice.edu>"
+        msg["body"] = "This is an alert message generated at run time for testing purposes."
+        return msg
+
+    def writeRequestHeartbeatMsg(self):
+        msg = {}
+        msg["header"] = {}
+        msg["header"]["MESSAGE ID"] = str(uuid.uuid4())
+        msg["header"]["SUBJECT"] = "Test Heartbeat"
+        msg["header"]["MESSAGE SENT TIME"] = datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT"))
+        msg["header"]["LOCATION"] = "Houston"
+        msg["header"]["STATUS"] = "On"
+        msg["header"]["MESSAGE TYPE"] = "Heartbeat"
+        msg["header"]["FROM"] = "Skylar Xu  <yx48@rice.edu>"
+        msg["body"] = "This is an alert message generated at run time for testing purposes."
+        return msg
 
 
 # ------------------------------------------------
 # -- main
-
-# def _main(args=None):
-#     """main function
-#     """
-#
-#     if not args:
-#         parser = argparse.ArgumentParser()
-#         _add_parser_args(parser)
-#
-#         # temporary. May switch to subscribe(parser) later
-#         parser.add_argument('--f', type=str, metavar='N',
-#                             help='The configuration file.')
-#         parser.add_argument('--t', type=int, metavar='N',
-#                             help='The time period where observations of a supernova could occur. unit: seconds')
-#         parser.add_argument('--time-format', type=str, metavar='N',
-#                             help='The format of the time string in all messages.')
-#         parser.add_argument('--temp-gcnfile-path', type=str, metavar='N',
-#                             help='The temporary path to the gcn file published to all experiments. At later stage, generate this at run time.')
-#         # parser.add_argument('--alert-url', type=str, metavar='N',
-#         #                     help='The kafka url the every experiment listen to.')
-#         # parser.add_argument('--emails-file', type=str, metavar='N',
-#         #                     help='Send alerts to these emails upon possible SN.')
-#         # parser.add_argument('--subscribe-topic', type=str, metavar='N',
-#         #                     help='The topic that the decider listens to.')
-#         # parser.add_argument('--publish-topic', type=str, metavar='N',
-#         #                     help='The topic that the decider publishes to.')
-#         parser.add_argument('--mongo-server', type=str, metavar='N',
-#                             help='The MongoDB server to be used.')
-#         parser.add_argument('--drop-db', type=bool, metavar='N',
-#                             help='Whether to drop and restart a database or not.')
-#         args = parser.parse_args()
-#
-#     # # load config if specified
-#     # config = cli.load_config(args)
-#     #
-#     # # load consumer options
-#     # start_offset = "earliest" if args.earliest else "latest"
-#
-#     gcn_format = "json"
-#     # receivers = [email for email in args.email]
-#
-#     the_decider = decider.Decider(args.t, args.time_format,args.mongo_server, args.drop_db)
-#
-#     with stream.open("kafka://dev.hop.scimma.org:9092/snews-testing", "r", config=args.f, format=gcn_format) as s:
-#         for gcn_dict in s(timeout=0): # set timeout=0 so it doesn't stop listening to the topic
-#             # print(type(gcn_dict))
-#             # print(prepare_gcn(gcn_dict))
-#             print("--THE MODEL")
-#             # pprint(type(gcn_dict))
-#             add_gcn(gcn_dict, the_decider)
-#             alert = the_decider.deciding()
-#             if alert == True:
-#                 # publish to TOPIC2 and alert astronomers
-#                 # print("haha")
-#                 publish_process = subprocess.Popen(['hop',
-#                                                     'publish',
-#                                                     'kafka://dev.hop.scimma.org:9092/snews-experiments',
-#                                                     '-F',
-#                                                     args.f,
-#                                                     args.temp_gcnfile_path])
-#                                                     # '../../../utils/messages/unitTest.gcn3'])
-#             print("--THE MODEL")
-#             print("")
+def main(args):
+    """main function
+    """
+    model = Model(args)
 
 
-# temporary
 if __name__ == '__main__':
-    # _main()
     parser = argparse.ArgumentParser()
     _add_parser_args(parser)
-
-    # temporary. May switch to subscribe(parser) later
-    parser.add_argument('--f', type=str, metavar='N',
-                        help='The configuration file.')
-    parser.add_argument('--t', type=int, metavar='N',
-                        help='The time period where observations of a supernova could occur. unit: seconds')
-    parser.add_argument('--time-format', type=str, metavar='N',
-                        help='The format of the time string in all messages.')
-    parser.add_argument('--temp-gcnfile-path', type=str, metavar='N',
-                        help='The temporary path to the gcn file published to all experiments. At later stage, generate this at run time.')
+    # parser.add_argument('--t', type=int, metavar='N',
+    #                     help='The time period where observations of a supernova could occur. unit: seconds')
+    # parser.add_argument('--time-format', type=str, metavar='N',
+    #                     help='The format of the time string in all messages.')
     # parser.add_argument('--emails-file', type=str, metavar='N',
     #                     help='Send alerts to these emails upon possible SN.')
-    # parser.add_argument('--subscribe-topic', type=str, metavar='N',
-    #                     help='The topic that the decider listens to.')
-    # parser.add_argument('--publish-topic', type=str, metavar='N',
-    #                     help='The topic that the decider publishes to.')
-    parser.add_argument('--mongo-server', type=str, metavar='N',
-                        help='The MongoDB server to be used.')
-    parser.add_argument('--drop-db', type=bool, metavar='N',
-                        help='Whether to drop and restart a database or not.')
-    parser.add_argument('--heartbeat-path', type=str, metavar='N',
-                        help='The heartbeat message file.')
+    # parser.add_argument('--mongo-server', type=str, metavar='N',
+    #                     help='The MongoDB server to be used.')
+    # parser.add_argument('--drop-db', type=str, metavar='N',
+    #                     help='Whether to drop and restart a database or not.')
+    
+    ## FORMAL ENVIRONMENTAL VARIABLES
+    # parser.add_argument('--username', type=str, metavar='N',
+    #                     help='The credential for Hopskotch. If not specified, look for the default file under .config/hop')
+    # parser.add_argument('--password', type=str, metavar='N',
+    #                     help='The credential for Hopskotch. If not specified, look for the default file under .config/hop')
+    parser.add_argument('--f', type=str, metavar='N',
+                        help="The path to the .env file.")
+    parser.add_argument('--default-authentication', type=str,
+                        help='Whether to use local ~/.config/hop-client/config.toml file or not.')
     args = parser.parse_args()
 
-    model = Model(args)
+    # model = Model(args)
+    main(args)
+
+
+

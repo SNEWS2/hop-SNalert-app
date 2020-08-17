@@ -23,7 +23,7 @@ def append_subparser(subparser, cmd, func):
     parser.set_defaults(func=func)
     return parser
 
-def _set_up_parser():
+def set_up_cli():
     """Set up parser for hop-SNalert app entry point.
 
     """
@@ -50,23 +50,15 @@ def _set_up_parser():
     return parser
 
 
-def _set_up_cli():
-    """Set up CLI boilerplate for hop-SNalert app entry point.
-
-    """
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-
-    parser = _set_up_parser()
-    return parser.parse_args()
-
-
 # ------------------------------------------------
 # -- main
 
 def main():
-    args = _set_up_cli()
+    signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    # do stuff here
+    parser = set_up_cli()
+    args = parser.parse_args()
+    args.func(args)
 
 
 if __name__ == "__main__":

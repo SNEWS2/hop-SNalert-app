@@ -9,12 +9,9 @@ from hop.auth import Auth
 from hop.models import GCNCircular
 from hop import subscribe
 import sys
-import decider
-import msgSchema
 from pprint import pprint
 import subprocess
 import threading
-from dataPacket import RegularDataPacket
 import pickle
 import time
 import datetime
@@ -25,8 +22,9 @@ import dotenv
 import os
 import uuid
 
-from hypothesis import given
-from hypothesis.strategies  import lists, integers
+from . import decider
+from . import msgSchema
+from .dataPacket import RegularDataPacket
 
 
 # https://github.com/scimma/may2020-techthon-demo/blob/master/hop/apps/email/example.py
@@ -36,6 +34,22 @@ def _add_parser_args(parser):
     # All args from the subscriber
     subscribe._add_parser_args(parser)
 
+    # parser.add_argument('--t', type=int, metavar='N',
+    #                     help='The time period where observations of a supernova could occur. unit: seconds')
+    # parser.add_argument('--time-format', type=str, metavar='N',
+    #                     help='The format of the time string in all messages.')
+    # parser.add_argument('--emails-file', type=str, metavar='N',
+    #                     help='Send alerts to these emails upon possible SN.')
+    # parser.add_argument('--mongo-server', type=str, metavar='N',
+    #                     help='The MongoDB server to be used.')
+    # parser.add_argument('--drop-db', type=str, metavar='N',
+    #                     help='Whether to drop and restart a database or not.')
+
+    ## FORMAL ENVIRONMENTAL VARIABLES
+    # parser.add_argument('--username', type=str, metavar='N',
+    #                     help='The credential for Hopskotch. If not specified, look for the default file under .config/hop')
+    # parser.add_argument('--password', type=str, metavar='N',
+    #                     help='The credential for Hopskotch. If not specified, look for the default file under .config/hop')
     parser.add_argument('--f', type=str, metavar='N',
                         help="The path to the .env file.")
     parser.add_argument('--default-authentication', type=str,
@@ -262,30 +276,6 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     _add_parser_args(parser)
-    # parser.add_argument('--t', type=int, metavar='N',
-    #                     help='The time period where observations of a supernova could occur. unit: seconds')
-    # parser.add_argument('--time-format', type=str, metavar='N',
-    #                     help='The format of the time string in all messages.')
-    # parser.add_argument('--emails-file', type=str, metavar='N',
-    #                     help='Send alerts to these emails upon possible SN.')
-    # parser.add_argument('--mongo-server', type=str, metavar='N',
-    #                     help='The MongoDB server to be used.')
-    # parser.add_argument('--drop-db', type=str, metavar='N',
-    #                     help='Whether to drop and restart a database or not.')
-    
-    ## FORMAL ENVIRONMENTAL VARIABLES
-    # parser.add_argument('--username', type=str, metavar='N',
-    #                     help='The credential for Hopskotch. If not specified, look for the default file under .config/hop')
-    # parser.add_argument('--password', type=str, metavar='N',
-    #                     help='The credential for Hopskotch. If not specified, look for the default file under .config/hop')
-    parser.add_argument('--f', type=str, metavar='N',
-                        help="The path to the .env file.")
-    parser.add_argument('--default-authentication', type=str,
-                        help='Whether to use local ~/.config/hop-client/config.toml file or not.')
     args = parser.parse_args()
 
-    # model = Model(args)
     main(args)
-
-
-

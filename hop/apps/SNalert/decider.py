@@ -1,6 +1,6 @@
-import db_storage
-import IDecider
 import datetime
+from . import db_storage
+from . import IDecider
 
 class Decider(IDecider.IDecider):
     def __init__(self, time_threshold, datetime_format, mongoServer, drop_db):

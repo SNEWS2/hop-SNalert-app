@@ -24,10 +24,10 @@ def append_subparser(subparser, cmd, func):
     return parser
 
 def set_up_cli():
-    """Set up parser for hop-SNalert app entry point.
+    """Set up parser for SNalert entry point.
 
     """
-    parser = argparse.ArgumentParser(prog="hop-SNalert")
+    parser = argparse.ArgumentParser(prog="SNalert")
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s version {__version__}",
     )

@@ -90,7 +90,7 @@ class Model(object):
             self.drop_db = True
         else:
             self.drop_db = False
-        print("--------")
+        # print("--------")
         print(type(os.getenv("NEW_DATABASE")))
         self.myDecider = decider.Decider(int(os.getenv("TIMEOUT")), os.getenv("TIME_STRING_FORMAT"), os.getenv("DATABASE_SERVER"), self.drop_db)
         self.deciderUp = False

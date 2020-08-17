@@ -2,6 +2,7 @@ import subprocess
 from hop import Stream
 from hop.auth import Auth
 from hop import auth
+from hop.io import StartPosition
 from hop.models import GCNCircular
 import argparse
 import random
@@ -11,6 +12,8 @@ from functools import wraps
 import datetime
 import numpy
 import uuid
+from dotenv import load_dotenv
+import os
 
 from unittest.mock import Mock
 import unittest
@@ -27,6 +30,9 @@ from mongoengine import connect, disconnect
 # from .. import test_anything
 
 test_locations = ["Houston", "New York", "Boston", "Not Texas"]
+
+# load environment variables
+load_dotenv(dotenv_path='./../.env')
 
 # for measuring function execution time
 # https://stackoverflow.com/questions/3620943/measuring-elapsed-time-with-the-time-module
@@ -85,15 +91,14 @@ class integrationTest(object):
         :param totalTime:
         """
         self.count = 0
-        self.topic = "kafka://dev.hop.scimma.org:9092/snews-experiments"
-        self.configF = "../utils/config.conf"
+        self.topic = os.getenv("OBSERVATION_TOPIC")
         self.mean = mean
         self.totalTime = totalTime
         # self.minTime = min
         # self.maxTime = max
         self.timeOut = timeout
 
-        self.auth = Auth("snews", "afe3.sl!f9a", method=auth.SASLMethod.PLAIN)
+        self.auth = Auth(os.getenv("USERNAME"), os.getenv("PASSWORD"), method=auth.SASLMethod.PLAIN)
 
     def run(self):
         """
@@ -120,10 +125,10 @@ class integrationTest(object):
                 if time.monotonic() - start2 > randomTime:
                     break
             # write message with current time
-            now = datetime.datetime.utcnow().strftime("%y/%m/%d %H:%M:%S")
+            now = datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT"))
             # newFileName = self.writeMessage(now)
             stream = Stream(auth=self.auth)
-            with stream.open("kafka://dev.hop.scimma.org:9092/snews-testing", "w") as s:
+            with stream.open(os.getenv("TESTING_TOPIC"), "w") as s:
                 s.write(self.writeMessage(now))
 
         m.kill()
@@ -185,14 +190,14 @@ class latencyTest(object):
         self.countMsg = {}
         self.totalTime = time
         self.topic = topic
-        self.auth = Auth("snews", "afe3.sl!f9a", method=auth.SASLMethod.PLAIN)
+        self.auth = Auth(os.getenv("USERNAME"), os.getenv("PASSWORD"), method=auth.SASLMethod.PLAIN)
         self.idsWritten = set()
         self.idsReceived = set()
 
         self.lock = threading.Lock()
 
     def oneDetectorThread(self, uuid):
-        lock = threading.Lock()
+        # lock = threading.Lock()
         print(uuid)
         # print(timeout)
         startTime = time.monotonic()
@@ -205,7 +210,7 @@ class latencyTest(object):
             with stream.open(self.topic, "w") as s:
                 msg = self.writeMessage(uuid)
                 s.write(msg)
-                with lock:
+                with self.lock:
                     self.numMsgPublished += 1
                     self.idsWritten.add(msg["header"]["MESSAGE ID"])
 
@@ -218,12 +223,19 @@ class latencyTest(object):
         """
         # create the topic if doesn't exist
         stream = Stream(auth=self.auth)
-        with stream.open(self.topic, "w") as s:
-            s.write({"TEST": "TEST"})
+        # with stream.open(self.topic, "w") as s:
+        #     s.write({"TEST": "TEST"})
 
         # first run the thread that logs every message received
         logThread = threading.Thread(target=self.logMsgs)
         logThread.start()
+
+        # wait a few seconds
+        startTime = time.monotonic()
+        # randomly publish messages
+        while time.monotonic() - startTime < 10:
+            foo = 1
+
 
         for i in range(self.numDetector):
             # print(i)
@@ -235,6 +247,10 @@ class latencyTest(object):
             t.start()
 
 
+        # # first run the thread that logs every message received
+        # logThread = threading.Thread(target=self.logMsgs)
+        # logThread.start()
+
     def countMsgThread(self, msg_dict):
         """
         A single thread for process the message received for Latency test.
@@ -244,9 +260,9 @@ class latencyTest(object):
         # msg_dict = msg.asdict()['content']
         id = msg_dict['header']['DETECTOR']
         msg_id = msg_dict["header"]["MESSAGE ID"]
-        receivedTime = datetime.datetime.utcnow().strftime("%y/%m/%d %H:%M:%S")
+        receivedTime = datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT"))
         sentTime = msg_dict['header']['MESSAGE SENT TIME']
-        timeDiff = datetime.datetime.strptime(receivedTime, "%y/%m/%d %H:%M:%S") - datetime.datetime.strptime(sentTime, "%y/%m/%d %H:%M:%S")
+        timeDiff = datetime.datetime.strptime(receivedTime, os.getenv("TIME_STRING_FORMAT")) - datetime.datetime.strptime(sentTime, os.getenv("TIME_STRING_FORMAT"))
         timeDiff_inSeconds = timeDiff.total_seconds()
         # print("HERE")
         with self.lock:
@@ -256,6 +272,7 @@ class latencyTest(object):
             self.idsReceived.add(msg_id)
 
     def logMsgs(self):
+        # stream = Stream(persist=True, auth=self.auth, start_at=StartPosition.EARLIEST)
         stream = Stream(persist=True, auth=self.auth)
         with stream.open(self.topic, "r") as s:
             for msg in s:  # set timeout=0 so it doesn't stop listening to the topic
@@ -277,7 +294,7 @@ class latencyTest(object):
         :param uuid:
         :return:
         """
-        now = datetime.datetime.utcnow().strftime("%y/%m/%d %H:%M:%S")
+        now = datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT"))
         msg = {}
         msg["header"] = {}
         msg["header"]["MESSAGE ID"] = str(uuid.uuid4())
@@ -293,10 +310,12 @@ class latencyTest(object):
         msg["body"] = "This is an alert message generated at run time for testing message latency."
         return msg
 
-
+    def check(self):
+        assert self.numMsgReceived == self.numMsgPublished
 
 
 if __name__ == '__main__':
+
     # parser = argparse.ArgumentParser()
     # # temporary. May switch to subscribe(parser) later
     # # parser.add_argument('--f', type=str, metavar='N',
@@ -325,12 +344,13 @@ if __name__ == '__main__':
     print("------")
     startTime = time.monotonic()
     # randomly publish messages
-    while time.monotonic() - startTime < 300:
+    while time.monotonic() - startTime < 100:
         foo = 1
         # print(time.monotonic() - startTime)
     print(test.calculateAvgLatency())
-    # print("     %d messages written." % test.numMsgPublished)
-    # print("     %d messages received and read." % test.numMsgReceived)
-    print("     %d messages written." % len(test.idsWritten))
-    print("     %d messages received and read." % len(test.idsReceived))
-    print("     %d messages read in written." % len(test.idsReceived.intersection(test.idsWritten)))
+    print("     %d messages written." % test.numMsgPublished)
+    print("     %d messages received and read." % test.numMsgReceived)
+    # print("     %d messages written." % len(test.idsWritten))
+    # print("     %d messages received and read." % len(test.idsReceived))
+    # print("     %d messages read in written." % len(test.idsReceived.intersection(test.idsWritten)))
+    assert test.numMsgPublished == test.numMsgReceived

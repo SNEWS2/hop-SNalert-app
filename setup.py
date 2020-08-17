@@ -8,7 +8,10 @@ with open(os.path.join(this_dir, 'README.md'), 'rb') as f:
 
 # requirements
 install_requires = [
-    "hop-client >= 0.0.5",
+    "hop-client >= 0.1",
+    "jsonschema",
+    "pymongo",
+    "python-dotenv",
 ]
 extras_require = {
     'dev': ['pytest', 'pytest-console-scripts', 'pytest-cov', 'flake8', 'flake8-black'],
@@ -25,11 +28,11 @@ setup(
     author_email = 'yx48@rice.edu/skyxuyy@gmail.com',
     license = 'BSD 3-Clause',
 
-    packages = ['hop.apps.SNalert'],
+    packages = ['hop.apps.SNalert', 'hop.apps.SNalert.dataPacket'],
 
     entry_points = {
         'console_scripts': [
-            'hop-SNalert = hop.apps.SNalert.__main__:main',
+            'SNalert = hop.apps.SNalert.__main__:main',
         ],
     },
 

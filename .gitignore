@@ -1,0 +1,13 @@
+# build artifacts
+build/
+.eggs/
+tests/.eggs/
+*.egg-info/
+dist/
+__pycache__/
+doc/_build/
+*.pyc
+.coverage
+
+# configuration
+.env

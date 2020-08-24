@@ -1,12 +1,12 @@
 from hop import plugins
-from .dataPacket.observationMsg import ObservationMsg
-from .dataPacket.heartbeatMsg import HeartbeatMsg
-from .dataPacket.alertMsg import AlertMsg
+from .dataPacket.observationMsg import SNEWSObservation
+from .dataPacket.heartbeatMsg import SNEWSHeartbeat
+from .dataPacket.alertMsg import SNEWSAlert
 
 @plugins.register
 def get_models():
     return {
-        "observationMsg": ObservationMsg,
-        "heartbeatMsg": HeartbeatMsg,
-        "alertMsg": AlertMsg
+        "snewsobservation": SNEWSObservation,
+        "snewsheartbeat": SNEWSHeartbeat,
+        "snewsalert": SNEWSHeartbeat
     }

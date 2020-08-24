@@ -27,9 +27,9 @@ import random
 
 from . import decider
 from . import msgSchema
-from .dataPacket.observationMsg import ObservationMsg
-from .dataPacket.heartbeatMsg import HeartbeatMsg
-from .dataPacket.alertMsg import AlertMsg
+from .dataPacket.observationMsg import SNEWSObservation
+from .dataPacket.heartbeatMsg import SNEWSHeartbeat
+from .dataPacket.alertMsg import SNEWSAlert
 
 
 # https://github.com/scimma/may2020-techthon-demo/blob/master/hop/apps/email/example.py
@@ -123,8 +123,8 @@ class Model(object):
 
         # message types and processing algorithms
         self.mapping = {
-            ObservationMsg.getID().key: self.processObservationMessage,
-            HeartbeatMsg.getID().key: self.processHearbeatMessage
+            SNEWSObservation.__name__: self.processObservationMessage,
+            SNEWSHeartbeat.__name__: self.processHearbeatMessage
         }
 
         self.run()
@@ -134,7 +134,7 @@ class Model(object):
     #     while True:
     #         stream = Stream(auth=self.auth)
     #
-    #         obsMsg = ObservationMsg(str(uuid.uuid4()),
+    #         obsMsg = SNEWSObservation(str(uuid.uuid4()),
     #                                 "DETECTOR 1",
     #                                 datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
     #                                 datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
@@ -162,14 +162,12 @@ class Model(object):
                 self.processMessage(msg)
 
     def addObservationMsg(self, message):
-        sent_time = message.getSentTime()
-        neutrino_time = message.getNeutrinoTime()
-        self.myDecider.addMessage(sent_time, neutrino_time, message.asdict())
+        self.myDecider.addMessage(message)
 
     def processMessage(self, message):
-        if "getID" in dir(message):
-            if message.getID().key in self.mapping:
-                self.mapping[message.getID().key](message)
+        message_type = type(message).__name__
+        if message_type in self.mapping:
+            self.mapping[message_type](message)
 
     def processObservationMessage(self, message):
         self.addObservationMsg(message)
@@ -187,7 +185,7 @@ class Model(object):
     #     pass
 
     def writeAlertMsg(self):
-        msg = AlertMsg(str(uuid.uuid4()),
+        msg = SNEWSAlert(str(uuid.uuid4()),
                        datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
                        datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
                        "Supernova Alert")

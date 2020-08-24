@@ -53,14 +53,14 @@ class Decider(IDecider.IDecider):
 
         # return not self.db.cacheEmpty()
 
-    def addMessage(self, sent_time, neutrino_time, message):
+    def addMessage(self, message):
         """
         logs should be a gcn or other format of record retrieved from hopskotch stream.
         :param logs:
         :return:
         """
         # insert it the deque
-        self.db.insert(sent_time, neutrino_time, message)
+        self.db.insert(message.sent_time, message.neutrino_time, message.asdict())
 
     def getCacheMessages(self):
         """

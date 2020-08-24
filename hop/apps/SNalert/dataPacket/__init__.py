@@ -8,7 +8,7 @@ from dataclasses_jsonschema import JsonSchemaMixin
 @dataclass
 class SNEWSBase(MessageModel, JsonSchemaMixin):
     """
-    Defines an observation published by a detector.
+    Defines a base SNEWS message type.
 
     Formatted as a dictionary with the schema defined in the jsonSchema file.
 

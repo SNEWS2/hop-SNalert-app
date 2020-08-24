@@ -27,7 +27,6 @@ import random
 
 from . import decider
 from . import msgSchema
-from .dataPacket import RegularDataPacket
 from .dataPacket.observationMsg import ObservationMsg
 from .dataPacket.heartbeatMsg import HeartbeatMsg
 from .dataPacket.alertMsg import AlertMsg

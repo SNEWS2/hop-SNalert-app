@@ -8,6 +8,7 @@ from hop import auth
 from hop.auth import Auth
 from hop.models import GCNCircular
 from hop import subscribe
+from hop import cli
 import sys
 from pprint import pprint
 import subprocess
@@ -36,18 +37,17 @@ from .dataPacket.alertMsg import SNEWSAlert
 def _add_parser_args(parser):
     """Parse arguments for broker, configurations and options
     """
-    # All args from the subscriber
-    subscribe._add_parser_args(parser)
+    # Add general client args
+    cli.add_client_opts(parser)
 
     ## FORMAL ENVIRONMENTAL VARIABLES
     # parser.add_argument('--username', type=str, metavar='N',
     #                     help='The credential for Hopskotch. If not specified, look for the default file under .config/hop')
     # parser.add_argument('--password', type=str, metavar='N',
     #                     help='The credential for Hopskotch. If not specified, look for the default file under .config/hop')
-    parser.add_argument('--f', type=str, metavar='N',
-                        help="The path to the .env file.")
-    parser.add_argument('--default-authentication', type=str,
-                        help='Whether to use local ~/.config/hop-client/config.toml file or not.')
+    parser.add_argument('-f', '--env-file', type=str, help="The path to the .env file.")
+    parser.add_argument('--use-default-auth', action="store_true",
+                        help='If set, use local ~/.config/hop-client/config.toml file to authenticate.')
 
 
 # https://github.com/scimma/may2020-techthon-demo/blob/master/hop/apps/email/example.py
@@ -90,32 +90,26 @@ class Model(object):
         :param args: the command line arguments
         """
         # load environment variables
-        load_dotenv(dotenv_path=args.f)
+        load_dotenv(dotenv_path=args.env_file)
 
         self.args = args
         self.gcnFormat = "json"
-        if os.getenv("NEW_DATABASE") in ('True', 'T', 't', 'true', 'TRUE', 'Yes', 'yes', 'Y', 'y'):
-            self.drop_db = True
-        else:
-            self.drop_db = False
+        self.drop_db = bool(os.getenv("NEW_DATABASE"))
         self.myDecider = decider.Decider(int(os.getenv("TIMEOUT")), os.getenv("TIME_STRING_FORMAT"), os.getenv("DATABASE_SERVER"), self.drop_db)
         self.deciderUp = False
-
-        # self.auth = Auth("snews", "afe3.sl!f9a", method=auth.SASLMethod.PLAIN)
-
         self.regularMsgSchema = msgSchema.regularMsgSchema
 
-        # m = threading.Thread(target=self.run)
-
-
-        if args.default_authentication in ('True', 'T', 't', 'true', 'TRUE', 'Yes', 'yes', 'Y', 'y'):
-            self.default_auth = True
-        else:
-            self.default_auth = False
-        if self.default_auth == False:
+        # configure authentication
+        if args.no_auth:
+            self.auth = False
+        elif not args.use_default_auth:
             username = os.getenv("USERNAME")
             password = os.getenv("PASSWORD")
             self.auth = Auth(username, password, method=auth.SASLMethod.PLAIN)
+        else:
+            self.auth = True
+
+        # specify topics
         self.experiment_topic = os.getenv("OBSERVATION_TOPIC")
         self.testing_topic = os.getenv("TESTING_TOPIC")
         self.heartbeat_topic = os.getenv("HEARTBEAT_TOPIC")

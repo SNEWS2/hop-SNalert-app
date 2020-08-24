@@ -11,22 +11,18 @@ class storage(IStorage.IStorage):
         :param datetime_format:
         '''
         # Construct Mongodb first, used to store the json dictionary
-        # self.client = MongoClient()
-        # self.client = MongoClient('localhost', 27017)
         self.client = MongoClient(server)
 
         self.db = self.client.test_database
         self.all_messages = self.db.test_collection
         self.cache = self.db.test_cache
         # drop the database and previous records
-        if drop_db == True:
+        if drop_db:
             self.all_messages.delete_many({})
             self.cache.delete_many({})
             self.all_messages.drop_indexes()
             self.cache.drop_indexes()
         # don't drop
-        # self.all_messages.create_index("SENT TIME")
-        # self.cache.create_index("SENT TIME", expireAfterSeconds=timeout)
         self.all_messages.create_index("sent_time")
         self.cache.create_index("sent_time", expireAfterSeconds=timeout)
 
@@ -44,8 +40,6 @@ class storage(IStorage.IStorage):
         time2 = datetime.datetime.strptime(sent_time, self.datetime_format)
         time3 = datetime.datetime.strptime(neutrino_time, self.datetime_format)
         message2 = message
-        # message2["SENT TIME"] = time2
-        # message2["NEUTRINO TIME"] = time3
         message2["sent_time"] = time2
         message2["neutrino_time"] = time3
         # first insert into MongoDB
@@ -65,11 +59,9 @@ class storage(IStorage.IStorage):
         sort by 2 gives dates from recent to old
         :return:
         """
-        # return self.all_messages.find().sort("SENT TIME", -1)
         return self.all_messages.find().sort("sent_time", -1)
 
     def getCacheMsgs(self):
-        # return self.cache.find().sort("SENT TIME", -1)
         return self.cache.find().sort("sent_time", -1)
 
     def cacheEmpty(self):

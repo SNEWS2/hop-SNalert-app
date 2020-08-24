@@ -9,7 +9,8 @@ with open(os.path.join(this_dir, 'README.md'), 'rb') as f:
 # requirements
 install_requires = [
     "hop-client >= 0.1",
-    "jsonschema",
+    "dataclasses-jsonschema",
+    "numpy",
     "pymongo",
     "python-dotenv",
 ]

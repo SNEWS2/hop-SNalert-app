@@ -1,30 +1,24 @@
 #!/usr/bin/env python
 
-import smtplib
 import argparse
-import json
-from hop import Stream
-from hop import auth
-from hop.auth import Auth
-from hop.models import GCNCircular
-from hop import subscribe
-from hop import cli
-import sys
-from pprint import pprint
-import subprocess
-import threading
-import pickle
-import time
 import datetime
-import jsonschema
-from jsonschema import validate
-from dotenv import load_dotenv
-import dotenv
 import os
+import random
+import smtplib
+import sys
+import time
 import uuid
 
+from dotenv import load_dotenv
+import jsonschema
+from jsonschema import validate
 import numpy
-import random
+
+from hop import Stream
+from hop import auth
+from hop import cli
+from hop import subscribe
+from hop.auth import Auth
 
 from . import decider
 from . import msgSchema
@@ -33,7 +27,6 @@ from .dataPacket.heartbeatMsg import SNEWSHeartbeat
 from .dataPacket.alertMsg import SNEWSAlert
 
 
-# https://github.com/scimma/may2020-techthon-demo/blob/master/hop/apps/email/example.py
 def _add_parser_args(parser):
     """Parse arguments for broker, configurations and options
     """
@@ -48,24 +41,6 @@ def _add_parser_args(parser):
     parser.add_argument('-f', '--env-file', type=str, help="The path to the .env file.")
     parser.add_argument('--use-default-auth', action="store_true",
                         help='If set, use local ~/.config/hop-client/config.toml file to authenticate.')
-
-
-# https://github.com/scimma/may2020-techthon-demo/blob/master/hop/apps/email/example.py
-def prepare_gcn(gcn_dict, json_dump=False):
-    """Parse a gcn dictionary and print to stdout.
-    Args:
-      gcn_dict:  the dictionary object containing a GCN-formatted message
-    Returns:
-      None
-    """
-    if json_dump:
-        return (json.dumps(gcn_dict))
-    else:
-        gcn = GCNCircular(**gcn_dict)
-        message = ""
-        for line in str(gcn).splitlines():
-            message += line + "\n"
-        return message
 
 
 # verify json
@@ -121,8 +96,6 @@ class Model(object):
             SNEWSHeartbeat.__name__: self.processHearbeatMessage
         }
 
-        self.run()
-
 
     # def writeCustomMsg(self):
     #     while True:
@@ -146,13 +119,10 @@ class Model(object):
         Execute the model.
         :return: none
         """
-        # t = threading.Thread(target=self.writeCustomMsg)
-        # t.start()
-
         stream = Stream(persist=True, auth=self.auth)
         with stream.open(self.testing_topic, "r") as s:
             self.deciderUp = True
-            for msg in s:  # set timeout=0 so it doesn't stop listening to the topic
+            for msg in s:
                 self.processMessage(msg)
 
     def addObservationMsg(self, message):
@@ -166,7 +136,7 @@ class Model(object):
     def processObservationMessage(self, message):
         self.addObservationMsg(message)
         alert = self.myDecider.deciding()
-        if alert == True:
+        if alert:
             # publish to TOPIC2 and alert astronomers
             stream = Stream(auth=self.auth)
             with stream.open(self.alert_topic, "w") as s:
@@ -180,18 +150,17 @@ class Model(object):
 
     def writeAlertMsg(self):
         msg = SNEWSAlert(str(uuid.uuid4()),
-                       datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
-                       datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
-                       "Supernova Alert")
+                         datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
+                         datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
+                         "Supernova Alert")
         return msg
 
 
-# ------------------------------------------------
-# -- main
 def main(args):
     """main function
     """
     model = Model(args)
+    model.run()
 
 
 if __name__ == '__main__':

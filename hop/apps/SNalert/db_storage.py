@@ -25,8 +25,10 @@ class storage(IStorage.IStorage):
             self.all_messages.drop_indexes()
             self.cache.drop_indexes()
         # don't drop
-        self.all_messages.create_index("SENT TIME")
-        self.cache.create_index("SENT TIME", expireAfterSeconds=timeout)
+        # self.all_messages.create_index("SENT TIME")
+        # self.cache.create_index("SENT TIME", expireAfterSeconds=timeout)
+        self.all_messages.create_index("sent_time")
+        self.cache.create_index("sent_time", expireAfterSeconds=timeout)
 
         self.timeout = timeout
         self.datetime_format = datetime_format
@@ -42,8 +44,10 @@ class storage(IStorage.IStorage):
         time2 = datetime.datetime.strptime(sent_time, self.datetime_format)
         time3 = datetime.datetime.strptime(neutrino_time, self.datetime_format)
         message2 = message
-        message2["SENT TIME"] = time2
-        message2["NEUTRINO TIME"] = time3
+        # message2["SENT TIME"] = time2
+        # message2["NEUTRINO TIME"] = time3
+        message2["sent_time"] = time2
+        message2["neutrino_time"] = time3
         # first insert into MongoDB
         msg_id = self.all_messages.insert_one(message2).inserted_id
         # str_msg_id = str(msg_id)
@@ -61,10 +65,12 @@ class storage(IStorage.IStorage):
         sort by 2 gives dates from recent to old
         :return:
         """
-        return self.all_messages.find().sort("SENT TIME", -1)
+        # return self.all_messages.find().sort("SENT TIME", -1)
+        return self.all_messages.find().sort("sent_time", -1)
 
     def getCacheMsgs(self):
-        return self.cache.find().sort("SENT TIME", -1)
+        # return self.cache.find().sort("SENT TIME", -1)
+        return self.cache.find().sort("sent_time", -1)
 
     def cacheEmpty(self):
         if self.cache.count() <= 1:

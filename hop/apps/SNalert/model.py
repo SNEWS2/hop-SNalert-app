@@ -22,9 +22,15 @@ import dotenv
 import os
 import uuid
 
+import numpy
+import random
+
 from . import decider
 from . import msgSchema
 from .dataPacket import RegularDataPacket
+from .dataPacket.observationMsg import ObservationMsg
+from .dataPacket.heartbeatMsg import HeartbeatMsg
+from .dataPacket.alertMsg import AlertMsg
 
 
 # https://github.com/scimma/may2020-techthon-demo/blob/master/hop/apps/email/example.py
@@ -33,17 +39,6 @@ def _add_parser_args(parser):
     """
     # All args from the subscriber
     subscribe._add_parser_args(parser)
-
-    # parser.add_argument('--t', type=int, metavar='N',
-    #                     help='The time period where observations of a supernova could occur. unit: seconds')
-    # parser.add_argument('--time-format', type=str, metavar='N',
-    #                     help='The format of the time string in all messages.')
-    # parser.add_argument('--emails-file', type=str, metavar='N',
-    #                     help='Send alerts to these emails upon possible SN.')
-    # parser.add_argument('--mongo-server', type=str, metavar='N',
-    #                     help='The MongoDB server to be used.')
-    # parser.add_argument('--drop-db', type=str, metavar='N',
-    #                     help='Whether to drop and restart a database or not.')
 
     ## FORMAL ENVIRONMENTAL VARIABLES
     # parser.add_argument('--username', type=str, metavar='N',
@@ -104,8 +99,6 @@ class Model(object):
             self.drop_db = True
         else:
             self.drop_db = False
-        # print("--------")
-        print(type(os.getenv("NEW_DATABASE")))
         self.myDecider = decider.Decider(int(os.getenv("TIMEOUT")), os.getenv("TIME_STRING_FORMAT"), os.getenv("DATABASE_SERVER"), self.drop_db)
         self.deciderUp = False
 
@@ -120,8 +113,6 @@ class Model(object):
             self.default_auth = True
         else:
             self.default_auth = False
-        # print(args.drop_db)
-        # print(type(args.default_authentication))
         if self.default_auth == False:
             username = os.getenv("USERNAME")
             password = os.getenv("PASSWORD")
@@ -129,139 +120,78 @@ class Model(object):
         self.experiment_topic = os.getenv("OBSERVATION_TOPIC")
         self.testing_topic = os.getenv("TESTING_TOPIC")
         self.heartbeat_topic = os.getenv("HEARTBEAT_TOPIC")
+        self.alert_topic = os.getenv("ALERT_TOPIC")
 
-
-        # # Ask for heartbeat message once the decider is up
-        # # while True:
-        # #     if self.deciderUp:
-        # #         break
-        # h = threading.Thread(target=self.sendHeartbeatMessage)
-        # h.start()
+        # message types and processing algorithms
+        self.mapping = {
+            ObservationMsg.getID().key: self.processObservationMessage,
+            HeartbeatMsg.getID().key: self.processHearbeatMessage
+        }
 
         self.run()
 
+
+    # def writeCustomMsg(self):
+    #     while True:
+    #         stream = Stream(auth=self.auth)
+    #
+    #         obsMsg = ObservationMsg(str(uuid.uuid4()),
+    #                                 "DETECTOR 1",
+    #                                 datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
+    #                                 datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
+    #                                 datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
+    #                                 test_locations[random.randint(0, 3)],
+    #                                 "0.5",
+    #                                 "On",
+    #                                 "For testing")
+    #
+    #         with stream.open(os.getenv("TESTING_TOPIC"), "w") as s:
+    #             s.write(obsMsg)
 
     def run(self):
         """
         Execute the model.
         :return: none
         """
+        # t = threading.Thread(target=self.writeCustomMsg)
+        # t.start()
+
         stream = Stream(persist=True, auth=self.auth)
         with stream.open(self.testing_topic, "r") as s:
             self.deciderUp = True
             for msg in s:  # set timeout=0 so it doesn't stop listening to the topic
-                # print(type(gcn_dict))
-                # print(prepare_gcn(gcn_dict))
-                print("--THE MODEL")
-                msg_dict = msg.asdict()['content']
-                print(msg_dict)
-                print(type(msg_dict))
-                print(msg_dict['header']['SUBJECT'])
-                self.processMessage(msg_dict)
-                print("--THE MODEL")
-                print("")
+                self.processMessage(msg)
 
-
-    def add_gcn(self, gcn):
-        """
-        Initial alert model upon receiving published information.
-        """
-        sent_time = gcn['header']['MESSAGE SENT TIME']
-        neutrino_time = gcn['header']['NEUTRINO TIME']
-        # sent_time = gcn['header']['date']
-        # neutrino_time = gcn['header']['date']
-
-        message = gcn['body']
-        # print("---")
-        # print(type(message))
-        self.myDecider.addMessage(sent_time, neutrino_time, gcn)
-
+    def addObservationMsg(self, message):
+        sent_time = message.getSentTime()
+        neutrino_time = message.getNeutrinoTime()
+        self.myDecider.addMessage(sent_time, neutrino_time, message.asdict())
 
     def processMessage(self, message):
-        # if heartbeat message do sth
+        if "getID" in dir(message):
+            if message.getID().key in self.mapping:
+                self.mapping[message.getID().key](message)
 
-        # if regular msg, do sth
+    def processObservationMessage(self, message):
+        self.addObservationMsg(message)
+        alert = self.myDecider.deciding()
+        if alert == True:
+            # publish to TOPIC2 and alert astronomers
+            stream = Stream(auth=self.auth)
+            with stream.open(self.alert_topic, "w") as s:
+                s.write(self.writeAlertMsg())
 
-        self.processRegularMessage(message)
-
-
-    def processRegularMessage(self, message):
-        """
-        Process an observation message from experiments.
-        :param message:
-        :return: none
-        """
-        # verify the schema
-        isValid = validateJson(message, self.regularMsgSchema)
-        if isValid == True:
-            self.add_gcn(message)
-            alert = self.myDecider.deciding()
-            print("-- Model ???????")
-            for i in self.myDecider.getCacheMessages():
-                print(i)
-            print("-- Model ???????")
-            if alert == True:
-                # publish to TOPIC2 and alert astronomers
-                stream = Stream(auth=self.auth)
-                with stream.open(self.experiment_topic, "w") as s:
-                    s.write(self.writeAlertMsg())
-
-        # else:
-        #     # alert the experiment of the wrong message format
-
-
-    def sendHeartbeatMessage(self):
-        while True:
-            if self.deciderUp:
-                stream = Stream(auth=self.auth)
-                with stream.open(self.heartbeat_topic, "w") as s:
-                    s.write(self.writeRequestHeartbeatMsg())
-            time.sleep(10)
-
-
-    # def sendRegularMessage(self):
-    #     with open(self.args.temp_gcnfile_path,'r') as f:
-    #         m = RegularDataPacket.RegularDataPacket(self, f)
-    #         publish_process = subprocess.Popen(['hop',
-    #                                             'publish',
-    #                                             'kafka://dev.hop.scimma.org:9092/snews-experiments',
-    #                                             '-F',
-    #                                             self.args.f,
-    #                                             m])
-    #         pickle.dump(m, )
-
-    def generateAlertMsg(self):
-        time = datetime.datetime.utcnow()
-        fileName = time.strftime("%y/%m/%d%H:%M:%S")
+    def processHearbeatMessage(self, message):
         pass
     
     # def sendOutEmails(self):
     #     pass
 
     def writeAlertMsg(self):
-        msg = {}
-        msg["header"] = {}
-        msg["header"]["MESSAGE ID"] = str(uuid.uuid4())
-        msg["header"]["SUBJECT"] = "Test Alert"
-        msg["header"]["MESSAGE SENT TIME"] = datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT"))
-        msg["header"]["LOCATION"] = "Houston"
-        msg["header"]["STATUS"] = "On"
-        msg["header"]["MESSAGE TYPE"] = "TEST"
-        msg["header"]["FROM"] = "Skylar Xu  <yx48@rice.edu>"
-        msg["body"] = "This is an alert message generated at run time for testing purposes."
-        return msg
-
-    def writeRequestHeartbeatMsg(self):
-        msg = {}
-        msg["header"] = {}
-        msg["header"]["MESSAGE ID"] = str(uuid.uuid4())
-        msg["header"]["SUBJECT"] = "Test Heartbeat"
-        msg["header"]["MESSAGE SENT TIME"] = datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT"))
-        msg["header"]["LOCATION"] = "Houston"
-        msg["header"]["STATUS"] = "On"
-        msg["header"]["MESSAGE TYPE"] = "Heartbeat"
-        msg["header"]["FROM"] = "Skylar Xu  <yx48@rice.edu>"
-        msg["body"] = "This is an alert message generated at run time for testing purposes."
+        msg = AlertMsg(str(uuid.uuid4()),
+                       datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
+                       datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
+                       "Supernova Alert")
         return msg
 
 

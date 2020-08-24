@@ -39,13 +39,16 @@ class Decider(IDecider.IDecider):
             prev = datetime.datetime.min
             prev_location = "FOO LOCATION"
             for msg in cacheMsgs:
-                neutrinoTime = msg["NEUTRINO TIME"]
+                # neutrinoTime = msg["NEUTRINO TIME"]
+                neutrinoTime = msg["neutrino_time"]
                 if neutrinoTime - datetime.timedelta(seconds=self.tightThreshold) <= prev:
                     # verify location
-                    if msg["header"]["LOCATION"] != prev_location:
+                    # if msg["header"]["LOCATION"] != prev_location:
+                    if msg["location"] != prev_location:
                         return True
                 prev = neutrinoTime
-                prev_location = msg["header"]["LOCATION"]
+                # prev_location = msg["header"]["LOCATION"]
+                prev_location = msg["location"]
         return False
 
         # return not self.db.cacheEmpty()

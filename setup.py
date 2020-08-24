@@ -24,8 +24,8 @@ setup(
     long_description = long_description,
     long_description_content_type = 'text/markdown',
     url = 'https://github.com/RiceAstroparticleLab/hop-SNalert-app.git',
-    author = 'Skylar(Yiyang) Xu',
-    author_email = 'yx48@rice.edu/skyxuyy@gmail.com',
+    author = 'Skylar(Yiyang) Xu, Patrick Godwin, Bryce Cousins',
+    author_email = 'yx48@rice.edu/skyxuyy@gmail.com, patrick.godwin@psu.edu, bfc5288@psu.edu',
     license = 'BSD 3-Clause',
 
     packages = ['hop.apps.SNalert', 'hop.apps.SNalert.dataPacket'],
@@ -34,6 +34,7 @@ setup(
         'console_scripts': [
             'SNalert = hop.apps.SNalert.__main__:main',
         ],
+        'hop_plugin': ["observationMsg-plugin = hop.apps.SNalert.plugins"]
     },
 
     python_requires = '>=3.6.*',

@@ -4,6 +4,7 @@ import argparse
 import signal
 
 from . import __version__
+from . import generate
 from . import model
 
 
@@ -36,7 +37,10 @@ def set_up_cli():
     subparser = parser.add_subparsers(title="commands", metavar="", dest="cmd")
     subparser.required = True
 
-    # registering the app
+    # register commands
+    p = append_subparser(subparser, "generate", generate.main)
+    generate._add_parser_args(p)
+
     p = append_subparser(subparser, "model", model.main)
     model._add_parser_args(p)
 
@@ -44,8 +48,6 @@ def set_up_cli():
 
 
 def main():
-    signal.signal(signal.SIGINT, signal.SIG_DFL)
-
     parser = set_up_cli()
     args = parser.parse_args()
     args.func(args)

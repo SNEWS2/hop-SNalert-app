@@ -3,10 +3,7 @@
 import argparse
 import datetime
 import os
-import random
-import smtplib
 import sys
-import threading
 import time
 import uuid
 
@@ -17,8 +14,6 @@ import numpy
 
 from hop import Stream
 from hop import auth
-from hop import cli
-from hop import subscribe
 from hop.auth import Auth
 
 from . import decider
@@ -31,9 +26,6 @@ from .dataPacket.alertMsg import SNEWSAlert
 def _add_parser_args(parser):
     """Parse arguments for broker, configurations and options
     """
-    # Add general client args
-    cli.add_client_opts(parser)
-
     ## FORMAL ENVIRONMENTAL VARIABLES
     # parser.add_argument('--username', type=str, metavar='N',
     #                     help='The credential for Hopskotch. If not specified, look for the default file under .config/hop')
@@ -42,6 +34,7 @@ def _add_parser_args(parser):
     parser.add_argument('-f', '--env-file', type=str, help="The path to the .env file.")
     parser.add_argument('--use-default-auth', action="store_true",
                         help='If set, use local ~/.config/hop-client/config.toml file to authenticate.')
+    parser.add_argument("--no-auth", action="store_true", help="If set, disable authentication.")
 
 
 # verify json
@@ -86,49 +79,37 @@ class Model(object):
             self.auth = True
 
         # specify topics
-        self.experiment_topic = os.getenv("OBSERVATION_TOPIC")
-        self.testing_topic = os.getenv("TESTING_TOPIC")
-        self.heartbeat_topic = os.getenv("HEARTBEAT_TOPIC")
+        self.observation_topic = os.getenv("OBSERVATION_TOPIC")
         self.alert_topic = os.getenv("ALERT_TOPIC")
+
+        # open up stream connections
+        self.stream = Stream(auth=self.auth, persist=True)
+        self.source = self.stream.open(self.observation_topic, "r")
+        self.sink = self.stream.open(self.alert_topic, "w")
 
         # message types and processing algorithms
         self.mapping = {
             SNEWSObservation.__name__: self.processObservationMessage,
-            SNEWSHeartbeat.__name__: self.processHearbeatMessage
+            SNEWSHeartbeat.__name__: self.processHeartbeatMessage
         }
-
-
-    def writeCustomMsg(self):
-        test_locations = ["Houston", "Austin", "Seattle", "San Diego"]
-        while True:
-            stream = Stream(auth=self.auth)
-
-            obsMsg = SNEWSObservation(str(uuid.uuid4()),
-                                      "DETECTOR 1",
-                                      datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
-                                      datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
-                                      datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
-                                      test_locations[random.randint(0, 3)],
-                                      "0.5",
-                                      "On",
-                                      "For testing")
-
-            with stream.open(os.getenv("TESTING_TOPIC"), "w") as s:
-                s.write(obsMsg)
 
     def run(self):
         """
         Execute the model.
         :return: none
         """
-        # t = threading.Thread(target=self.writeCustomMsg)
-        # t.start()
+        self.deciderUp = True
+        for msg, meta in self.source.read(metadata=True, autocommit=False):
+            self.processMessage(msg)
+            self.source.mark_done(meta)
 
-        stream = Stream(persist=True, auth=self.auth)
-        with stream.open(self.testing_topic, "r") as s:
-            self.deciderUp = True
-            for msg in s:
-                self.processMessage(msg)
+    def close(self):
+        """
+        Close stream connections.
+        """
+        self.deciderUp = False
+        self.source.close()
+        self.sink.close()
 
     def addObservationMsg(self, message):
         self.myDecider.addMessage(message)
@@ -143,34 +124,27 @@ class Model(object):
         alert = self.myDecider.deciding()
         if alert:
             # publish to TOPIC2 and alert astronomers
-            stream = Stream(auth=self.auth)
-            with stream.open(self.alert_topic, "w") as s:
-                s.write(self.writeAlertMsg())
+            self.sink.write(self.writeAlertMsg())
 
-    def processHearbeatMessage(self, message):
+    def processHeartbeatMessage(self, message):
         pass
     
-    # def sendOutEmails(self):
-    #     pass
-
     def writeAlertMsg(self):
-        msg = SNEWSAlert(str(uuid.uuid4()),
-                         datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
-                         datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
-                         "Supernova Alert")
-        return msg
+        return SNEWSAlert(
+            message_id=str(uuid.uuid4()),
+            sent_time=datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
+            machine_time=datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
+            content="Supernova Alert",
+        )
 
 
 def main(args):
     """main function
     """
     model = Model(args)
-    model.run()
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    _add_parser_args(parser)
-    args = parser.parse_args()
-
-    main(args)
+    try:
+        model.run()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        model.close()

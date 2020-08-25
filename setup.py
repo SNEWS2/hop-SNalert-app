@@ -1,10 +1,17 @@
 import os
+import re
 from setuptools import setup
 
 # read in README
 this_dir = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(this_dir, 'README.md'), 'rb') as f:
     long_description = f.read().decode().strip()
+
+# load version
+with open("hop/apps/SNalert/_version.py", "r") as f:
+    version_file = f.read()
+version_match = re.search(r"^version = ['\"]([^'\"]*)['\"]", version_file, re.M)
+version = version_match.group(1)
 
 # requirements
 install_requires = [
@@ -21,6 +28,7 @@ extras_require = {
 
 setup(
     name = 'hop-SNalert-app',
+    version = version,
     description = 'An alert application for observing supernovas.',
     long_description = long_description,
     long_description_content_type = 'text/markdown',

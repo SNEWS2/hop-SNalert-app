@@ -6,6 +6,7 @@ import os
 import random
 import smtplib
 import sys
+import threading
 import time
 import uuid
 
@@ -97,28 +98,32 @@ class Model(object):
         }
 
 
-    # def writeCustomMsg(self):
-    #     while True:
-    #         stream = Stream(auth=self.auth)
-    #
-    #         obsMsg = SNEWSObservation(str(uuid.uuid4()),
-    #                                 "DETECTOR 1",
-    #                                 datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
-    #                                 datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
-    #                                 datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
-    #                                 test_locations[random.randint(0, 3)],
-    #                                 "0.5",
-    #                                 "On",
-    #                                 "For testing")
-    #
-    #         with stream.open(os.getenv("TESTING_TOPIC"), "w") as s:
-    #             s.write(obsMsg)
+    def writeCustomMsg(self):
+        test_locations = ["Houston", "Austin", "Seattle", "San Diego"]
+        while True:
+            stream = Stream(auth=self.auth)
+
+            obsMsg = SNEWSObservation(str(uuid.uuid4()),
+                                      "DETECTOR 1",
+                                      datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
+                                      datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
+                                      datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
+                                      test_locations[random.randint(0, 3)],
+                                      "0.5",
+                                      "On",
+                                      "For testing")
+
+            with stream.open(os.getenv("TESTING_TOPIC"), "w") as s:
+                s.write(obsMsg)
 
     def run(self):
         """
         Execute the model.
         :return: none
         """
+        # t = threading.Thread(target=self.writeCustomMsg)
+        # t.start()
+
         stream = Stream(persist=True, auth=self.auth)
         with stream.open(self.testing_topic, "r") as s:
             self.deciderUp = True

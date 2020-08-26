@@ -8,5 +8,5 @@ def get_models():
     return {
         "snewsobservation": SNEWSObservation,
         "snewsheartbeat": SNEWSHeartbeat,
-        "snewsalert": SNEWSHeartbeat
+        "snewsalert": SNEWSAlert
     }

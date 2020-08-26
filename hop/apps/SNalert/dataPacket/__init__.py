@@ -27,6 +27,3 @@ class SNEWSBase(MessageModel, JsonSchemaMixin):
         else:
             payload = json.loads(input_)
         return cls(**payload)
-
-    def __str__(self):
-        return [(key.upper() + ":").ljust(9) + value for key, value in self.asdict().items()]

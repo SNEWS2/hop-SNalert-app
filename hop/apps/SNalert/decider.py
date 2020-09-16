@@ -12,7 +12,7 @@ class Decider(IDecider.IDecider):
         """
         The constructor.
         :param coinc_threshold: maximum time (s) between messages for them to be considered coincident
-        :param msg_expiration: maximum time (s) for a message to be stored in the database cache
+        :param msg_expiration: maximum time (s) that a message will be stored in the database cache before expiring
         :param datetime_format: date format to convert from a string
         :param mongo_server: URL string of the mongodb server address
         :param drop_db: boolean specifying whether to clear previous database storage
@@ -22,9 +22,10 @@ class Decider(IDecider.IDecider):
         self.coinc_threshold = coinc_threshold
 
     def deciding(self):
-        """
+        """Implements the SNEWS coincidence requirement protocol to check cached messages and determine
+        whether an alert message will be sent.
 
-        :return: True or false indicating the possibility of a supernova
+        :return: True or false indicating a coincidence between messages
         """
         
         if not self.db.cacheEmpty():

@@ -69,12 +69,13 @@ class Model(object):
         self.regularMsgSchema = msgSchema.regularMsgSchema
 
         logger.info(f"setting up decider at: {self.db_server}")
-        self.myDecider = decider.Decider(self.coinc_threshold,
-                                         self.msg_expiration,
-                                         os.getenv("TIME_STRING_FORMAT"),
-                                         os.getenv("DATABASE_SERVER"),
-                                         self.drop_db
-                                         )
+        self.myDecider = decider.Decider(
+            self.coinc_threshold,
+            self.msg_expiration,
+            os.getenv("TIME_STRING_FORMAT"),
+            os.getenv("DATABASE_SERVER"),
+            self.drop_db
+        )
         if self.drop_db:
             logger.info("clearing out decider cache")
         self.deciderUp = False

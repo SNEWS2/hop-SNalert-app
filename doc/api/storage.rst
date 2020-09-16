@@ -1,4 +1,4 @@
-.. _io:
+.. _IStorage:
 
 hop-SNalert.IStorage
 #####################

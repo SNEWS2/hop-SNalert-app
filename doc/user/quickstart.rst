@@ -33,8 +33,8 @@ The user should create a .env file and pass the file path to the --f
 option when running SNEWS 2.0. The .env file should include the following:
 
 .. code:: python
-
-    TIMEOUT=
+    COINCIDENCE_THRESHOLD=
+    MSG_EXPIRATION=
     TIME_STRING_FORMAT=
     DATABASE_SERVER=
     NEW_DATABASE=
@@ -44,8 +44,8 @@ option when running SNEWS 2.0. The .env file should include the following:
     ALERT_TOPIC=
 
 The definition of these environmental variables are:
-
-    * TIMEOUT: the loose threshold in the supernova alert protocol.
+    * COINCIDENCE_THRESHOLD: maximum time (s) between messages for them to be considered coincident
+    * MSG_EXPIRATION: maximum time (s) that a message will be stored in the database cache before expiring
     * TIME_STRING_FORMAT: the string format of time in all SNEWS messages.
     * DATABASE_SERVER: the database server to that SNEWS 2.0 connects to in order to store messages for processing. In the current version, the app takes in a **MongoDB** server.
     * NEW_DATABASE: "True" to drop all previous messages and "False" to keep them.
@@ -72,19 +72,20 @@ where "username" and "password" are user credentials to Hopsckoth.
 Generate Messages
 ^^^^^^^^^^^^^^^^^^
 
-To simulate real-time experiments that mainly for testing purposes. Run the command
+:code:`SNalert generate` can be used to simulate real-time messages from experiments:
 
 .. code:: bash
 
     SNalert generate
 
-with the required options
+with options
 
     * --env-file: the .env file for configuration.
-    * --rate: the rate of messages sent in seconds (e.g. 2 means roughly one message every 2 seconds).
-    * --alert-probability: the discrete probability of an detector making an observation.
+    * --rate: the rate of messages sent in seconds (e.g. 2 means one message every 2 seconds).
+    * --alert-probability: the discrete probability that the message is significant.
+    * --persist: continually send messages. If not specified, send only one message.
 
-So an example command could be
+For example, to continuously publish two messages per second, each with a 10% probability of being a significant, enter:
 
 .. code:: bash
 
@@ -108,41 +109,6 @@ and pass the following Kafka server to SNEWS 2.0
 .. code:: python
 
     kafka://dev.hop.scimma.org:9092/USER-TOPIC
-
-If the user choose this option, be sure to apply the following patch
-
-.. code:: python
-
-    diff --git a/hop/apps/SNalert/model.py b/hop/apps/SNalert/model.py
-    index bac2540..3336106 100644
-    --- a/hop/apps/SNalert/model.py
-    +++ b/hop/apps/SNalert/model.py
-    @@ -123,9 +123,10 @@ class Model(object):
-             # print(args.drop_db)
-             # print(type(args.default_authentication))
-             if self.default_auth == False:
-    -            username = os.getenv("USERNAME")
-    -            password = os.getenv("PASSWORD")
-    -            self.auth = Auth(username, password, method=auth.SASLMethod.PLAIN)
-    +            self.auth = False
-    +            #username = os.getenv("USERNAME")
-    +            #password = os.getenv("PASSWORD")
-    +            #self.auth = Auth(username, password, method=auth.SASLMethod.PLAIN)
-             self.experiment_topic = os.getenv("OBSERVATION_TOPIC")
-             self.testing_topic = os.getenv("TESTING_TOPIC")
-             self.heartbeat_topic = os.getenv("HEARTBEAT_TOPIC")
-    @@ -153,7 +154,8 @@ class Model(object):
-                     # print(type(gcn_dict))
-                     # print(prepare_gcn(gcn_dict))
-                     print("--THE MODEL")
-    -                msg_dict = msg.asdict()['content']
-    +                #msg_dict = msg.asdict()['content']
-    +                msg_dict = json.loads(msg.content['content'])
-                     print(msg_dict)
-                     print(type(msg_dict))
-                     print(msg_dict['header']['SUBJECT'])
-
-to work around the authentication required in the application.
 
 * To run a MongoDB instance, either run
 

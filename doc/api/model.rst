@@ -1,4 +1,4 @@
-.. _io:
+.. _model:
 
 hop-SNalert.model
 ##################

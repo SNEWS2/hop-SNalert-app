@@ -41,8 +41,27 @@ in this message.
 Decider
 --------
 
-A decider consists of a Database Storage object and the SNEWS coincidence requirement protocol is implemented in the
-deciding() method. The API of the decider class is defined as
+A decider consists of a Database Storage object and an implementation of the
+SNEWS coincidence requirement protocol (the :code:`deciding()` function).
+
+Pseudocode for the deciding protocol logic is:
+
+.. code::
+   # check if any messages are in the cache
+   if not self.db.cacheEmpty():
+     # fetch messages in the cache
+     cacheMsgs = self.db.getCacheMsgs()
+     # go through cacheMsgs to verify that at least two occur within the coincidence threshold
+         # if yes
+             # verify that at least two of the locations are different
+             # if yes
+                 return true
+             # if not
+                 return false
+         # if not, pass
+
+
+The API of the decider class is defined as
 
 .. code::
 

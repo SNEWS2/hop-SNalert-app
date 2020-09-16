@@ -3,11 +3,16 @@ from . import db_storage
 from . import IDecider
 
 class Decider(IDecider.IDecider):
-    def __init__(self, coinc_threshold, msg_expiration, datetime_format, mongo_server, drop_db):
+    def __init__(self,
+                 coinc_threshold=10,
+                 msg_expiration=120,
+                 datetime_format="%y/%m/%d %H:%M:%S",
+                 mongo_server="mongodb://localhost:27017/",
+                 drop_db=True):
         """
         The constructor.
-        :param coinc_threshold: maximum time between messages for them to be considered coincident
-        :param msg_expiration: maximum time for a message to be stored in the database cache
+        :param coinc_threshold: maximum time (s) between messages for them to be considered coincident
+        :param msg_expiration: maximum time (s) for a message to be stored in the database cache
         :param datetime_format: date format to convert from a string
         :param mongo_server: URL string of the mongodb server address
         :param drop_db: boolean specifying whether to clear previous database storage

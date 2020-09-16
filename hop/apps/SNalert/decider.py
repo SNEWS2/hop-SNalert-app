@@ -3,19 +3,18 @@ from . import db_storage
 from . import IDecider
 
 class Decider(IDecider.IDecider):
-    def __init__(self, coinc_threshold, msg_expiration, datetime_format, mongoServer, drop_db):
-#    def __init__(self, msg_expiration, datetime_format, mongoServer, drop_db):
+    def __init__(self, coinc_threshold, msg_expiration, datetime_format, mongo_server, drop_db):
         """
         The constructor.
-        :param msg_expiration:
-        :param datetime_format:
-        :param mongoServer:
-        :param drop_db:
+        :param coinc_threshold: maximum time between messages for them to be considered coincident
+        :param msg_expiration: maximum time for a message to be stored in the database cache
+        :param datetime_format: date format to convert from a string
+        :param mongo_server: URL string of the mongodb server address
+        :param drop_db: boolean specifying whether to clear previous database storage
         """
         # intialize and use redis storage
-        self.db = db_storage.storage(msg_expiration, datetime_format, mongoServer, drop_db)
-        self.coinc_threshold = coinc_threshold  # also should rename the following:
-        #self.coinc_threshold = 10
+        self.db = db_storage.storage(msg_expiration, datetime_format, mongo_server, drop_db)
+        self.coinc_threshold = coinc_threshold
 
     def deciding(self):
         """
@@ -42,12 +41,10 @@ class Decider(IDecider.IDecider):
 
     def addMessage(self, message):
         """
-        logs should be a gcn or other format of record retrieved from hopskotch stream.
-        :param logs:
+        :param message: message from a hopskotch kafka stream
         :return:
         """
-        # insert it the deque
-        #print('adding message to db')
+        # insert message into the deque
         self.db.insert(message.sent_time, message.neutrino_time, message.asdict())
 
     def getCacheMessages(self):

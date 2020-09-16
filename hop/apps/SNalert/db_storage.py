@@ -7,8 +7,10 @@ class storage(IStorage.IStorage):
     def __init__(self, msg_expiration, datetime_format, server, drop_db):
         '''
         The constructor.
-        :param msg_expiration: the expiration time for a message
-        :param datetime_format:
+        :param msg_expiration: maximum time for a message to be stored in the database cache
+        :param datetime_format: date format to convert from a string
+        :param mongo_server: URL string of the mongodb server address
+        :param drop_db: boolean specifying whether to clear previous database storage
         '''
         # Construct Mongodb first, used to store the json dictionary
         self.client = MongoClient(server)

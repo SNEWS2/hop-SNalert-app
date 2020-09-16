@@ -57,9 +57,15 @@ class Model(object):
 
         self.args = args
         self.gcnFormat = "json"
-        self.drop_db = bool(os.getenv("NEW_DATABASE"))
+        drop_db = bool(os.getenv("NEW_DATABASE"))
         coinc_threshold = int(os.getenv("COINCIDENCE_THRESHOLD"))
-        self.myDecider = decider.Decider(coinc_threshold, int(os.getenv("MSG_EXPIRATION")), os.getenv("TIME_STRING_FORMAT"), os.getenv("DATABASE_SERVER"), self.drop_db)
+        msg_expiration = int(os.getenv("MSG_EXPIRATION"))
+        self.myDecider = decider.Decider(coinc_threshold,
+                                         msg_expiration,
+                                         os.getenv("TIME_STRING_FORMAT"),
+                                         os.getenv("DATABASE_SERVER"),
+                                         drop_db
+                                         )
         self.deciderUp = False
         self.regularMsgSchema = msgSchema.regularMsgSchema
 
@@ -118,8 +124,7 @@ class Model(object):
         self.addObservationMsg(message)
         alert = self.myDecider.deciding()
         if alert:
-            print(f"publishing an alert to {self.alert_topic}")
-            # publish to TOPIC2 and alert astronomers
+            # publish alert message to ALERT_TOPIC
             self.sink.write(self.writeAlertMsg())
 
     def processHeartbeatMessage(self, message):
@@ -130,7 +135,7 @@ class Model(object):
             message_id=str(uuid.uuid4()),
             sent_time=datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
             machine_time=datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
-            content="Supernova Alert",
+            content="SNEWS Alert: a coincidence between detectors has been observed.",
         )
 
 

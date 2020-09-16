@@ -4,10 +4,10 @@ from bson.objectid import ObjectId
 from . import IStorage
 
 class storage(IStorage.IStorage):
-    def __init__(self, timeout, datetime_format, server, drop_db):
+    def __init__(self, msg_expiration, datetime_format, server, drop_db):
         '''
         The constructor.
-        :param timeout: The concidence
+        :param msg_expiration: the expiration time for a message
         :param datetime_format:
         '''
         # Construct Mongodb first, used to store the json dictionary
@@ -24,9 +24,9 @@ class storage(IStorage.IStorage):
             self.cache.drop_indexes()
         # don't drop
         self.all_messages.create_index("sent_time")
-        self.cache.create_index("sent_time", expireAfterSeconds=timeout)
+        self.cache.create_index("sent_time", expireAfterSeconds=msg_expiration)
 
-        self.timeout = timeout
+        self.msg_expiration = msg_expiration
         self.datetime_format = datetime_format
 
     def insert(self, sent_time, neutrino_time, message):
@@ -44,14 +44,8 @@ class storage(IStorage.IStorage):
         message2["neutrino_time"] = time3
         # first insert into MongoDB
         msg_id = self.all_messages.insert_one(message2).inserted_id
-        # str_msg_id = str(msg_id)
-        # insert it into cache with timeout
+        # insert it into cache with expiration time set
         self.cache.insert_one(message2)
-
-
-    # def getMsgWithinTime(self, start, end=None):
-    #     if end == None:
-    #         return
 
     def getAllMessages(self):
         """
@@ -72,5 +66,4 @@ class storage(IStorage.IStorage):
 
     def getMsgFromStrID(self, post_id):
         # Convert string ID to ObjectId:
-        # print(type(ObjectId(post_id)))
         return self.all_messages.find_one({'_id': ObjectId(post_id)})

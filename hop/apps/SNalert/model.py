@@ -26,18 +26,12 @@ from .dataPacket.alertMsg import SNEWSAlert
 def _add_parser_args(parser):
     """Parse arguments for broker, configurations and options
     """
-    ## FORMAL ENVIRONMENTAL VARIABLES
-    # parser.add_argument('--username', type=str, metavar='N',
-    #                     help='The credential for Hopskotch. If not specified, look for the default file under .config/hop')
-    # parser.add_argument('--password', type=str, metavar='N',
-    #                     help='The credential for Hopskotch. If not specified, look for the default file under .config/hop')
     parser.add_argument('-f', '--env-file', type=str, help="The path to the .env file.")
     parser.add_argument('--use-default-auth', action="store_true",
                         help='If set, use local ~/.config/hop-client/config.toml file to authenticate.')
     parser.add_argument("--no-auth", action="store_true", help="If set, disable authentication.")
 
 
-# verify json
 def validateJson(jsonData, jsonSchema):
     """
     Function for validate a json data using a json schema.
@@ -64,7 +58,8 @@ class Model(object):
         self.args = args
         self.gcnFormat = "json"
         self.drop_db = bool(os.getenv("NEW_DATABASE"))
-        self.myDecider = decider.Decider(int(os.getenv("TIMEOUT")), os.getenv("TIME_STRING_FORMAT"), os.getenv("DATABASE_SERVER"), self.drop_db)
+        coinc_threshold = int(os.getenv("COINCIDENCE_THRESHOLD"))
+        self.myDecider = decider.Decider(coinc_threshold, int(os.getenv("MSG_EXPIRATION")), os.getenv("TIME_STRING_FORMAT"), os.getenv("DATABASE_SERVER"), self.drop_db)
         self.deciderUp = False
         self.regularMsgSchema = msgSchema.regularMsgSchema
 
@@ -123,6 +118,7 @@ class Model(object):
         self.addObservationMsg(message)
         alert = self.myDecider.deciding()
         if alert:
+            print(f"publishing an alert to {self.alert_topic}")
             # publish to TOPIC2 and alert astronomers
             self.sink.write(self.writeAlertMsg())
 

@@ -3,45 +3,35 @@ from . import db_storage
 from . import IDecider
 
 class Decider(IDecider.IDecider):
-    def __init__(self, time_threshold, datetime_format, mongoServer, drop_db):
+    def __init__(self, coinc_threshold, msg_expiration, datetime_format, mongoServer, drop_db):
+#    def __init__(self, msg_expiration, datetime_format, mongoServer, drop_db):
         """
         The constructor.
-        :param time_threshold:
+        :param msg_expiration:
         :param datetime_format:
         :param mongoServer:
         :param drop_db:
         """
         # intialize and use redis storage
-        self.db = db_storage.storage(time_threshold, datetime_format, mongoServer, drop_db)
-        self.tightThreshold = 10
-        self.looseThreshold = time_threshold
+        self.db = db_storage.storage(msg_expiration, datetime_format, mongoServer, drop_db)
+        self.coinc_threshold = coinc_threshold  # also should rename the following:
+        #self.coinc_threshold = 10
 
     def deciding(self):
         """
 
         :return: True or false indicating the possibility of a supernova
         """
-        # if not self.db.cacheEmpty():
-        #     cacheMsgs = self.db.getCacheMsgs()
-        #     # go through messages to check if any two or more are within 10s
-        #         # if yes
-        #             # verify locations different (as long as at least two are in different locations)
-        #             # if so
-        #                 return true
-        #             # if not
-        #                 return false
-        #
-        #         # if not, no-op or print a message
-        #
-
+        
         if not self.db.cacheEmpty():
             cacheMsgs = self.db.getCacheMsgs()
             prev = datetime.datetime.min
             prev_location = "FOO LOCATION"
             for msg in cacheMsgs:
                 neutrinoTime = msg["neutrino_time"]
-                if neutrinoTime - datetime.timedelta(seconds=self.tightThreshold) <= prev:
-                    # verify location
+                # go through messages to check if any two or more are within the time threshold
+                if neutrinoTime - datetime.timedelta(seconds=self.coinc_threshold) <= prev:
+                    # verify the locations are different
                     if msg["location"] != prev_location:
                         return True
                 prev = neutrinoTime
@@ -57,6 +47,7 @@ class Decider(IDecider.IDecider):
         :return:
         """
         # insert it the deque
+        #print('adding message to db')
         self.db.insert(message.sent_time, message.neutrino_time, message.asdict())
 
     def getCacheMessages(self):

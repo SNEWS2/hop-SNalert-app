@@ -138,12 +138,8 @@ class Model(object):
         self.addObservationMsg(message)
         alert = self.myDecider.deciding()
         if alert:
-<<<<<<< HEAD
             # publish alert message to ALERT_TOPIC
-=======
-            # publish to TOPIC2 and alert astronomers
             logger.info("found coincidence, sending alert")
->>>>>>> 7d2471be33f46aca90323a4ed1bc172d2b5e0c17
             self.sink.write(self.writeAlertMsg())
 
     def processHeartbeatMessage(self, message):

@@ -15,8 +15,9 @@ version = version_match.group(1)
 
 # requirements
 install_requires = [
-    "hop-client >= 0.1",
-    "dataclasses-jsonschema",
+    "hop-client >= 0.2",
+    #"hop-plugin-snews",  # FIXME: switch git install with this when available on PyPI
+    "hop-plugin-snews @ git+https://github.com/SNEWS2/hop-plugin-snews.git",
     "numpy",
     "pymongo",
     "python-dotenv",
@@ -37,13 +38,12 @@ setup(
     author_email = 'yx48@rice.edu/skyxuyy@gmail.com, patrick.godwin@psu.edu, bfc5288@psu.edu',
     license = 'BSD 3-Clause',
 
-    packages = ['hop.apps.SNalert', 'hop.apps.SNalert.dataPacket'],
+    packages = ['hop.apps.SNalert'],
 
     entry_points = {
         'console_scripts': [
             'SNalert = hop.apps.SNalert.__main__:main',
         ],
-        'hop_plugin': ["observationMsg-plugin = hop.apps.SNalert.plugins"]
     },
 
     python_requires = '>=3.6.*',

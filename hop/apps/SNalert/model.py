@@ -16,12 +16,10 @@ import numpy
 from hop import Stream
 from hop import auth
 from hop.auth import Auth
+from hop.plugins.snews import SNEWSAlert, SNEWSHeartbeat, SNEWSObservation
 
 from . import decider
 from . import msgSchema
-from .dataPacket.observationMsg import SNEWSObservation
-from .dataPacket.heartbeatMsg import SNEWSHeartbeat
-from .dataPacket.alertMsg import SNEWSAlert
 
 
 logger = logging.getLogger("snews")

@@ -9,9 +9,7 @@ import uuid
 from dotenv import load_dotenv
 
 from hop import Stream
-
-from .dataPacket.observationMsg import SNEWSObservation
-from .dataPacket.heartbeatMsg import SNEWSHeartbeat
+from hop.plugins.snews import SNEWSHeartbeat, SNEWSObservation
 
 
 logger = logging.getLogger("snews")

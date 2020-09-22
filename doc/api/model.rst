@@ -1,7 +1,7 @@
 .. _model:
 
-hop-SNalert.model
+snews.model
 ##################
 
-.. automodule:: hop.apps.SNalert.model
+.. automodule:: snews.model
     :members:

@@ -1,6 +1,6 @@
 .. _api:
 
-hop-SNalert API
+snews API
 #################
 
 .. toctree::

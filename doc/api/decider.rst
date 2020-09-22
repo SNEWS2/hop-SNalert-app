@@ -1,7 +1,7 @@
 .. _decider:
 
-hop-SNalert.IDecider
+snews.IDecider
 #####################
 
-.. automodule:: hop.apps.SNalert.IDecider
+.. automodule:: snews.IDecider
     :members:

@@ -35,7 +35,6 @@ def _add_parser_args(parser):
     parser.add_argument("--no-auth", action="store_true", help="If set, disable authentication.")
 
 
-# verify json
 def validateJson(jsonData, jsonSchema):
     """
     Function for validate a json data using a json schema.
@@ -61,15 +60,18 @@ class Model(object):
 
         self.args = args
         self.gcnFormat = "json"
+        self.coinc_threshold = int(os.getenv("COINCIDENCE_THRESHOLD"))
+        self.msg_expiration = int(os.getenv("MSG_EXPIRATION"))
         self.db_server = os.getenv("DATABASE_SERVER")
         self.drop_db = bool(os.getenv("NEW_DATABASE"))
         self.regularMsgSchema = msgSchema.regularMsgSchema
 
         logger.info(f"setting up decider at: {self.db_server}")
         self.myDecider = decider.Decider(
-            int(os.getenv("TIMEOUT")),
+            self.coinc_threshold,
+            self.msg_expiration,
             os.getenv("TIME_STRING_FORMAT"),
-            self.db_server,
+            os.getenv("DATABASE_SERVER"),
             self.drop_db
         )
         if self.drop_db:
@@ -135,7 +137,7 @@ class Model(object):
         self.addObservationMsg(message)
         alert = self.myDecider.deciding()
         if alert:
-            # publish to TOPIC2 and alert astronomers
+            # publish alert message to ALERT_TOPIC
             logger.info("found coincidence, sending alert")
             self.sink.write(self.writeAlertMsg())
 
@@ -147,7 +149,7 @@ class Model(object):
             message_id=str(uuid.uuid4()),
             sent_time=datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
             machine_time=datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
-            content="Supernova Alert",
+            content="SNEWS Alert: a coincidence between detectors has been observed.",
         )
 
 

@@ -111,9 +111,9 @@ class integrationTest(object):
         m = subprocess.Popen(['python3',
                               '../hop/apps/SNalert/model.py',
                               '--f',
-                              './../.env',
-                              '--default-authentication',
-                              'False'])
+                              './../config.env',
+                              '--no-auth'
+        ])
 
         startTime = time.monotonic()
         # randomly publish messages
@@ -315,25 +315,6 @@ class latencyTest(object):
 
 
 if __name__ == '__main__':
-
-    # parser = argparse.ArgumentParser()
-    # # temporary. May switch to subscribe(parser) later
-    # # parser.add_argument('--f', type=str, metavar='N',
-    # #                     help='The configuration file.')
-    # args = parser.parse_args()
-    #
-    #
-    # print("Perform Integration Testing:")
-    # # run a model
-    # # m1 = subprocess.Popen(["python3",
-    # #                        "../hop/app/SNalert/model.py"])
-    # print("----------------------------------------")
-    # print("Integration Test #1")
-    # print("     Frequency of SNs:  ")
-    # test1 = integrationTest(10, 60, 2000)
-    # test1.run()
-    # print("     The number of concidences:  %d" % test1.getCount())
-
 
     print("Latency Test")
     print("----------------------------------------")

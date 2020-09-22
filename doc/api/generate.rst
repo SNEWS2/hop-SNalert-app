@@ -1,4 +1,4 @@
-.. _io:
+.. _generate:
 
 hop-SNalert.generate
 #####################

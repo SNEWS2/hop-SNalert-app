@@ -1,4 +1,4 @@
-.. _io:
+.. _decider:
 
 hop-SNalert.IDecider
 #####################

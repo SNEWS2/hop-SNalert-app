@@ -57,6 +57,10 @@ def _add_parser_args(parser):
                         help="Rate to send alerts, default=0.5s")
     parser.add_argument('--alert-probability', type=float, default=0.1,
                         help="Probability of generating an alert. Default = 0.1.")
+    parser.add_argument('-p',
+                        '--persist',
+                        action="store_true",
+                        help="If set, persist and send messages indefinitely. Otherwise send a single message.")
 
 
 def main(args):
@@ -80,7 +84,15 @@ def main(args):
     # generate messages
     logger.info(f"publishing messages to {os.getenv('OBSERVATION_TOPIC')}")
     try:
-        while True:
+        # send one message, then persist if specified
+        message = generate_message(
+            os.getenv("TIME_STRING_FORMAT"),
+            alert_probability=args.alert_probability,
+        )
+        source.write(message)
+        time.sleep(args.rate)
+                        
+        while args.persist:
             message = generate_message(
                 os.getenv("TIME_STRING_FORMAT"),
                 alert_probability=args.alert_probability,

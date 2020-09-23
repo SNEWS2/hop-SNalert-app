@@ -59,7 +59,7 @@ Verify your installation by checking `snews --version` and `hop --version`:
 SNalert version 0.0.1
 # hop --version
 hop version 0.2
-``
+```
 
 ## Step 2: Preparing your environment
 

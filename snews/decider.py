@@ -1,10 +1,24 @@
+from abc import ABC, abstractmethod
 import datetime
 
 from . import storage
-from . import IDecider
 
 
-class Decider(IDecider.IDecider):
+class IDecider(ABC):
+    @abstractmethod
+    def deciding(self):
+        pass
+
+    @abstractmethod
+    def addMessage(self, time, neutrino_time, message):
+        pass
+
+    @abstractmethod
+    def getAllMessages(self):
+        pass
+
+
+class Decider(IDecider):
     def __init__(self,
                  coinc_threshold=10,
                  msg_expiration=120,

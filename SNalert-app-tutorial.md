@@ -3,16 +3,16 @@ TODO:
 * update any repos/installs to reflect name/plugin changes
 * update the message content in SNalert-generate for the user
 
-# SNEWS SNalert app Tutorial Script
+# SNEWS SNalert app Tutorial
 
-This is a tutorial on how to install and run the SNEWS SNalert app, a Python program that uses the `hop-client` software to send messages for multi-messenger astrophysics.
+This is a tutorial on how to install and run the SNEWS SuperNova alert app, a Python program that uses the `hop-client` software to send messages for multi-messenger astrophysics.
 
 This tutorial will show you how to create a local messaging system which will:
 1) create messages from mock astrophysics experiments
 2) process those messages
 3) send out alerts if any two of those messages are significant and coincident
 
-To run the SNalert app, you will need:
+To run the SuperNova Alert ("SNalert") app, you will need:
 * Python version >= 3.6
 * Docker
 
@@ -83,18 +83,13 @@ To run the SNalert app, you will need to download two files using `curl`.
 
 To download the required files, run these two `curl` commands (note: you may want to create a separate directory for these files with, e.g., `mkdir snalert-files; cd snalert-files`):
 ```
-curl https://raw.githubusercontent.com/RiceAstroparticleLab/hop-SNalert-app/master/example.env -o example.env
-curl https://raw.githubusercontent.com/RiceAstroparticleLab/hop-SNalert-app/master/run-containers.sh -o run-containers.sh
-```
-(temp demo branch):
-```
 curl https://raw.githubusercontent.com/RiceAstroparticleLab/hop-SNalert-app/demo/tutorial/example.env -o example.env
 curl https://raw.githubusercontent.com/RiceAstroparticleLab/hop-SNalert-app/master/run-containers.sh -o run-containers.sh
 ```
 
 You may alternatively get these files by cloning the source code from Github using:
 ```
-git clone https://github.com/RiceAstroparticleLab/hop-SNalert-app.git
+git clone -b demo/tutorial https://github.com/RiceAstroparticleLab/hop-SNalert-app.git
 cd hop-SNalert-app
 ```
 

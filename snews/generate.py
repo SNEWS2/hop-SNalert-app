@@ -31,7 +31,7 @@ def generate_message(time_string_format, alert_probability=0.1):
             machine_time=datetime.datetime.utcnow().strftime(time_string_format),
             location=location,
             status="On",
-            content="For testing",
+            content="This is a sample heartbeat message from an experiment.",
         )
     else:
         logging.debug(f"generating alert from {location} at {detector_id}")
@@ -44,7 +44,7 @@ def generate_message(time_string_format, alert_probability=0.1):
             location=location,
             p_value=0.5,
             status="On",
-            content="For testing",
+            content="This is a sample detection message from an experiment.",
         )
 
 

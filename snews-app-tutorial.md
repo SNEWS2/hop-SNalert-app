@@ -137,7 +137,7 @@ These alert messages mean that several different (mock) experiments might have o
 
 ## Extra
 
-The app has several customizable options which change its behavior. Trying playing with a few of the options below, and refer to the source code and documentation for more options and help.
+The app has several customizable options which change its behavior. Trying playing with a few of the options below, and refer to the source code and documentation for more options and help. You can also check out the options for each function from the command line, e.g. `snews generate --help` or `hop subscribe --help`.
 
 * With `generate`, try changing the `--rate` and `--alert-probability` options to see how it affects the rates of message coincidence
 * Try editing the `example.env` file with different values of `COINCIDENCE_THRESHOLD` to change the time window (in seconds) that the app searches for message coincidences.

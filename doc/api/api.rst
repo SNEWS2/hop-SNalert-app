@@ -1,9 +1,12 @@
 .. _api:
 
-hop-SNalert-app API
-##########################################
+snews API
+#################
 
 .. toctree::
     :maxdepth: 2
 
-    example
+    storage
+    decider
+    model
+    generate

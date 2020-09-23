@@ -1,4 +1,4 @@
-hop-SNalert-app documentation
+snews documentation
 ====================================================
 
 User's Guide
@@ -9,6 +9,9 @@ User's Guide
 
    user/installation
    user/quickstart
+   user/architecture
+   user/messages
+   user/protocols
 
 API Reference
 -------------

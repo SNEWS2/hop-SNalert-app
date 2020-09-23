@@ -22,7 +22,7 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 # -- Project information -----------------------------------------------------
 
-project = u'hop-SNalert-app'
+project = u'snews'
 copyright = u'2020, Skylar(Yiyang) Xu'
 author = u'Skylar(Yiyang) Xu'
 
@@ -120,4 +120,4 @@ if not on_rtd:  # only import and set the theme if we're building docs locally
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'hop-clientdoc'
+htmlhelp_basename = 'snewsdoc'

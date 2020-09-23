@@ -2,6 +2,7 @@
 
 import argparse
 import datetime
+import logging
 import os
 import sys
 import time
@@ -15,29 +16,25 @@ import numpy
 from hop import Stream
 from hop import auth
 from hop.auth import Auth
+from hop.plugins.snews import SNEWSAlert, SNEWSHeartbeat, SNEWSObservation
 
 from . import decider
 from . import msgSchema
-from .dataPacket.observationMsg import SNEWSObservation
-from .dataPacket.heartbeatMsg import SNEWSHeartbeat
-from .dataPacket.alertMsg import SNEWSAlert
+
+
+logger = logging.getLogger("snews")
 
 
 def _add_parser_args(parser):
     """Parse arguments for broker, configurations and options
     """
-    ## FORMAL ENVIRONMENTAL VARIABLES
-    # parser.add_argument('--username', type=str, metavar='N',
-    #                     help='The credential for Hopskotch. If not specified, look for the default file under .config/hop')
-    # parser.add_argument('--password', type=str, metavar='N',
-    #                     help='The credential for Hopskotch. If not specified, look for the default file under .config/hop')
+    parser.add_argument('-v', '--verbose', action='count', default=0, help="Be verbose.")
     parser.add_argument('-f', '--env-file', type=str, help="The path to the .env file.")
     parser.add_argument('--use-default-auth', action="store_true",
                         help='If set, use local ~/.config/hop-client/config.toml file to authenticate.')
     parser.add_argument("--no-auth", action="store_true", help="If set, disable authentication.")
 
 
-# verify json
 def validateJson(jsonData, jsonSchema):
     """
     Function for validate a json data using a json schema.
@@ -63,10 +60,23 @@ class Model(object):
 
         self.args = args
         self.gcnFormat = "json"
+        self.coinc_threshold = int(os.getenv("COINCIDENCE_THRESHOLD"))
+        self.msg_expiration = int(os.getenv("MSG_EXPIRATION"))
+        self.db_server = os.getenv("DATABASE_SERVER")
         self.drop_db = bool(os.getenv("NEW_DATABASE"))
-        self.myDecider = decider.Decider(int(os.getenv("TIMEOUT")), os.getenv("TIME_STRING_FORMAT"), os.getenv("DATABASE_SERVER"), self.drop_db)
-        self.deciderUp = False
         self.regularMsgSchema = msgSchema.regularMsgSchema
+
+        logger.info(f"setting up decider at: {self.db_server}")
+        self.myDecider = decider.Decider(
+            self.coinc_threshold,
+            self.msg_expiration,
+            os.getenv("TIME_STRING_FORMAT"),
+            os.getenv("DATABASE_SERVER"),
+            self.drop_db
+        )
+        if self.drop_db:
+            logger.info("clearing out decider cache")
+        self.deciderUp = False
 
         # configure authentication
         if args.no_auth:
@@ -99,6 +109,8 @@ class Model(object):
         :return: none
         """
         self.deciderUp = True
+        logger.info(f"starting decider")
+        logger.info(f"processing messages from {self.observation_topic}")
         for msg, meta in self.source.read(metadata=True, autocommit=False):
             self.processMessage(msg)
             self.source.mark_done(meta)
@@ -107,6 +119,7 @@ class Model(object):
         """
         Close stream connections.
         """
+        logger.info(f"shutting down")
         self.deciderUp = False
         self.source.close()
         self.sink.close()
@@ -116,6 +129,7 @@ class Model(object):
 
     def processMessage(self, message):
         message_type = type(message).__name__
+        logger.debug(f"processing {message_type}")
         if message_type in self.mapping:
             self.mapping[message_type](message)
 
@@ -123,7 +137,8 @@ class Model(object):
         self.addObservationMsg(message)
         alert = self.myDecider.deciding()
         if alert:
-            # publish to TOPIC2 and alert astronomers
+            # publish alert message to ALERT_TOPIC
+            logger.info("found coincidence, sending alert")
             self.sink.write(self.writeAlertMsg())
 
     def processHeartbeatMessage(self, message):
@@ -134,13 +149,21 @@ class Model(object):
             message_id=str(uuid.uuid4()),
             sent_time=datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
             machine_time=datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
-            content="Supernova Alert",
+            content="SNEWS Alert: a coincidence between detectors has been observed.",
         )
 
 
 def main(args):
     """main function
     """
+    # set up logging
+    verbosity = [logging.WARNING, logging.INFO, logging.DEBUG]
+    logging.basicConfig(
+        level=verbosity[min(args.verbose, 2)],
+        format="%(asctime)s | model : %(levelname)s : %(message)s",
+    )
+
+    # start up
     model = Model(args)
     try:
         model.run()

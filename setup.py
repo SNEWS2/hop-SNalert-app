@@ -1,6 +1,6 @@
 import os
 import re
-from setuptools import setup
+from setuptools import find_packages, setup
 
 # read in README
 this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -8,15 +8,16 @@ with open(os.path.join(this_dir, 'README.md'), 'rb') as f:
     long_description = f.read().decode().strip()
 
 # load version
-with open("hop/apps/SNalert/_version.py", "r") as f:
+with open("snews/_version.py", "r") as f:
     version_file = f.read()
 version_match = re.search(r"^version = ['\"]([^'\"]*)['\"]", version_file, re.M)
 version = version_match.group(1)
 
 # requirements
 install_requires = [
-    "hop-client >= 0.1",
-    "dataclasses-jsonschema",
+    "hop-client >= 0.2",
+    #"hop-plugin-snews",  # FIXME: switch git install with this when available on PyPI
+    "hop-plugin-snews @ git+https://github.com/SNEWS2/hop-plugin-snews.git",
     "numpy",
     "pymongo",
     "python-dotenv",
@@ -27,7 +28,7 @@ extras_require = {
 }
 
 setup(
-    name = 'hop-SNalert-app',
+    name = 'snews',
     version = version,
     description = 'An alert application for observing supernovas.',
     long_description = long_description,
@@ -37,13 +38,12 @@ setup(
     author_email = 'yx48@rice.edu/skyxuyy@gmail.com, patrick.godwin@psu.edu, bfc5288@psu.edu',
     license = 'BSD 3-Clause',
 
-    packages = ['hop.apps.SNalert', 'hop.apps.SNalert.dataPacket'],
+    packages = find_packages(),
 
     entry_points = {
         'console_scripts': [
-            'SNalert = hop.apps.SNalert.__main__:main',
+            'snews = snews.__main__:main',
         ],
-        'hop_plugin': ["observationMsg-plugin = hop.apps.SNalert.plugins"]
     },
 
     python_requires = '>=3.6.*',

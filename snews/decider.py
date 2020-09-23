@@ -1,6 +1,8 @@
 import datetime
-from . import db_storage
+
+from . import storage
 from . import IDecider
+
 
 class Decider(IDecider.IDecider):
     def __init__(self,
@@ -17,8 +19,8 @@ class Decider(IDecider.IDecider):
         :param mongo_server: URL string of the mongodb server address
         :param drop_db: boolean specifying whether to clear previous database storage
         """
-        # intialize and use redis storage
-        self.db = db_storage.storage(msg_expiration, datetime_format, mongo_server, drop_db)
+        # intialize and use mongo storage
+        self.db = storage.MongoStorage(msg_expiration, datetime_format, mongo_server, drop_db)
         self.coinc_threshold = coinc_threshold
 
     def deciding(self):

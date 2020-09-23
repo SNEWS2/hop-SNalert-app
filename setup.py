@@ -23,8 +23,20 @@ install_requires = [
     "python-dotenv",
 ]
 extras_require = {
-    'dev': ['pytest', 'pytest-console-scripts', 'pytest-cov', 'flake8', 'flake8-black'],
-    'docs': ['sphinx', 'sphinx_rtd_theme', 'sphinxcontrib-programoutput'],
+    'dev': [
+        'pytest',
+        'pytest-console-scripts',
+        'pytest-mongodb',
+        'mongomock @ git+https://github.com/mongomock/mongomock.git',  # needed to handle TTY indices, not currently in release
+        'pytest-cov',
+        'flake8',
+        'flake8-black'
+     ],
+    'docs': [
+        'sphinx',
+        'sphinx_rtd_theme',
+        'sphinxcontrib-programoutput'
+    ],
 }
 
 setup(

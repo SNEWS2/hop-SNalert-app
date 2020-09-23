@@ -5,18 +5,18 @@ Installation
 .. contents::
    :local:
 
-You can install hop-SNalert-app via pip or from source.
+You can install snews via pip or from source.
 
 To install with pip:
 
 .. code:: bash
 
-   pip install -U hop-SNalert-app
+   pip install -U snews
 
 To install from source:
 
 .. code:: bash
 
-    tar -xzf hop-SNalert-app-x.y.z.tar.gz
-    cd hop-SNalert-app-x.y.z
+    tar -xzf snews-x.y.z.tar.gz
+    cd snews-x.y.z
     python setup.py install

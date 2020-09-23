@@ -1,7 +1,7 @@
 .. _IStorage:
 
-hop-SNalert.IStorage
+snews.IStorage
 #####################
 
-.. automodule:: hop.apps.SNalert.IStorage
+.. automodule:: snews.IStorage
     :members:

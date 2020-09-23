@@ -1,6 +1,6 @@
 import os
 import re
-from setuptools import setup
+from setuptools import find_packages, setup
 
 # read in README
 this_dir = os.path.abspath(os.path.dirname(__file__))
@@ -8,7 +8,7 @@ with open(os.path.join(this_dir, 'README.md'), 'rb') as f:
     long_description = f.read().decode().strip()
 
 # load version
-with open("hop/apps/SNalert/_version.py", "r") as f:
+with open("snews/_version.py", "r") as f:
     version_file = f.read()
 version_match = re.search(r"^version = ['\"]([^'\"]*)['\"]", version_file, re.M)
 version = version_match.group(1)
@@ -28,7 +28,7 @@ extras_require = {
 }
 
 setup(
-    name = 'hop-SNalert-app',
+    name = 'snews',
     version = version,
     description = 'An alert application for observing supernovas.',
     long_description = long_description,
@@ -38,11 +38,11 @@ setup(
     author_email = 'yx48@rice.edu/skyxuyy@gmail.com, patrick.godwin@psu.edu, bfc5288@psu.edu',
     license = 'BSD 3-Clause',
 
-    packages = ['hop.apps.SNalert'],
+    packages = find_packages(),
 
     entry_points = {
         'console_scripts': [
-            'SNalert = hop.apps.SNalert.__main__:main',
+            'snews = snews.__main__:main',
         ],
     },
 

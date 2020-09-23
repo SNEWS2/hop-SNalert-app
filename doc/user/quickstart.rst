@@ -13,23 +13,23 @@ After installing the module, the command that does the magic is:
 
 .. code:: bash
 
-    SNalert model
+    snews model
 
 The two required options are:
 
-    * --f: the .env file for required environment variables.
+    * -f: the .env file for required environment variables.
     * --no-auth: True to use the default .toml file. Otherwise, use Hopskotch authentication in the .env file.
 
 So an example command would be
 
 .. code::
 
-     SNalert model --env-file config.env --no-auth
+     snews model --env-file config.env --no-auth
 
 Configuration
 ^^^^^^^^^^^^^^
 
-The user should create a .env file and pass the file path to the --f
+The user should create a .env file and pass the file path to the -f
 option when running SNEWS 2.0. The .env file should include the following:
 
 .. code:: python
@@ -72,11 +72,11 @@ where "username" and "password" are user credentials to Hopsckoth.
 Generate Messages
 ^^^^^^^^^^^^^^^^^^
 
-:code:`SNalert generate` can be used to simulate real-time messages from experiments:
+:code:`snews generate` can be used to simulate real-time messages from experiments:
 
 .. code:: bash
 
-    SNalert generate
+    snews generate
 
 with options
 
@@ -89,7 +89,7 @@ For example, to continuously publish two messages per second, each with a 10% pr
 
 .. code:: bash
 
-    SNalert generate --env-file config.env --rate 0.5 --alert-probability 0.1
+    snews generate --env-file config.env --rate 0.5 --alert-probability 0.1
 
 
 Alternative Instances

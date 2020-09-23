@@ -1,4 +1,4 @@
-hop-SNalert-app documentation
+snews documentation
 ====================================================
 
 User's Guide

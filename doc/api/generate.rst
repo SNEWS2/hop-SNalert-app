@@ -1,7 +1,7 @@
 .. _generate:
 
-hop-SNalert.generate
+snews.generate
 #####################
 
-.. automodule:: hop.apps.SNalert.generate
+.. automodule:: snews.generate
     :members:

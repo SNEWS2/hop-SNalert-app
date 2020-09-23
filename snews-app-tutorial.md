@@ -1,6 +1,6 @@
 # Tutorial to run SNEWS's `snews` app
 
-This is a tutorial on how to install and run the SNEWS SuperNova alert app, a Python program that uses the `hop-client` software to send messages for multi-messenger astrophysics.
+This is a tutorial on how to install and run the SuperNova Early Warning System ("SNEWS") alert app, a Python program that uses the `hop-client` software to send messages for multi-messenger astrophysics.
 
 This tutorial will show you how to create a local messaging system which will:
 1) create messages from mock astrophysics experiments
@@ -10,6 +10,7 @@ This tutorial will show you how to create a local messaging system which will:
 To run the SuperNova Alert `snews` app, you will need:
 * Python version >= 3.6
 * Docker
+* either `python3-venv` or `conda`
 
 To download files in this tutorial, you will need:
 * curl
@@ -26,7 +27,13 @@ To install `snews`, you must have either `pip` or `conda`.
 ### Setting up a virtual environment (recommended)
 Running this demo in a virtual environment will help keep your default system packages and the demo's installation dependencies separate.
 
-You can then use either pip or conda to create a virtual environment:
+First, make a folder for this demo and enter it:
+```
+mkdir snews-tutorial
+cd snews-tutorial
+```
+
+You can use either pip or conda to create a virtual environment:
 * pip:
   ```
   python3 -m venv snews-venv
@@ -41,22 +48,18 @@ You can then use either pip or conda to create a virtual environment:
 
 ### Installing `snews`
 
-You can install `snews` directly from Github:
+You can then install `snews` directly from Github:
 ```
 pip install git+https://github.com/RiceAstroparticleLab/hop-SNalert-app.git
 ```
 
-Verify your `hop-client` install by checking `hop version`:
-```
-# hop version
-hop version 0.2
-```
-
-Verify your `snews` install by checking `snews --version`:
+Verify your installation by checking `snews --version` and `hop --version`:
 ```
 # snews --version
 SNalert version 0.0.1
-```
+# hop --version
+hop version 0.2
+``
 
 ## Step 2: Preparing your environment
 
@@ -64,7 +67,7 @@ To run `snews`, you will need to download two files using `curl`.
 
 ### Downloading the environment and container files
 
-To download the required files, run these two `curl` commands (note: you may want to create a separate directory for these files with, e.g., `mkdir snalert-files; cd snalert-files`):
+To download the required files, run these two `curl` commands while inside the `snews-tutorial` folder:
 ```
 curl https://raw.githubusercontent.com/RiceAstroparticleLab/hop-SNalert-app/demo/tutorial/example.env -o example.env
 curl https://raw.githubusercontent.com/RiceAstroparticleLab/hop-SNalert-app/demo/tutorial/run-containers.sh -o run-containers.sh
@@ -80,8 +83,8 @@ cd hop-SNalert-app
 
 To set up your environment with the SCIMMA kafka server, the `snews`'s database, and environment variables, source the two files you downloaded while inside the folder containing them:
 ```
-source run-containers.sh
 source example.env
+source run-containers.sh
 ```
 
 ## Step 3: Running `snews`
@@ -91,8 +94,11 @@ You are now ready to run the `snews` app. This involves running four processes s
   2-3) `hop subscribe` x2: read messages sent by the `model` and `generator`
   4) `snews generate`: create and send sample experiment messages
 
-
-To visualize all processes, you may want to use multiple terminal windows or panes (or create virtual terminals with e.g. emacs, tmux, etc.).
+To visualize all processes, you may want to use multiple terminal windows or panes (or create virtual terminals with e.g. emacs, tmux, etc.). You will need to re-activate your virtual environment and variables in each terminal:
+```
+source snews-venv/bin/activate
+source example.env
+```
 
 ### `snews model`
 In one terminal, enter this command to start up the app:
@@ -127,7 +133,7 @@ You should now see messages streaming into the terminal reading the experiment m
 
 But eventually, more than one significant message will be sent within in short time window. When this happens, the `model` will notice a "coincidence" between these significant messages, which trigger the app to send an alert message, which will appear in your first terminal.
 
-These alert messages mean that several different (mock) experiments might have observed the same astrophysical event, hinting at a possible Galactic Supernova!
+These alert messages mean that several different (mock) experiments might have observed the same astrophysical event, hinting at a possible galactic supernova!
 
 ## Extra
 

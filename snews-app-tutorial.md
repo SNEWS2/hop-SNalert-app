@@ -1,6 +1,6 @@
-# Tutorial to run SNEWS's `snews` app
+# The SuperNova Early Warning System `snews` app
 
-This is a tutorial on how to install and run the SuperNova Early Warning System ("SNEWS") alert app, a Python program that uses the `hop-client` software to send messages for multi-messenger astrophysics.
+This is a tutorial on how to install and run the SuperNova Early Warning System ("SNEWS") alerting app, a Python program that uses the `hop-client` software to help observatories and particle detectors coordinate messages and potentially observe of the next galactic supernova.
 
 This tutorial will show you how to create a local messaging system which will:
 1) create messages from mock astrophysics experiments
@@ -140,7 +140,8 @@ These alert messages mean that several different (mock) experiments might have o
 The app has several customizable options which change its behavior. Trying playing with a few of the options below, and refer to the source code and documentation for more options and help.
 
 * With `generate`, try changing the `--rate` and `--alert-probability` options to see how it affects the rates of message coincidence
-* Try editing the `example.env` file with different values of `COINCIDENCE_THRESHOLD` to change the time window (in seconds) that the app searches for message coincidences
+* Try editing the `example.env` file with different values of `COINCIDENCE_THRESHOLD` to change the time window (in seconds) that the app searches for message coincidences.
+  * note: you'll have to refresh your environment afterwards again using `source example.env`
 * Try sending individual alerts with `generate` in different terminals, instead of using `-p` to send endless messages
 
 ## Cleanup

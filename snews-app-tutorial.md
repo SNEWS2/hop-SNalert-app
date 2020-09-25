@@ -46,11 +46,18 @@ You can use either pip or conda to create a virtual environment:
   conda install git pip
   ```
 
+* pip version
+Check that your `pip` version is up-to-date: this tutorial is functional with `pip >= 20.0.*`. After activating your virtual environment, check your version and upgrade if needed:
+```
+# pip --version
+# pip install pip --upgrade
+```
+
 ### Installing `snews`
 
 You can then install `snews` directly from Github:
 ```
-pip install git+https://github.com/RiceAstroparticleLab/hop-SNalert-app.git
+pip install git+https://github.com/RiceAstroparticleLab/hop-SNalert-app.git@demo/tutorial
 ```
 
 Verify your installation by checking `snews --version` and `hop --version`:

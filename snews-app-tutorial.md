@@ -46,10 +46,10 @@ You can use either pip or conda to create a virtual environment:
   conda install git pip
   ```
 
-* pip version
-Check that your `pip` version is up-to-date: this tutorial is functional with `pip >= 20.0.*`. After activating your virtual environment, check your version and upgrade if needed:
+### Sidenote: pip version
+
+Older versions of `pip` may fail to install `snews` properly. Before following the installation instructions below, check that `pip` is up-to-date with `pip --version` **after** activating your virtual environment. Note that this tutorial is functional with `pip >= 20.0.*`, so update your pip version if needed:
 ```
-# pip --version
 # pip install pip --upgrade
 ```
 

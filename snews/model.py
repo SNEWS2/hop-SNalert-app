@@ -12,6 +12,7 @@ from dotenv import load_dotenv
 import jsonschema
 from jsonschema import validate
 import numpy
+import threading
 
 from hop import Stream
 from hop import auth
@@ -20,7 +21,6 @@ from hop.plugins.snews import SNEWSAlert, SNEWSHeartbeat, SNEWSObservation
 
 from . import decider
 from . import msgSchema
-
 
 logger = logging.getLogger("snews")
 
@@ -103,6 +103,10 @@ class Model(object):
             SNEWSHeartbeat.__name__: self.processHeartbeatMessage
         }
 
+        self.heartbeatMapping = {}
+        self.heartbeatTotalLatency = 0
+        self.numHeartbeat = 0
+
     def run(self):
         """
         Execute the model.
@@ -114,6 +118,9 @@ class Model(object):
         for msg, meta in self.source.read(metadata=True, autocommit=False):
             self.processMessage(msg)
             self.source.mark_done(meta)
+
+        # check the heartbeat status in the background
+        threading.Timer(3600, self.checkDetectorStatusThread).start()
 
     def close(self):
         """
@@ -142,8 +149,25 @@ class Model(object):
             self.sink.write(self.writeAlertMsg())
 
     def processHeartbeatMessage(self, message):
-        pass
-    
+        latency = (datetime.datetime.utcnow() - datetime.datetime.strptime(message.sent_time, os.getenv(
+            "TIME_STRING_FORMAT"))).total_seconds()
+        detectorID = message.detector_id
+        if message.status in ["on", "On", "ON"]:
+            self.heartbeatMapping[detectorID] = message.sent_time
+        elif detectorID in self.heartbeatMapping:
+            self.heartbeatMapping.pop(detectorID)
+
+        self.heartbeatTotalLatency += latency
+        self.numHeartbeat += 1
+
+    def checkDetectorStatusThread(self):
+        for detector in self.heartbeatMapping:
+            lastTime = datetime.datetime.strptime(self.heartbeatMapping[detector], os.getenv("TIME_STRING_FORMAT"))
+            timeElapse = datetime.datetime.utcnow() - lastTime
+            if timeElapse.total_seconds() > 24 * 60 * 60:
+                # the detector is offline
+                self.heartbeatMapping.pop(detector)
+
     def writeAlertMsg(self):
         return SNEWSAlert(
             message_id=str(uuid.uuid4()),
@@ -151,6 +175,9 @@ class Model(object):
             machine_time=datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT")),
             content="SNEWS Alert: a coincidence between detectors has been observed.",
         )
+
+    def getHeatbeatAvgLatency(self):
+        return self.heartbeatTotalLatency / self.numHeartbeat
 
 
 def main(args):

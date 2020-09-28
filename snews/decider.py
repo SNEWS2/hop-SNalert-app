@@ -1,8 +1,24 @@
+from abc import ABC, abstractmethod
 import datetime
-from . import db_storage
-from . import IDecider
 
-class Decider(IDecider.IDecider):
+from . import storage
+
+
+class IDecider(ABC):
+    @abstractmethod
+    def deciding(self):
+        pass
+
+    @abstractmethod
+    def addMessage(self, time, neutrino_time, message):
+        pass
+
+    @abstractmethod
+    def getAllMessages(self):
+        pass
+
+
+class Decider(IDecider):
     def __init__(self,
                  coinc_threshold=10,
                  msg_expiration=120,
@@ -17,8 +33,8 @@ class Decider(IDecider.IDecider):
         :param mongo_server: URL string of the mongodb server address
         :param drop_db: boolean specifying whether to clear previous database storage
         """
-        # intialize and use redis storage
-        self.db = db_storage.storage(msg_expiration, datetime_format, mongo_server, drop_db)
+        # intialize and use mongo storage
+        self.db = storage.MongoStorage(msg_expiration, datetime_format, mongo_server, drop_db)
         self.coinc_threshold = coinc_threshold
 
     def deciding(self):

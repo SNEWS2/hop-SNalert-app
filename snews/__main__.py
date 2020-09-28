@@ -28,7 +28,7 @@ def set_up_cli():
     """Set up parser for SNalert entry point.
 
     """
-    parser = argparse.ArgumentParser(prog="SNalert")
+    parser = argparse.ArgumentParser(prog="snews")
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s version {__version__}",
     )

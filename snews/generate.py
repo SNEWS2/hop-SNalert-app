@@ -53,6 +53,7 @@ def _add_parser_args(parser):
     """
     parser.add_argument('-v', '--verbose', action='count', default=0, help="Be verbose.")
     parser.add_argument('-f', '--env-file', type=str, help="The path to the .env file.")
+    parser.add_argument("--no-auth", action="store_true", help="If set, disable authentication.")
     parser.add_argument('--rate', type=float, default=0.5,
                         help="Rate to send alerts, default=0.5s")
     parser.add_argument('--alert-probability', type=float, default=0.1,
@@ -78,7 +79,7 @@ def main(args):
 
     # configure and open observation stream
     logger.info(f"starting up stream")
-    stream = Stream(auth=False)
+    stream = Stream(auth=(not args.no_auth))
     source = stream.open(os.getenv("OBSERVATION_TOPIC"), "w")
 
     # generate messages

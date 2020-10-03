@@ -30,8 +30,6 @@ def _add_parser_args(parser):
     """
     parser.add_argument('-v', '--verbose', action='count', default=0, help="Be verbose.")
     parser.add_argument('-f', '--env-file', type=str, help="The path to the .env file.")
-    parser.add_argument('--use-default-auth', action="store_true",
-                        help='If set, use local ~/.config/hop-client/config.toml file to authenticate.')
     parser.add_argument("--no-auth", action="store_true", help="If set, disable authentication.")
 
 
@@ -78,22 +76,12 @@ class Model(object):
             logger.info("clearing out decider cache")
         self.deciderUp = False
 
-        # configure authentication
-        if args.no_auth:
-            self.auth = False
-        elif not args.use_default_auth:
-            username = os.getenv("USERNAME")
-            password = os.getenv("PASSWORD")
-            self.auth = Auth(username, password, method=auth.SASLMethod.PLAIN)
-        else:
-            self.auth = True
-
         # specify topics
         self.observation_topic = os.getenv("OBSERVATION_TOPIC")
         self.alert_topic = os.getenv("ALERT_TOPIC")
 
         # open up stream connections
-        self.stream = Stream(auth=self.auth, persist=True)
+        self.stream = Stream(auth=(not args.no_auth), persist=True)
         self.source = self.stream.open(self.observation_topic, "r")
         self.sink = self.stream.open(self.alert_topic, "w")
 

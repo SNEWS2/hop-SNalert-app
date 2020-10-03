@@ -64,7 +64,7 @@ class MongoStorage(IStorage):
         message2["sent_time"] = time2
         message2["neutrino_time"] = time3
         # first insert into MongoDB
-        msg_id = self.all_messages.insert_one(message2).inserted_id
+        self.all_messages.insert_one(message2)
         # insert it into cache with expiration time set
         self.cache.insert_one(message2)
 
@@ -103,7 +103,8 @@ class RedisStorage(object):
         self.collection = self.db.collection
         self.collection.remove({})
 
-        # Construct Redis as a hot cache with time expiration of messages, the key-value pair being (time, MongoDB ObjectID)
+        # Construct Redis as a hot cache with time expiration of messages,
+        # the key-value pair being (time, MongoDB ObjectID)
         self.all_messages = redis.Redis(host='localhost', port=6379, db=0)
         self.cache = redis.Redis(host='localhost', port=6379, db=1)
         # self.detectors = redis.Redis(host='localhost', port=6379, db=2)
@@ -141,9 +142,7 @@ class RedisStorage(object):
         # self.cache.set('hey', message, ex=self.timeout)
         # print("Cache size after: %d" % self.cache.dbsize())
 
-
     # def getMsgWithinTimeThreshold(self):
-
 
     def cacheEmpty(self):
         return self.cache.dbsize() < 1

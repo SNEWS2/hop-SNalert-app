@@ -38,6 +38,7 @@ load_dotenv(dotenv_path='./../.env')
 # https://stackoverflow.com/questions/3620943/measuring-elapsed-time-with-the-time-module
 PROF_DATA = {}
 
+
 def profile(fn):
     @wraps(fn)
     def with_profiling(*args, **kwargs):
@@ -56,6 +57,7 @@ def profile(fn):
 
     return with_profiling
 
+
 def print_prof_data():
     for fname, data in PROF_DATA.items():
         max_time = max(data[1])
@@ -63,10 +65,10 @@ def print_prof_data():
         print("Function %s called %d times. " % (fname, data[0]))
         print('Execution time max: %.3f, average: %.3f' % (max_time, avg_time))
 
+
 def clear_prof_data():
     global PROF_DATA
     PROF_DATA = {}
-
 
 
 def exponentialDistribution(mean):
@@ -76,6 +78,7 @@ def exponentialDistribution(mean):
     :return:
     """
     return numpy.random.exponential(mean)
+
 
 class integrationTest(object):
     # @given(
@@ -113,7 +116,7 @@ class integrationTest(object):
                               '--f',
                               './../config.env',
                               '--no-auth'
-        ])
+                              ])
 
         startTime = time.monotonic()
         # randomly publish messages
@@ -176,7 +179,6 @@ class integrationTest(object):
 #     pass
 
 
-
 class latencyTest(object):
     def __init__(self, topic, numDetector=50, time=3000):
         """
@@ -236,7 +238,6 @@ class latencyTest(object):
         while time.monotonic() - startTime < 10:
             foo = 1
 
-
         for i in range(self.numDetector):
             # print(i)
             id = uuid.uuid4()
@@ -245,7 +246,6 @@ class latencyTest(object):
             # self.oneDetectorThread(id)
             self.detectorThreads[id] = t
             t.start()
-
 
         # # first run the thread that logs every message received
         # logThread = threading.Thread(target=self.logMsgs)
@@ -279,14 +279,12 @@ class latencyTest(object):
                 t = threading.Thread(target=self.countMsgThread, args=(msg.asdict()['content'],))
                 t.start()
 
-
     def calculateAvgLatency(self):
         """
         Calculate the latency.
         :return:
         """
         return self.totalLatency * 1.0 / self.numMsgReceived
-
 
     def writeMessage(self, detector_id):
         """

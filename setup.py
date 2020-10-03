@@ -18,6 +18,7 @@ install_requires = [
     "hop-client >= 0.2",
     #"hop-plugin-snews",  # FIXME: switch git install with this when available on PyPI
     "hop-plugin-snews @ git+https://github.com/SNEWS2/hop-plugin-snews.git",
+    "jsonschema",
     "numpy",
     "pymongo",
     "python-dotenv",

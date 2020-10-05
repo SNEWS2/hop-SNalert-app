@@ -19,6 +19,8 @@ def _add_parser_args(parser):
     parser.add_argument('-v', '--verbose', action='count', default=0, help="Be verbose.")
     parser.add_argument('-f', '--env-file', type=str, help="The path to the .env file.")
     parser.add_argument("--no-auth", action="store_true", help="If set, disable authentication.")
+    parser.add_argument("-n", "--num-points", type=int, default=100,
+                        help="Number of points to compute mean. default=100")
     parser.add_argument("-m", "--measurement", choices=("alert", "observation"), default="observation",
                         help="Specify the type of measurement to measure latency. Default = observation.")
 
@@ -48,7 +50,7 @@ def main(args):
     source = stream.open(topics[args.measurement], "r")
 
     # track latency measurements
-    latencies = deque(maxlen = 100)
+    latencies = deque(maxlen=args.num_points)
 
     # generate messages
     logger.info(f"listening to messages from {topics[args.measurement]}")

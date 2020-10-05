@@ -40,4 +40,4 @@ regularMsgSchema = {
 #     }
 # }
 
-# alertMsgSchema = 
+# alertMsgSchema =

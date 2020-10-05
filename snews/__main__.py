@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import argparse
-import signal
 
 from . import __version__
 from . import generate

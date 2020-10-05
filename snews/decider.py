@@ -43,7 +43,7 @@ class Decider(IDecider):
 
         :return: True or false indicating a coincidence between messages
         """
-        
+
         if not self.db.cacheEmpty():
             cacheMsgs = self.db.getCacheMsgs()
             prev = datetime.datetime.min

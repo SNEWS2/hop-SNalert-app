@@ -1,4 +1,3 @@
-import argparse
 import datetime
 import logging
 import os
@@ -78,7 +77,7 @@ def main(args):
     load_dotenv(dotenv_path=args.env_file)
 
     # configure and open observation stream
-    logger.info(f"starting up stream")
+    logger.info("starting up stream")
     stream = Stream(auth=(not args.no_auth))
     source = stream.open(os.getenv("OBSERVATION_TOPIC"), "w")
 
@@ -92,7 +91,7 @@ def main(args):
         )
         source.write(message)
         time.sleep(args.rate)
-                        
+
         while args.persist:
             message = generate_message(
                 os.getenv("TIME_STRING_FORMAT"),

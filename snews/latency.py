@@ -53,7 +53,7 @@ def main(args):
     # generate messages
     logger.info(f"listening to messages from {topics[args.measurement]}")
     try:
-        for message, metadata in source.read(metadata=True):
+        for message, metadata in source.read(batch_size=1, metadata=True):
             # calculate current latency
             message_timestamp = metadata.timestamp
             current_timestamp = int((datetime.utcnow() - datetime(1970, 1, 1)).total_seconds() * 1000)

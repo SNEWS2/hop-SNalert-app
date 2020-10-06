@@ -93,7 +93,7 @@ class Model(object):
         self.deciderUp = True
         logger.info("starting decider")
         logger.info(f"processing messages from {self.observation_topic}")
-        for msg, meta in self.source.read(metadata=True, autocommit=False):
+        for msg, meta in self.source.read(batch_size=1, metadata=True, autocommit=False):
             self.processMessage(msg)
             self.source.mark_done(meta)
 

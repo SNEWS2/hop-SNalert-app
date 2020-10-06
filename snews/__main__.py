@@ -4,6 +4,7 @@ import argparse
 
 from . import __version__
 from . import generate
+from . import latency
 from . import model
 
 
@@ -39,6 +40,9 @@ def set_up_cli():
     # register commands
     p = append_subparser(subparser, "generate", generate.main)
     generate._add_parser_args(p)
+
+    p = append_subparser(subparser, "latency", latency.main)
+    latency._add_parser_args(p)
 
     p = append_subparser(subparser, "model", model.main)
     model._add_parser_args(p)

@@ -1,7 +1,5 @@
-# Using the `snews` app with the SCIMMA Hopskotch server
-This tutorial will show you how to use the `snews` app to connect to the SCIMMA Hopskotch messaging network.
-This can be done using either a local or cloud instance of `snews`; it is recommended that you start with a local instance for testing,
-and then move to a cloud provider if needed for your production services.
+# Using `snews` with the SCIMMA Hopskotch server
+This tutorial will show you how to use the `snews` app to connect to the SCIMMA Hopskotch messaging network. This can be done using either a local or cloud installation of `snews`. It is recommended that you start with a local installation for testing, and then move to a cloud provider if needed for your production services.
 
 In either case, you will need to create a Hopskotch account before connecting to the network. If you want to do entirely local testing without a Hopskotch account, refer to the [local snews notes](https://github.com/RiceAstroparticleLab/hop-SNalert-app/blob/demo/tutorial/snews-local-tutorial.md).
 
@@ -15,24 +13,21 @@ Log on through your corresponding institution and click `Begin` to start the acc
 
 Once you complete the setup, the account can then be approved by a SNEWS admin.
 
-### Rwquest Group Access
+### Request Group Access
 After your account has been approved, you must add yourself to the Hopskotch user group inside COManage:
 * Go to  https://registry.scimma.org/registry/co_groups/index/co:2
-* Select "Manage My Group Memberships" in the upper-rigth
+* Select "Manage My Group Memberships" in the upper-right
 * Find the `kafkaUsers` group (it may not be on the first page) and select the "Member" checkbox
 * Select `SAVE` in the bottom-right
 
 You will then need to be added to the `SCIMMA Institute Active Members` group by a SCIMMA admin.
 
-### Create Hopskotch Credentials
-Once your request to join the `SCIMMA Institute Active Members` group has been approved, you are now able to generate credentials to access the SCIMMA Hopskotch server.
+### Generating and Storing Credentials
+Once your request to join the `SCIMMA Institute Active Members` group has been approved, you will be able to generate credentials to access the SCIMMA Hopskotch server.
 
-* Request credentials at: https://admin.dev.hop.scimma.org/hopauth/
+However, before you generate credentials, it is recommended that you install `hop-client`. This is a SCIMMA Python package that provides client access to the Hopskotch server; it also centralizes and simplifies the authentication configuration. It will be installed when you install the `snews` app.
 
-### Store credentials via `hop-client`
-The `hop-client` is a Python package that provides client access to the Hopskotch server, and centralizes the authentication configuration. It will be installed when you install the `snews` app.
-
-#### Installing `snews
+#### Installing `hop-client` with `snews`
 
 When installing `snews`, a virtual environment is recommended to manage packages. You must have either `pip` or `conda`:
 
@@ -63,8 +58,10 @@ hop --version
   hop version 0.2
 ```
 
-#### Storing your credentials
-You are now ready to store the Hopskotch credentials you generated above. Enter the credentials into the prompts when setting up your hop authorization:
+### Create and Store Hopskotch Credentials
+After `hop-client` is successfully installed, you are ready to generate Hopskotch credentials and store them with `hop-client`:
+* Generate credentials at: https://admin.dev.hop.scimma.org/hopauth/
+* Enter these credentials into the prompts when setting up your hop authorization:
 ```
 hop configure setup
 ```
@@ -77,7 +74,7 @@ hop configure locate
 ## Connecting to the SNEWS network
 Once your Hopskotch credentials are stored, you are ready to connect to the SNEWS network to send and receive messages.
 
-For the development testing network, download the development SNEWS configuration from https://github.com/SNEWS2/snews2-config/blob/master/dev-config.env. Load this configuration before sending/receiving messages via `source dev-config.env`.
+To use the development servers for testing, download the development SNEWS configuration from https://github.com/SNEWS2/snews2-config/blob/master/dev-config.env. Load this configuration before sending/receiving messages via `source dev-config.env`.
 
 ### Sending messages
 You can use either `snews generate` or `hop publish` to send sample messages to the SNEWS network.
@@ -110,7 +107,7 @@ You can use `hop subscribe` to read messages that are being sent to the SNEWS ne
 For example, to continuously read any alert messages that are sent:
 ```
 source dev-config.env
-hop subscribe $ALERT_TOPIC -p
+hop subscribe $ALERT_TOPIC --persist
 ```
 
 # Resources

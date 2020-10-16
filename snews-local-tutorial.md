@@ -54,7 +54,7 @@ pip install git+https://github.com/RiceAstroparticleLab/hop-SNalert-app.git@demo
 Verify your installation by checking `snews --version` and `hop --version`:
 ```
 # snews --version
-SNalert version 0.0.1
+snews version 0.0.1
 # hop --version
 hop version 0.2
 ```
@@ -109,12 +109,12 @@ snews model --env-file example.env --no-auth
 #### Reading alert messages
 One subscriber will be used to read alert messages sent by `model`. Enter this command in another terminal:
 ```
-hop subscribe --no-auth $ALERT_TOPIC -p
+hop subscribe --no-auth $ALERT_TOPIC --persist
 ```
 #### Reading experiment messages
 A second subscriber will be used to read sample experiment messages sent by `generate`. Enter this command in another terminal:
 ```
-hop subscribe --no-auth $OBSERVATION_TOPIC -p
+hop subscribe --no-auth $OBSERVATION_TOPIC --persist
 ```
 
 ### `snews generate`
@@ -123,7 +123,7 @@ You are now ready to test `snews` by having mock experiments send detection mess
 #### Generate the messages
 In a new terminal, start generating these mock messages by entering:
 ```
-snews generate --env-file example.env --rate 0.5 --alert-probability 0.1 -p
+snews generate --env-file example.env --rate 0.5 --alert-probability 0.1 --persist --no-auth
 ```
 
 #### Test the app

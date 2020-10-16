@@ -18,13 +18,28 @@ install_requires = [
     "hop-client >= 0.2",
     #"hop-plugin-snews",  # FIXME: switch git install with this when available on PyPI
     "hop-plugin-snews @ git+https://github.com/SNEWS2/hop-plugin-snews.git",
+    "jsonschema",
     "numpy",
     "pymongo",
     "python-dotenv",
 ]
 extras_require = {
-    'dev': ['pytest', 'pytest-console-scripts', 'pytest-cov', 'flake8', 'flake8-black'],
-    'docs': ['sphinx', 'sphinx_rtd_theme', 'sphinxcontrib-programoutput'],
+    'dev': [
+        'autopep8',
+        'flake8',
+        'mongomock @ git+https://github.com/mongomock/mongomock.git',  # needed to handle TTY indices, not currently in release
+        'pytest >= 5.0, < 5.4',
+        'pytest-console-scripts',
+        'pytest-cov',
+        'pytest-mongodb',
+        'pytest-runner',
+        'twine',
+     ],
+    'docs': [
+        'sphinx',
+        'sphinx_rtd_theme',
+        'sphinxcontrib-programoutput'
+    ],
 }
 
 setup(

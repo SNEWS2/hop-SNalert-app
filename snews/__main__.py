@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 import argparse
-import signal
 
 from . import __version__
 from . import generate
+from . import latency
 from . import model
 
 
@@ -28,7 +28,7 @@ def set_up_cli():
     """Set up parser for SNalert entry point.
 
     """
-    parser = argparse.ArgumentParser(prog="SNalert")
+    parser = argparse.ArgumentParser(prog="snews")
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s version {__version__}",
     )
@@ -40,6 +40,9 @@ def set_up_cli():
     # register commands
     p = append_subparser(subparser, "generate", generate.main)
     generate._add_parser_args(p)
+
+    p = append_subparser(subparser, "latency", latency.main)
+    latency._add_parser_args(p)
 
     p = append_subparser(subparser, "model", model.main)
     model._add_parser_args(p)

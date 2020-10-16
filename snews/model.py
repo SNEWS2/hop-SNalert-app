@@ -1,21 +1,15 @@
 #!/usr/bin/env python
 
-import argparse
 import datetime
 import logging
 import os
-import sys
-import time
 import uuid
 
 from dotenv import load_dotenv
 import jsonschema
 from jsonschema import validate
-import numpy
 
 from hop import Stream
-from hop import auth
-from hop.auth import Auth
 from hop.plugins.snews import SNEWSAlert, SNEWSHeartbeat, SNEWSObservation
 
 from . import decider
@@ -30,8 +24,6 @@ def _add_parser_args(parser):
     """
     parser.add_argument('-v', '--verbose', action='count', default=0, help="Be verbose.")
     parser.add_argument('-f', '--env-file', type=str, help="The path to the .env file.")
-    parser.add_argument('--use-default-auth', action="store_true",
-                        help='If set, use local ~/.config/hop-client/config.toml file to authenticate.')
     parser.add_argument("--no-auth", action="store_true", help="If set, disable authentication.")
 
 
@@ -44,7 +36,7 @@ def validateJson(jsonData, jsonSchema):
     """
     try:
         validate(instance=jsonData, schema=jsonSchema)
-    except jsonschema.exceptions.ValidationError as err:
+    except jsonschema.exceptions.ValidationError:
         return False
     return True
 
@@ -78,22 +70,12 @@ class Model(object):
             logger.info("clearing out decider cache")
         self.deciderUp = False
 
-        # configure authentication
-        if args.no_auth:
-            self.auth = False
-        elif not args.use_default_auth:
-            username = os.getenv("USERNAME")
-            password = os.getenv("PASSWORD")
-            self.auth = Auth(username, password, method=auth.SASLMethod.PLAIN)
-        else:
-            self.auth = True
-
         # specify topics
         self.observation_topic = os.getenv("OBSERVATION_TOPIC")
         self.alert_topic = os.getenv("ALERT_TOPIC")
 
         # open up stream connections
-        self.stream = Stream(auth=self.auth, persist=True)
+        self.stream = Stream(auth=(not args.no_auth), persist=True)
         self.source = self.stream.open(self.observation_topic, "r")
         self.sink = self.stream.open(self.alert_topic, "w")
 
@@ -109,9 +91,9 @@ class Model(object):
         :return: none
         """
         self.deciderUp = True
-        logger.info(f"starting decider")
+        logger.info("starting decider")
         logger.info(f"processing messages from {self.observation_topic}")
-        for msg, meta in self.source.read(metadata=True, autocommit=False):
+        for msg, meta in self.source.read(batch_size=1, metadata=True, autocommit=False):
             self.processMessage(msg)
             self.source.mark_done(meta)
 
@@ -119,7 +101,7 @@ class Model(object):
         """
         Close stream connections.
         """
-        logger.info(f"shutting down")
+        logger.info("shutting down")
         self.deciderUp = False
         self.source.close()
         self.sink.close()
@@ -143,7 +125,7 @@ class Model(object):
 
     def processHeartbeatMessage(self, message):
         pass
-    
+
     def writeAlertMsg(self):
         return SNEWSAlert(
             message_id=str(uuid.uuid4()),

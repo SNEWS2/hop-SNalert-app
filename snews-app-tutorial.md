@@ -1,24 +1,21 @@
 # The SuperNova Early Warning System `snews` app
 
-This is a tutorial on how to install and run the SuperNova Early Warning System ("SNEWS") alerting app, a Python program that uses the `hop-client` software to help observatories and particle detectors coordinate messages and potentially observe of the next galactic supernova.
+This is a tutorial on how to install and run the SuperNova Early Warning System ("SNEWS") alerting app locally, a Python program that uses the `hop-client` software to help observatories and particle detectors coordinate messages and potentially observe of the next galactic supernova.
 
 This tutorial will show you how to create a local messaging system which will:
 1) create messages from mock astrophysics experiments
 2) process those messages
 3) send out alerts if any two of those messages are significant and coincident
 
-To run the SuperNova Alert `snews` app, you will need:
+To run this tutorial, you will need:
 * Python version >= 3.6
 * Docker
-* either `python3-venv` or `conda`
-
-To download files in this tutorial, you will need:
 * curl
+* either `python3-venv` or `conda`
 
 It is recommended that you use virtual environments (with `python3-venv`) or `conda` to manage packages.
 
 Refer to the `Resources` at the end of this tutorial for the documentation and source code of the software used in this tutorial.
-
 
 ## Step 1: Installing `snews`
 
@@ -38,6 +35,7 @@ You can use either pip or conda to create a virtual environment:
   ```
   python3 -m venv snews-venv
   source snews-venv/bin/activate
+  pip install pip --upgrade
   ```
 * conda (you will also need `pip` and `git` to install `snews`)
   ```
@@ -45,13 +43,6 @@ You can use either pip or conda to create a virtual environment:
   conda activate snews-venv
   conda install git pip
   ```
-
-### Sidenote: pip version
-
-Older versions of `pip` may fail to install `snews` properly. Before following the installation instructions below, check that `pip` is up-to-date with `pip --version` **after** activating your virtual environment. Note that this tutorial is functional with `pip >= 20.0.*`, so update your pip version if needed:
-```
-# pip install pip --upgrade
-```
 
 ### Installing `snews`
 
@@ -88,7 +79,7 @@ cd hop-SNalert-app
 
 ### Activating your environment
 
-To set up your environment with the SCIMMA kafka server, the `snews`'s database, and environment variables, source the two files you downloaded while inside the folder containing them:
+To set up your environment with the SCIMMA kafka server, the `snews` database, and environment variables, source the two files you downloaded while inside the folder containing them:
 ```
 source example.env
 source run-containers.sh

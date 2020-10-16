@@ -1,4 +1,4 @@
-# Connecting to the SNEWS / SCIMMA messaging network
+# Using the `snews` app with the SCIMMA Hopskotch server
 This tutorial will show you how to use the `snews` app to connect to the SCIMMA Hopskotch messaging network.
 This can be done using either a local or cloud instance of `snews`; it is recommended that you start with a local instance for testing,
 and then move to a cloud provider if needed for your production services.
@@ -6,24 +6,25 @@ and then move to a cloud provider if needed for your production services.
 In either case, you will need to create a Hopskotch account before connecting to the network. If you want to do entirely local testing without a Hopskotch account, refer to the [local snews notes](https://github.com/RiceAstroparticleLab/hop-SNalert-app/blob/demo/tutorial/snews-local-tutorial.md).
 
 ## Account Setup
+To connect to the Hopskotch server, you will need to create a SNEWS user account and Hopskotch credentials.
 
-### Requesting Access
+### Create User Account
 You will need to request access to the SNEWS user group in SCIMMA Hopskotch via CILogon at https://scimma.github.io/IAM/.
 
 Log on through your corresponding institution and click `Begin` to start the account setup process.
 
 Once you complete the setup, the account can then be approved by a SNEWS admin.
 
-### User Group Access
+### Rwquest Group Access
 After your account has been approved, you must add yourself to the Hopskotch user group inside COManage:
 * Go to  https://registry.scimma.org/registry/co_groups/index/co:2
 * Select "Manage My Group Memberships" in the upper-rigth
 * Find the `kafkaUsers` group (it may not be on the first page) and select the "Member" checkbox
 * Select `SAVE` in the bottom-right
 
-You will then need to be added to the `SCiMMA Institute Active Members` group by a SCIMMA admin.
+You will then need to be added to the `SCIMMA Institute Active Members` group by a SCIMMA admin.
 
-### Create Hopskotch credentials
+### Create Hopskotch Credentials
 Once your request to join the `SCIMMA Institute Active Members` group has been approved, you are now able to generate credentials to access the SCIMMA Hopskotch server.
 
 * Request credentials at: https://admin.dev.hop.scimma.org/hopauth/
@@ -55,10 +56,11 @@ pip install git+https://github.com/RiceAstroparticleLab/hop-SNalert-app.git@demo
 
 Verify your installation by checking `snews --version` and `hop --version`:
 ```
-# snews --version
-SNalert version 0.0.1
-# hop --version
-hop version 0.2
+snews --version
+  SNalert version 0.0.1
+
+hop --version
+  hop version 0.2
 ```
 
 #### Storing your credentials
@@ -71,7 +73,6 @@ The configuration file that holds the credentials can be found via:
 ```
 hop configure locate
 ```
-
 
 ## Connecting to the SNEWS network
 Once your Hopskotch credentials are stored, you are ready to connect to the SNEWS network to send and receive messages.

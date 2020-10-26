@@ -13,17 +13,17 @@ Log on through your corresponding institution and click `Begin` to start the acc
 
 Once you complete the setup, the account can then be approved by a SNEWS admin.
 
-### Request Group Access
-After your account has been approved, you must add yourself to the Hopskotch user group inside COManage:
+### Request Group Access (if needed)
+After your account has been approved, you will now have be a `SCiMMA Active Collaborator`, which should automatically grant you access to Hopskotch as a `kafkaUser`.
+
+If you do not have `kafkaUser` status, you must add yourself to the Hopskotch user group inside COManage:
 * Go to  https://registry.scimma.org/registry/co_groups/index/co:2
 * Select "Manage My Group Memberships" in the upper-right
 * Find the `kafkaUsers` group (it may not be on the first page) and select the "Member" checkbox
 * Select `SAVE` in the bottom-right
 
-You will then need to be added to the `SCIMMA Institute Active Members` group by a SCIMMA admin.
-
 ### Generating and Storing Credentials
-Once your request to join the `SCIMMA Institute Active Members` group has been approved, you will be able to generate credentials to access the SCIMMA Hopskotch server.
+Once you are a part of `SCIMMA Active Collaborators` (or `Active Members`), you will be able to generate credentials to access the SCIMMA Hopskotch server.
 
 However, before you generate credentials, it is recommended that you install `hop-client`. This is a SCIMMA Python package that provides client access to the Hopskotch server; it also centralizes and simplifies the authentication configuration. It will be installed when you install the `snews` app.
 

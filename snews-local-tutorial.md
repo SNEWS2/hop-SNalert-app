@@ -89,7 +89,7 @@ source run-containers.sh
 
 You are now ready to run the `snews` app. This involves running four processes simultaneously:
   1) `snews model`: manages the message parser and database
-  2-3) `hop subscribe` x2: read messages sent by the `model` and `generator`
+  2) and 3) `hop subscribe` x2: read messages sent by the `model` and `generator`
   4) `snews generate`: create and send sample experiment messages
 
 To visualize all processes, you may want to use multiple terminal windows or panes (or create virtual terminals with e.g. emacs, tmux, etc.). You will need to re-activate your virtual environment and variables in each terminal:

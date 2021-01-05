@@ -1,25 +1,31 @@
 # hop-SNalert-app
 
-An alert application for observing supernovas in SNEWS community.
+An alert application for observing supernovae with the SNEWS detector network.
+
+|              |        |
+| ------------ | ------ |
+| **Docs:**    | https://hop-snalert-app.readthedocs.io/en/latest/  |
+
 
 ## Prerequisite
 * Python 3.6 or above
 
 ## Overview
-This is an alert application on top of SCIMMA hop-client that monitors 
-the observations published by experiments and optionally send alerts upon
-getting a potential supernova. It composes of
-* **deque** -
-  data structure that stores recent messages and remove old messages.
+This is an alert application that extends the [SCiMMA hop-client](https://github.com/scimma/hop-client) using the [hop-client cookiecutter template](https://github.com/scimma/hop-app-template). This application monitors 
+the observations published by detectors in the SuperNova Early Warning System (SNEWS) network, and can optionally send alerts upon
+the detection of a potential supernova.
+
+The application consists of:
+* **storage** -
+  data structure to store recent messages and remove old messages
 * **decider** - 
-  Behaviors include adding messages and deciding if current messages indicate a supernova.
+  applies message parsing logic to decide if incoming messages indicate a supernova
 * **model** - 
-  interact with hopscotch and instantiate a decider object. Pass messages in hop.stream to the decider. 
-  Publish to TOPIC 2 if the decider decides “True”.
+  instantiates a decider object and connects to SCiMMA HOPSKOTCH message streams; passes messages using hop.stream to the decider; publishes an alert message if the decider indicates a supernova
 
-With appropriate authentication, a user can publish and subscribe to topic "**snews-TOPIC**".
+The application utilizes the `hop-plugin-snews` plugin to provide custom message formats: see the [repository](https://github.com/SNEWS2/hop-plugin-snews) and [documentation] for more details about this format, and see the [hop-client message formats](https://hop-client.readthedocs.io/en/latest/user/models.html) for information on specifying other custom formats.
 
-See https://github.com/scimma/hop-client for detailed hop-client documentation.
+With appropriate HOPSKOTCH authentication, a user can use the application to publish and subscribe to the online topic "**snews-TOPIC**".
 
 
 ## Quickstart
@@ -34,35 +40,23 @@ See https://github.com/scimma/hop-client for detailed hop-client documentation.
   conda create --name demo-venv python=3.7
   conda activate demo-venv
   ```
-#### Install hop-client
+#### Install snews
 * pip
   ```
-   pip install -U hop-client
-  ```
-* conda
-  ```
-  conda install --channel conda-forge --channel scimma hop-client
-  ```
-Verify your install with `hop`'s help:
-  ```
-  hop --help
+  pip install git+https://github.com/RiceAstroparticleLab/hop-SNalert-app.git
   ```
 #### Basic command-lines
-* publish
+* running the app:
   ```
-  hop publish kafka://SERVER/TOPIC -F config.conf example.gcn3
+  snews model --env-file example.env --no-auth
   ```
-* subscribe
+* generating test messages:
   ```
-  hop subscribe kafka://SERVER/TOPIC -F config.conf -e
+  snews generate --env-file example.env --rate 0.5 --alert-probability 0.1 --persist --no-auth
   ```
+  
 ## Tutorial
 
+For a full tutorial on how to set up the application with local message streams, follow the guide here: https://github.com/RiceAstroparticleLab/hop-SNalert-app/blob/demo/tutorial/snews-local-tutorial.md
 
-
-
-```
-from hop.apps import SNalert
-
-# do cool application stuff here
-```
+For a full tutorial on how to set up the application with the SCiMMA HOPSKOTCH network and request HOPSKOTCH credentials, follow the guide here: https://github.com/RiceAstroparticleLab/hop-SNalert-app/blob/demo/tutorial/snews-dev-tutorial.md.

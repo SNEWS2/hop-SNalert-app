@@ -64,7 +64,8 @@ def _add_parser_args(parser):
     parser.add_argument('-p',
                         '--persist',
                         action="store_true",
-                        help="If set, persist and send messages indefinitely. Otherwise send a single message.")
+                        help="If set, persist and send messages indefinitely. "
+                             "Otherwise send a single message.")
 
 
 def main(args):

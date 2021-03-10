@@ -2,7 +2,6 @@ from collections import deque
 from datetime import datetime
 import logging
 import os
-import time
 
 from dotenv import load_dotenv
 import numpy
@@ -21,8 +20,9 @@ def _add_parser_args(parser):
     parser.add_argument("--no-auth", action="store_true", help="If set, disable authentication.")
     parser.add_argument("-n", "--num-points", type=int, default=100,
                         help="Number of points to compute mean. default=100")
-    parser.add_argument("-m", "--measurement", choices=("alert", "observation"), default="observation",
-                        help="Specify the type of measurement to measure latency. Default = observation.")
+    parser.add_argument("-m", "--measurement", choices=("alert", "observation"),
+                        default="observation", help="Specify the type of measurement to measure "
+                                                    "latency. Default = observation.")
 
 
 def main(args):

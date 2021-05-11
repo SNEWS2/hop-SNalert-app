@@ -7,7 +7,7 @@ In either case, you will need to create a Hopskotch account before connecting to
 To connect to the Hopskotch server, you will need to create a SNEWS user account and Hopskotch credentials.
 
 ### Create User Account
-You will need to request access to the SNEWS user group in SCIMMA Hopskotch via CILogon at https://scimma.github.io/IAM/.
+You will need to request access to the SNEWS user group in SCIMMA Hopskotch via CILogon at https://scimma.github.io/IAM/. Refer to the [Hopskotch Authenticator docs](https://github.com/scimma/scimma-admin/blob/master/doc/hopauth_guide.md#hopauth-for-users) for help in this process.
 
 Log on through your corresponding institution and click `Begin` to start the account setup process.
 
@@ -55,11 +55,11 @@ snews --version
   SNalert version 0.0.1
 
 hop --version
-  hop version 0.2
+  hop version 0.4
 ```
 
 ### Create and Store Hopskotch Credentials
-After `hop-client` is successfully installed, you are ready to generate Hopskotch credentials and store them with `hop-client`:
+After `hop-client` is successfully installed, you are ready to generate Hopskotch credentials and store them with `hop-client` (follow the steps from the (Hopskotch Authenticator)[https://github.com/scimma/scimma-admin/blob/master/doc/hopauth_guide.md#creating-a-credential] for help):
 * Generate credentials at: https://admin.dev.hop.scimma.org/hopauth/
 * Enter these credentials into the prompts when setting up your hop authorization:
 ```

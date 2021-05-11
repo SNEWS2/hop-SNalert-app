@@ -14,7 +14,7 @@ Log on through your corresponding institution and click `Begin` to start the acc
 Once you complete the setup, the account can then be approved by a SNEWS admin.
 
 ### Request Group Access (if needed)
-After your account has been approved, you will now have be a `SCiMMA Active Collaborator`, which should automatically grant you access to Hopskotch as a `kafkaUser`.
+After your account has been approved, you will now be a `SCiMMA Active Collaborator`, which should automatically grant you access to Hopskotch as a `kafkaUser`.
 
 If you do not have `kafkaUser` status, you must add yourself to the Hopskotch user group inside COManage:
 * Go to  https://registry.scimma.org/registry/co_groups/index/co:2
@@ -63,16 +63,19 @@ After `hop-client` is successfully installed, you are ready to generate Hopskotc
 * Generate credentials at: https://admin.dev.hop.scimma.org/hopauth/
 * Enter these credentials into the prompts when setting up your hop authorization:
 ```
-hop configure setup
+hop auth add
 ```
 
 The configuration file that holds the credentials can be found via:
 ```
-hop configure locate
+hop auth locate
 ```
 
+### Get Permissions for SNEWS Hopskotch Topics
+Once you have your credentials, you can then be approved to access the SNEWS data streams ("topics") in Hopskotch. A SNEWS administrator must grant your account permission to access these topics before you can connect to the SNEWS network.
+
 ## Connecting to the SNEWS network
-Once your Hopskotch credentials are stored, you are ready to connect to the SNEWS network to send and receive messages.
+Once your Hopskotch credentials are stored and an administrator has granted you permissions to access SNEWS topics, you are ready to connect to the SNEWS network to send and receive messages.
 
 To use the development servers for testing, download the development SNEWS configuration from https://github.com/SNEWS2/snews2-config/blob/master/dev-config.env. Load this configuration before sending/receiving messages via `source dev-config.env`.
 

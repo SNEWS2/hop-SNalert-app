@@ -59,7 +59,7 @@ hop --version
 ```
 
 ### Create and Store Hopskotch Credentials
-After `hop-client` is successfully installed, you are ready to generate Hopskotch credentials and store them with `hop-client` (follow the steps from the (Hopskotch Authenticator)[https://github.com/scimma/scimma-admin/blob/master/doc/hopauth_guide.md#creating-a-credential] for help):
+After `hop-client` is successfully installed, you are ready to generate Hopskotch credentials and store them with `hop-client` (follow the steps from the [Hopskotch Authenticator](https://github.com/scimma/scimma-admin/blob/master/doc/hopauth_guide.md#creating-a-credential) for help):
 * Generate credentials at: https://admin.dev.hop.scimma.org/hopauth/
 * Enter these credentials into the prompts when setting up your hop authorization:
 ```

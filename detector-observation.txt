@@ -1,0 +1,1 @@
+{"message_id": 0, "detector_id": 0, "sent_time": 0, "neutrino_time": 0, "machine_time": 0, "location": "test", "p_value": 0, "status": "test", "content": "test"}

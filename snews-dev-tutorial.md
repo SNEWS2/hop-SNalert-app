@@ -1,5 +1,5 @@
 # Using `snews` with the SCIMMA Hopskotch server
-This tutorial will show you how to use the `snews` app to connect to the SCIMMA Hopskotch messaging network. This can be done using either a local or cloud installation of `snews`. It is recommended that you start with a local installation for testing, and then move to a cloud provider if needed for your production services.
+This tutorial will show you how to use the `snews` app to connect to the [SCIMMA Hopskotch](https://hop.scimma.org) messaging network. This can be done using either a local or cloud installation of `snews`. It is recommended that you start with a local installation for testing, and then move to a cloud provider if needed for your production services.
 
 In either case, you will need to create a Hopskotch account before connecting to the network. If you want to do entirely local testing without a Hopskotch account, refer to the [local snews notes](https://github.com/RiceAstroparticleLab/hop-SNalert-app/blob/demo/tutorial/snews-local-tutorial.md).
 
@@ -7,7 +7,7 @@ In either case, you will need to create a Hopskotch account before connecting to
 To connect to the Hopskotch server, you will need to create a SNEWS user account and Hopskotch credentials.
 
 ### Create User Account
-You will need to request access to the SNEWS user group in SCIMMA Hopskotch via CILogon at https://scimma.github.io/IAM/. Refer to the [Hopskotch Authenticator docs](https://github.com/scimma/scimma-admin/blob/master/doc/hopauth_guide.md#hopauth-for-users) for help in this process.
+You will need to request access to the SNEWS user group in SCIMMA Hopskotch via CILogon at https://scimma.github.io/IAM/. Refer to the [SCiMMA IAM docs](https://hop.scimma.org/IAM/Instructions/JoinInstitute) for help in this process. The (Hopskotch Authenticator docs](https://github.com/scimma/scimma-admin/blob/master/doc/hopauth_guide.md#hopauth-for-users) has additional information about the account management process.
 
 Log on through your corresponding institution and click `Begin` to start the account setup process.
 
@@ -58,10 +58,12 @@ hop --version
   hop version 0.4
 ```
 
+The `hop-client` also allows you to interact with the Hopskotch server network including GCN message streams and a Jupyter notebook environment; see [hop.SCiMMA](https://hop.scimma.org) for more information.
+
 ### Create and Store Hopskotch Credentials
 After `hop-client` is successfully installed, you are ready to generate Hopskotch credentials and store them with `hop-client` (follow the steps from the [Hopskotch Authenticator](https://github.com/scimma/scimma-admin/blob/master/doc/hopauth_guide.md#creating-a-credential) for help):
-* Generate credentials at: https://admin.dev.hop.scimma.org/hopauth/
-* Enter these credentials into the prompts when setting up your hop authorization:
+* Generate credentials at: https://my.hop.scimma.org/hopauth/
+* Enter these credentials into the prompts when setting up your hop authorization (note that the password prompt will not show the length of your password even after you paste it, so just press enter afterwards):
 ```
 hop auth add
 ```
@@ -71,13 +73,24 @@ The configuration file that holds the credentials can be found via:
 hop auth locate
 ```
 
-### Get Permissions for SNEWS Hopskotch Topics
-Once you have your credentials, you can then be approved to access the SNEWS data streams ("topics") in Hopskotch. A SNEWS administrator must grant your account permission to access these topics before you can connect to the SNEWS network.
+### Accessing SNEWS Hopskotch data stream topics
+Once you have your credentials, a SCiMMA admin can grant you access to the SNEWS data streams ("topics") in Hopskotch. Once you have access, you must then enable access to the data streams used in this tutorial.
+
+This can be done by adding topic permissions to your Hopskotch account. [Online documentation](https://github.com/scimma/scimma-admin/blob/master/doc/hopauth_guide.md#adding-capabilities-to-a-credential) has steps and images of this process, which involves:
+* Going to the [Hopskotch auth website](https://my.hop.scimma.org/hopauth/) and `Edit` your `Active Credentials`
+* Go to `Add Permission`, select `snews.testing: All` topic from the dropdown, then click `Add permission`. Do this for the `snews.alert-test` and `snews.experiments-test` topics.
+
+These changes may take several minutes to take effect, but afterwards you will now have permission to access the SNEWS topic network.
 
 ## Connecting to the SNEWS network
-Once your Hopskotch credentials are stored and an administrator has granted you permissions to access SNEWS topics, you are ready to connect to the SNEWS network to send and receive messages.
+Once your Hopskotch credentials are stored and you have configured your access to SNEWS topics, you are ready to connect to the SNEWS network to send and receive messages.
 
-To use the development servers for testing, download the development SNEWS configuration from https://github.com/SNEWS2/snews2-config/blob/master/dev-config.env. Load this configuration before sending/receiving messages via `source dev-config.env`.
+To do this, download a topic configuration file from the [SNEWS2.0 GitHub repository](https://github.com/SNEWS2/snews2-config). Select the `.env` file depending on your usage:
+* for this tutorial, use the [test-config.env](https://github.com/SNEWS2/snews2-config/blob/master/test-config.env) to connect to non-production test topics on a stable instance of Hopskotch.
+* the [prod-config.env](https://github.com/SNEWS2/snews2-config/blob/master/prod-config.env) can be used to connect to production topics on a stable instance of Hopskotch.
+* the [dev-config.env](https://github.com/SNEWS2/snews2-config/blob/master/dev-config.env) can be used to connect to test topics on the development instance of Hopskotch.
+
+Load your configuration file before sending/receiving messages via `source test-config.env`.
 
 ### Sending messages
 You can use either `snews generate` or `hop publish` to send sample messages to the SNEWS network.
@@ -87,12 +100,12 @@ The `snews generate` function is useful for sending default test messages that m
 
 For example, to send a signal message that is guaranteed to be a detection, use:
 ```
-snews generate --env-file dev-config.env --alert-probability 1
+snews generate --env-file test-config.env --alert-probability 1
 ```
 
 Or, to send a stream of messages that each have a 1% chance to be a detection, use:
 ```
-snews generate --env-file dev-config.env --rate 0.5 --alert-probability 0.01
+snews generate --env-file test-config.env --rate 0.5 --alert-probability 0.01
 ```
 
 #### `hop publish`
@@ -100,16 +113,18 @@ The `hop publish` function can be used to send custom messages to the SNEWS netw
 
 For example, to send a message file `detector-observation.txt` that is formatted as a [SNEWSOBSERVATION](https://hop-plugin-snews.readthedocs.io/en/latest/user/messages.html#observation-message) message:
 ```
-source dev-config.env
+source test-config.env
 hop publish --format SNEWSOBSERVATION $OBSERVATION_TOPIC detector-observation.txt
 ```
+
+Example messages for the `SNEWSALERT`, `SNEWSOBSERVATION`, and `SNEWSHEARTBEAT` formats can be found as [snews-alert.txt](https://github.com/SNEWS2/hop-SNalert-app/blob/demo/tutorial/snews-alert.txt), [detector-observation.txt](https://github.com/SNEWS2/hop-SNalert-app/blob/demo/tutorial/detector-observation.txt), and [detector-heartbeat.txt](https://github.com/SNEWS2/hop-SNalert-app/blob/demo/tutorial/detector-heartbeat.txt), respectively.
 
 ### Reading messages
 You can use `hop subscribe` to read messages that are being sent to the SNEWS network of topics. These messages are sent to either the OBSERVATION_TOPIC or ALERT_TOPIC, depending on if the message is a detector observation/heartbeat, or a detector alert announcing a coincidence between observation messages. See `hop subscribe --help` for all options.
 
 For example, to continuously read any alert messages that are sent:
 ```
-source dev-config.env
+source test-config.env
 hop subscribe $ALERT_TOPIC --persist
 ```
 

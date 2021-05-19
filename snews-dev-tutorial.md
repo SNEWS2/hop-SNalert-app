@@ -7,7 +7,7 @@ In either case, you will need to create a Hopskotch account before connecting to
 To connect to the Hopskotch server, you will need to create a SNEWS user account and Hopskotch credentials.
 
 ### Create User Account
-You will need to request access to the SNEWS user group in SCIMMA Hopskotch via CILogon at https://scimma.github.io/IAM/. Refer to the [SCiMMA IAM docs](https://hop.scimma.org/IAM/Instructions/JoinInstitute) for help in this process. The (Hopskotch Authenticator docs](https://github.com/scimma/scimma-admin/blob/master/doc/hopauth_guide.md#hopauth-for-users) has additional information about the account management process.
+You will need to request access to the SNEWS user group in SCIMMA Hopskotch via CILogon at https://scimma.github.io/IAM/. Refer to the [SCiMMA IAM docs](https://hop.scimma.org/IAM/Instructions/JoinInstitute) for help in this process. The [Hopskotch Authenticator docs](https://github.com/scimma/scimma-admin/blob/master/doc/hopauth_guide.md#hopauth-for-users) has additional information about the account management process.
 
 Log on through your corresponding institution and click `Begin` to start the account setup process.
 
@@ -63,9 +63,12 @@ The `hop-client` also allows you to interact with the Hopskotch server network i
 ### Create and Store Hopskotch Credentials
 After `hop-client` is successfully installed, you are ready to generate Hopskotch credentials and store them with `hop-client` (follow the steps from the [Hopskotch Authenticator](https://github.com/scimma/scimma-admin/blob/master/doc/hopauth_guide.md#creating-a-credential) for help):
 * Generate credentials at: https://my.hop.scimma.org/hopauth/
-* Enter these credentials into the prompts when setting up your hop authorization (note that the password prompt will not show the length of your password even after you paste it, so just press enter afterwards):
+* Enter these credentials into the prompts when setting up your hop authorization:
 ```
 hop auth add
+Username: <paste-your-username>
+Password: <paste-your-password>    # note that this will not show your password; just press enter after you paste it
+Hostname (may be empty): kafka.scimma.org
 ```
 
 The configuration file that holds the credentials can be found via:
@@ -77,7 +80,7 @@ hop auth locate
 Once you have your credentials, a SCiMMA admin can grant you access to the SNEWS data streams ("topics") in Hopskotch. Once you have access, you must then enable access to the data streams used in this tutorial.
 
 This can be done by adding topic permissions to your Hopskotch account. [Online documentation](https://github.com/scimma/scimma-admin/blob/master/doc/hopauth_guide.md#adding-capabilities-to-a-credential) has steps and images of this process, which involves:
-* Going to the [Hopskotch auth website](https://my.hop.scimma.org/hopauth/) and `Edit` your `Active Credentials`
+* Going to the [Hopskotch auth website](https://my.hop.scimma.org/hopauth/) to `Edit` your `Active Credentials`
 * Go to `Add Permission`, select `snews.testing: All` topic from the dropdown, then click `Add permission`. Do this for the `snews.alert-test` and `snews.experiments-test` topics.
 
 These changes may take several minutes to take effect, but afterwards you will now have permission to access the SNEWS topic network.

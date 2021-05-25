@@ -7,7 +7,7 @@ In either case, you will need to create a Hopskotch account before connecting to
 To connect to the Hopskotch server, you will need to create a SNEWS user account and Hopskotch credentials.
 
 ### Create User Account
-You will need to request access to the SNEWS user group in SCIMMA Hopskotch via CILogon at https://scimma.github.io/IAM/. Refer to the [SCiMMA IAM docs](https://hop.scimma.org/IAM/Instructions/JoinInstitute) for help in this process. The [Hopskotch Authenticator docs](https://github.com/scimma/scimma-admin/blob/master/doc/hopauth_guide.md#hopauth-for-users) has additional information about the account management process.
+You will need to request access to the SNEWS user group in SCIMMA Hopskotch via CILogon at https://my.hop.scimma.org/hopauth. Refer to the page if you need to create an account. For more information, see the [SCiMMA IAM docs](https://hop.scimma.org/IAM/Instructions/JoinInstitute) or the [Hopskotch Authenticator docs](https://github.com/scimma/scimma-admin/blob/master/doc/hopauth_guide.md#hopauth-for-users) for account management help.
 
 Log on through your corresponding institution and click `Begin` to start the account setup process.
 
@@ -17,7 +17,7 @@ Once you complete the setup, the account can then be approved by a SNEWS admin.
 After your account has been approved, you will now be a `SCiMMA Active Collaborator`, which should automatically grant you access to Hopskotch as a `kafkaUser`.
 
 If you do not have `kafkaUser` status, you must add yourself to the Hopskotch user group inside COManage:
-* Go to  https://registry.scimma.org/registry/co_groups/index/co:2
+* Go to https://registry.scimma.org/registry/co_petitions/start/coef:127
 * Select "Manage My Group Memberships" in the upper-right
 * Find the `kafkaUsers` group (it may not be on the first page) and select the "Member" checkbox
 * Select `SAVE` in the bottom-right
@@ -91,7 +91,7 @@ Once your Hopskotch credentials are stored and you have configured your access t
 To do this, download a topic configuration file from the [SNEWS2.0 GitHub repository](https://github.com/SNEWS2/snews2-config). Select the `.env` file depending on your usage:
 * for this tutorial, use the [test-config.env](https://github.com/SNEWS2/snews2-config/blob/master/test-config.env) to connect to non-production test topics on a stable instance of Hopskotch.
 * the [prod-config.env](https://github.com/SNEWS2/snews2-config/blob/master/prod-config.env) can be used to connect to production topics on a stable instance of Hopskotch.
-* the [dev-config.env](https://github.com/SNEWS2/snews2-config/blob/master/dev-config.env) can be used to connect to test topics on the development instance of Hopskotch.
+* the [dev-config.env](https://github.com/SNEWS2/snews2-config/blob/master/dev-config.env) can be used to connect to test topics on the development instance of Hopskotch. You would need separate credentials for the development instance; your credentials for the production Hopskotch instance will not work.
 
 Load your configuration file before sending/receiving messages via `source test-config.env`.
 

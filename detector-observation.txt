@@ -1,1 +1,1 @@
-{"message_id": 0, "detector_id": 0, "sent_time": 21/06/06 14:21:37, "neutrino_time": 87/24/02 14:23:41, "machine_time": 21/06/06 14:21:37, "location": "test", "p_value": 0, "status": "test", "content": "test"}
+{"message_id": 0, "detector_id": 0, "sent_time": "21/06/06 14:21:37", "neutrino_time": "87/24/02 14:23:41", "machine_time": "21/06/06 14:21:37", "location": "test", "p_value": 0, "status": "test", "content": "test"}

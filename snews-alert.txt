@@ -1,1 +1,1 @@
-{"message_id": 0, "sent_time": 21/06/06 14:21:37, "machine_time": 21/06/06 14:22:37, "content": "test"}
+{"message_id": 0, "sent_time": "21/06/06 14:21:37", "machine_time": "21/06/06 14:22:37", "content": "test"}

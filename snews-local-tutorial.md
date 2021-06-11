@@ -87,7 +87,7 @@ source run-containers.sh
 
 ## Step 3: Running `snews`
 
-You are now ready to run the `snews` app. This involves running four processes simultaneously:
+You are now ready to run the `snews` app. This involves running four processes simultaneously (see below for the actual command lines):
   1) `snews model`: manages the message parser and database
   2)  `hop subscribe` x2: read messages sent by the `model` and `generator`
   3) `snews generate`: create and send sample experiment messages
@@ -145,6 +145,7 @@ The app has several customizable options which change its behavior. Trying playi
 ## Cleanup
 When you're finished with the tutorial:
 * exit out of each of the `subscribe`, `model`, `generate` processes by pressing `Ctrl-C`
+* stop the docker containers with `sudo docker stop scimma-server mongodb`
 * deactivate your virtual environment if you were using one: `deactivate` for pip or `conda deactivate` for conda
 
 ## Resources

@@ -1,7 +1,7 @@
 .. _decider:
 
-snews.IDecider
+snews.decider
 #####################
 
-.. automodule:: snews.IDecider
+.. automodule:: snews.decider
     :members:

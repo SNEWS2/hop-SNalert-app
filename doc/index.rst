@@ -11,7 +11,7 @@ User's Guide
    user/quickstart
    user/architecture
    user/messages
-   user/protocols
+   user/protocol
 
 API Reference
 -------------

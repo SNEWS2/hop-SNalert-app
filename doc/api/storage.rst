@@ -1,7 +1,7 @@
 .. _IStorage:
 
-snews.IStorage
+snews.storage
 #####################
 
-.. automodule:: snews.IStorage
+.. automodule:: snews.storage
     :members:

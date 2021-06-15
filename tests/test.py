@@ -262,7 +262,8 @@ class latencyTest(object):
         msg_id = msg_dict["header"]["MESSAGE ID"]
         receivedTime = datetime.datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT"))
         sentTime = msg_dict['header']['MESSAGE SENT TIME']
-        timeDiff = datetime.datetime.strptime(receivedTime, os.getenv("TIME_STRING_FORMAT")) - datetime.datetime.strptime(sentTime, os.getenv("TIME_STRING_FORMAT"))
+        timeDiff = datetime.datetime.strptime(receivedTime, os.getenv(
+            "TIME_STRING_FORMAT")) - datetime.datetime.strptime(sentTime, os.getenv("TIME_STRING_FORMAT"))
         timeDiff_inSeconds = timeDiff.total_seconds()
         # print("HERE")
         with self.lock:

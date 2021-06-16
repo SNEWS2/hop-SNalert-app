@@ -18,12 +18,16 @@ jobs:
     - name: Build
       run: |
         python -m pip install --upgrade pip
-        pip install .
-    - name: Lint
-      run: |
         pip install .[dev]
-        make lint
     - name: Test
       run: |
-        pip install .[dev]
         make test
+    - name: Lint
+      if: ${{ matrix.python-version == '3.9' }}
+      run: make lint
+    - name: Format
+      if: ${{ matrix.python-version == '3.9' }}
+      run: make format
+    - name: Docs
+      if: ${{ matrix.python-version == '3.9' }}
+      run: make doc

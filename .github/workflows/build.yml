@@ -29,4 +29,6 @@ jobs:
       run: make format
     - name: Docs
       if: ${{ matrix.python-version == '3.9' }}
-      run: make doc
+      run: |
+        pip install .[docs]
+        make doc

@@ -70,14 +70,14 @@ class MongoStorage(IStorage):
 
     def getAllMessages(self):
         """
-        sort by 1 gives dates from old to recent
-        sort by 2 gives dates from recent to old
+        sort by pymongo.ASCENDING (1) gives dates from old to recent
+        sort by pymongo.DESCENDING (-1) gives dates from recent to old
         :return:
         """
         return self.all_messages.find().sort("sent_time", -1)
 
-    def getCacheMsgs(self):
-        return self.cache.find().sort("sent_time", -1)
+    def getCacheMsgs(self, sort_order=pymongo.ASCENDING):
+        return self.cache.find().sort("sent_time", sort_order)
 
     def cacheEmpty(self):
         return self.cache.count() <= 1

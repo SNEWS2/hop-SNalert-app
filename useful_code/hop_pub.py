@@ -3,11 +3,12 @@
 # Imports
 from hop import Stream
 from datetime import datetime
+import os
 import time
 
 # get current time year_month_day_hr_min_sec (UTC)
 def time_str():
-    return datetime.now().utcnow().strftime("%y/%m/%d %H:%M:%S")
+    return datetime.utcnow().strftime(os.getenv("TIME_STRING_FORMAT"))
 
 
 # sets up stream source depending on topic
@@ -33,9 +34,9 @@ def format_msg(SN_Trigger_Signal, topic_state):
     # needs to take in trigger data
     # get params from detector data, ideally pass the data as a dict
     detc_name = 18
-    sent_time_hr = datetime.now().utcnow().strftime("%H:%M:%S")
-    nu_t = datetime.now().utcnow().strftime("%H:%M:%S")
-    machine_t = datetime.now().utcnow().strftime("%H:%M:%S")
+    sent_time_hr = datetime.utcnow().strftime("%H:%M:%S")
+    nu_t = datetime.utcnow().strftime("%H:%M:%S")
+    machine_t = datetime.utcnow().strftime("%H:%M:%S")
     loc = "Somewhere"
     p_val = "15 Mev : 0.69...."  # method call
     status = "ON"

@@ -13,7 +13,7 @@
   sent_time: !!timestamp '2020-09-23 13:47:13'
   neutrino_time: !!timestamp '2020-09-23 13:47:13'
   machine_time: '20/09/23 13:47:13'
-  location: 'Austin'
+  location: 'San Diego'
   p_value: 0.5
   status: 'On'
   content: 'For testing'

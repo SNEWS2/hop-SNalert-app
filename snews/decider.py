@@ -33,7 +33,7 @@ class Decider(IDecider):
         11: "KM3NeT",
         12: "Baksan",
         13: "JUNO",
-        14: "LZ ",
+        14: "LZ",
         15: "DUNE",
         16: "MicroBooNe",
         17: "SBND",

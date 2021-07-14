@@ -5,20 +5,18 @@ from datetime import datetime
 from hop import Stream
 from pathlib import Path
 import os
-import slack_alert
 
-
-# get current time
+# get current time (hr:min:sec)
 def hr_str():
-    return datetime.now().utcnow().strftime("%H:%M:%S")
+    return datetime.utcnow().strftime("%H:%M:%S")
 
 
-# get current date
+# get current date (yr_month_day)
 def date_str():
-    return datetime.now().utcnow().strftime("%y_%m_%d")
+    return datetime.utcnow().strftime("%y_%m_%d")
 
 
-# make dir with current data (yr_m_d)
+# make dir with current date
 def make_dir(path):
     if Path(path).is_dir():
         pass
@@ -42,30 +40,6 @@ def set_topic(topic_type):
         )
 
 
-# Sets up a persistent stream to OBSERVATION_TOPIC,
-# sends OBS message to save_message_obs()
-def sub_obs():
-    stream = Stream(persist=True)
-
-    with stream.open(set_topic("O"), "r") as s:
-        for message in s:
-            # print(f"saw an OBS at: {time_str()} from {message['detector_id']}")
-            slack_alert.send_slack_msg('O', message)
-            save_message_obs(message, message['detector_id'])
-
-
-# Sets up a persistent stream to ALERT_TOPIC,
-# sends OBS message to save_message_alert()
-def sub_alrt():
-    stream = Stream(persist=True)
-
-    with stream.open(set_topic("A"), "r") as s:
-        for message in s:
-            # print(f"saw an ALERT at: {time_str()} from {message['detector_id']}")
-            slack_alert.send_slack_msg('A', message)
-            save_message_alert(message)
-
-
 # This method converts hop OBS messages to a string and saves it to a txt file
 def save_message_obs(message, detector_name):
     path = f'SNEWS_MSGs/OBS/{date_str()}/'
@@ -82,6 +56,34 @@ def save_message_alert(message):
     text_file = open(f"{path}SNEWS_ALERT_{hr_str()}.txt", "w+")
     text_file.write(str(message))
     text_file.close()
+
+
+# Sets up a persistent stream to OBSERVATION_TOPIC,
+# sends OBS message to save_message_obs()
+# this was a testing method
+def sub_obs():
+    stream = Stream(persist=True)
+
+    with stream.open(set_topic("O"), "r") as s:
+        for message in s:
+            # print(f"saw an OBS at: {time_str()} from {message['detector_id']}")
+            # slack_alert.send_slack_msg('O', message)
+            save_message_obs(message, message['detector_id'])
+
+
+# Sets up a persistent stream to ALERT_TOPIC,
+# sends OBS message to save_message_alert()
+def sub_alrt():
+    stream = Stream(persist=True)
+
+    with stream.open(set_topic("A"), "r") as s:
+        for message in s:
+            print(f"saw an ALERT at: {time_str()} from {message['detector_id']}")
+            # slack_alert.send_slack_msg('A', message)
+            # save_message_alert(message)
+
+
+
 
 # Whenever an alert is sent this method will search throug
 def alert_send_rev_search():

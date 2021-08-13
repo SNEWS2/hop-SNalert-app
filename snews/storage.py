@@ -32,20 +32,26 @@ class MongoStorage(IStorage):
         :param drop_db: boolean specifying whether to clear previous database storage
         '''
         # Construct Mongodb first, used to store the json dictionary
+        # Sets up the client
         self.client = pymongo.MongoClient(server)
-
+        # Sets up database
         self.db = self.client.database
+        # The 3 lines bellow set up the collections
         self.all_messages = self.db.all_messages
         self.cache = self.db.cache
+        self.false_msg = self.db.false_msg
         # drop the database and previous records
         if drop_db:
             self.all_messages.delete_many({})
             self.cache.delete_many({})
+            self.false_msg.delete_maney({})
             self.all_messages.drop_indexes()
             self.cache.drop_indexes()
+            self.false_msg.drop_indexes()
         # don't drop
         self.all_messages.create_index("sent_time")
         self.cache.create_index("sent_time", expireAfterSeconds=msg_expiration)
+        self.false_msg.create_index("sent_time")
 
         self.msg_expiration = msg_expiration
         self.datetime_format = datetime_format
@@ -107,11 +113,13 @@ class RedisStorage(object):
         # the key-value pair being (time, MongoDB ObjectID)
         self.all_messages = redis.Redis(host='localhost', port=6379, db=0)
         self.cache = redis.Redis(host='localhost', port=6379, db=1)
+        # self.false_msg = redis.Redis(host='localhost', port=6379, db=2)
         # self.detectors = redis.Redis(host='localhost', port=6379, db=2)
 
         # flush first in case there're existing keys
         self.all_messages.flushall()
         self.cache.flushall()
+        # self.false_msg.flushall()
         # self.detectors.flushall()
 
         self.timeout = timeout

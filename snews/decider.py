@@ -74,18 +74,9 @@ class Decider(IDecider):
             cache_mgs_coll = self.db.cache
             prev = datetime.datetime.min
             prev_location = "FOO LOCATION"
+            # purge all false alarms before moving forward
+            self.purge_false_cache(cache_mgs_coll, false_msgs_coll)
             for msg in cacheMsgs:
-                # check is msg in cache has a False id, if true that msg is dumped and the loop moves to the next
-                # iteration
-                if msg['message_id'].split('_')[1] == 'False':
-                    false_msg_id = msg['false_id']
-                    false_id_query = {'message_id': false_msg_id}
-                    # delete false msg from cache collection
-                    cache_mgs_coll.delete_one(false_id_query)
-                    # add fasle msg to false msg collection
-                    false_msgs_coll.insert_one(msg)
-                    # recursion
-                    self.deciding()
                 neutrinoTime = msg["neutrino_time"]
                 # go through messages to check if any two or more are within the time threshold
                 if neutrinoTime - datetime.timedelta(seconds=self.coinc_threshold) <= prev:
@@ -121,4 +112,23 @@ class Decider(IDecider):
         """
         return self.db.getAllMessages()
 
+    def purge_false_cache(self, cache_coll, false_mgs_coll):
+        """
+        Deletes any false obs in cache
+        """
+        all_false_warnings = self.db.get_false_warnings()
+        # pass if there are no false warnings
+        if self.db.false_warnings.count() == 0:
+            pass
 
+        for msg in all_false_warnings:
+            # pass if there are no false warnings
+            if msg['message_id'].split('_')[1] == 'False':
+                false_msg_id = msg['false_id']
+                false_id_query = {'message_id': false_msg_id}
+                # delete false msg from cache collection
+                cache_coll.delete_one(false_id_query)
+                # add false msg to false msg collection
+                false_mgs_coll.insert_one(msg)
+                # delete the warning
+                self.db.false_warnings.delete_one(msg)

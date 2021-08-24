@@ -40,14 +40,17 @@ class MongoStorage(IStorage):
         self.all_messages = self.db.all_messages
         self.cache = self.db.cache
         self.false_msg = self.db.false_msg
+        self.false_warnings = self.db.false_warnings
         # drop the database and previous records
         if drop_db:
             self.all_messages.delete_many({})
             self.cache.delete_many({})
-            self.false_msg.delete_maney({})
+            self.false_msg.delete_many({})
+            self.false_warnings.delete_many({})
             self.all_messages.drop_indexes()
             self.cache.drop_indexes()
             self.false_msg.drop_indexes()
+            self.false_warnings.drop_indexes()
         # don't drop
         self.all_messages.create_index("sent_time")
         self.cache.create_index("sent_time", expireAfterSeconds=msg_expiration)
@@ -72,7 +75,10 @@ class MongoStorage(IStorage):
         # first insert into MongoDB
         self.all_messages.insert_one(message2)
         # insert it into cache with expiration time set
-        self.cache.insert_one(message2)
+        if ['message_id'].split('_')[1] == 'False':
+            self.false_warnings.insert_one(message2)
+        else:
+            self.cache.insert_one(message2)
 
     def getAllMessages(self):
         """
@@ -92,7 +98,11 @@ class MongoStorage(IStorage):
         # Convert string ID to ObjectId:
         return self.all_messages.find_one({'_id': ObjectId(post_id)})
 
+    def get_false_warnings(self):
+        return self.false_warnings.find()
 
+
+# ---------------------------------------------------------------------------------------------------------------------
 class RedisStorage(object):
     def __init__(self, timeout, datetime_format):
         '''

@@ -3,12 +3,17 @@ from dotenv import load_dotenv
 '''
 loads SNEWS env 
 '''
+
+
 def set_env(env_path):
     load_dotenv(env_path)
+
 
 '''
 returns detector name (snews format)
 '''
+
+
 def get_detector_id(num):
     detector_id = {
         1: "Super-K",

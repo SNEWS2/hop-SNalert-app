@@ -6,6 +6,10 @@ from . import storage
 
 class IDecider(ABC):
     @abstractmethod
+    def get_detector_id(self,num):
+        pass
+
+    @abstractmethod
     def deciding(self):
         pass
 
@@ -19,29 +23,6 @@ class IDecider(ABC):
 
 
 class Decider(IDecider):
-    detector_id = {
-        1: "Super-K",
-        2: "Hyper-K",
-        3: "SNO+",
-        4: "KamLAND",
-        5: "LVD",
-        6: "ICE",
-        7: "Borexino",
-        8: "HALO-1kT",
-        9: "HALO",
-        10: "NOvA",
-        11: "KM3NeT",
-        12: "Baksan",
-        13: "JUNO",
-        14: "LZ",
-        15: "DUNE",
-        16: "MicroBooNe",
-        17: "SBND",
-        18: "DS-20K",
-        19: "XENONnT",
-        20: "PandaX-4T",
-    }
-
     def __init__(self,
                  coinc_threshold=10,
                  msg_expiration=120,
@@ -59,6 +40,31 @@ class Decider(IDecider):
         # intialize and use mongo storage
         self.db = storage.MongoStorage(msg_expiration, datetime_format, mongo_server, drop_db)
         self.coinc_threshold = coinc_threshold
+
+    def get_detector_id(self, num):
+        detector_id = {
+            1: "Super-K",
+            2: "Hyper-K",
+            3: "SNO+",
+            4: "KamLAND",
+            5: "LVD",
+            6: "ICE",
+            7: "Borexino",
+            8: "HALO-1kT",
+            9: "HALO",
+            10: "NOvA",
+            11: "KM3NeT",
+            12: "Baksan",
+            13: "JUNO",
+            14: "LZ",
+            15: "DUNE",
+            16: "MicroBooNe",
+            17: "SBND",
+            18: "DS-20K",
+            19: "XENONnT",
+            20: "PandaX-4T",
+        }
+        return detector_id(num)
 
     def deciding(self):
         """Implements the SNEWS coincidence requirement protocol to check cached messages and determine

@@ -67,9 +67,8 @@ def sub_obs():
 
     with stream.open(set_topic("O"), "r") as s:
         for message in s:
-            pass
-            # print(f"saw an OBS at: {time_str()} from {message['detector_id']}")
-            # save_message_obs(message, message['detector_id'])
+            print(f"saw an OBS at: {hr_str()} {date_str()} from {message['detector_id']}")
+            save_message_obs(message, message['detector_id'])
 
 
 # Sets up a persistent stream to ALERT_TOPIC,
@@ -80,7 +79,6 @@ def sub_alrt():
     with stream.open(set_topic("A"), "r") as s:
         for message in s:
             print(f"saw an ALERT at: {hr_str()} {date_str()} from {message['detector_id']}")
-
             save_message_alert(message)
 
 

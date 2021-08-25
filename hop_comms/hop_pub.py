@@ -170,10 +170,9 @@ def pub_alert(detector_id,detector_data):
         print(f"Publishing ALERT message:\n{msg}")
 
 
-# needs some work..
+# might be better to have a method that grabs the detector status than just passing it.
 def pub_heartbeat(detector_id, detector_data):
     stream = Stream(persist=True)
-    # while True:
     with stream.open(set_topic("H"), "w") as s:
         # detector_data = None  needs to be called every time it's iterated !
         msg = format_msg(detector_data, "H", detector_id)

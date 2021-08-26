@@ -36,7 +36,7 @@ class MongoStorage(IStorage):
         self.client = pymongo.MongoClient(server)
         # Sets up database
         self.db = self.client.database
-        # The 3 lines bellow set up the collections
+        # The 4 lines bellow set up the collections
         self.all_messages = self.db.all_messages
         self.cache = self.db.cache
         self.false_msg = self.db.false_msg

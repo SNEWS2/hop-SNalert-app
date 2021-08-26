@@ -1,20 +1,11 @@
 # Author: Sebastian Torres-Lara, Univ of Houston
 
 # Imports
-from datetime import datetime
+import snew_util
 from hop import Stream
 from pathlib import Path
 import os
-
-
-# get current time (hr:min:sec)
-def hr_str():
-    return datetime.utcnow().strftime("%H:%M:%S")
-
-
-# get current date (yr_month_day)
-def date_str():
-    return datetime.utcnow().strftime("%y_%m_%d")
+from collections import namedtuple
 
 
 # make dir with current date
@@ -24,42 +15,35 @@ def make_dir(path):
     else:
         os.makedirs(path)
 
+def set_topic_state():
+    Topics = namedtuple('Topics',['broker','topic_sever','topic_name'])
+    topics ={'ALERT'}
+"""
+hop-subscribe class
+"""
 
-# this method sets up the source for the Stream
-def set_topic(topic_type):
-    hop_broker = "kafka.scimma.org"
-    observation_topic = f"kafka://{hop_broker}/snews.experiments-test"
-    alert_topic = f"kafka://{hop_broker}/snews.alert-test"
-
-    if topic_type == "A":
-        return alert_topic
-    elif topic_type == "O":
-        return observation_topic
-    else:
-        print(
-            "INVALID ENTRY:\nUse 'A' for ALERT_TOPIC \nOR\n 'O' for OBSERVATION_TOPIC"
-        )
-
-
-# This method converts hop OBS messages to a string and saves it to a txt file
-def save_message_obs(message, detector_name):
-    path = f'SNEWS_MSGs/OBS/{date_str()}/'
-    make_dir(path)
-    text_file = open(f"{path}SNEWS_OBS_{detector_name}_{hr_str()}.txt", "w+")
-    text_file.write(str(message))
-    text_file.close()
+class Hop_Subscribe:
+    def __init__(self):
+        self.hop_broker = "kafka.scimma.org"
+        self.observation_topic = f"kafka://{self.hop_broker}/snews.experiments-test"
+        self.alert_topic = f"kafka://{self.hop_broker}/snews.alert-test"
+        self.hr = snew_util.Time_Stuff.get_hr_str()
+        self.date = snew_util.Time_Stuff.get_date_str()
+        self.snews_time = snew_util.Time_Stuff.get_snews_time_str()
 
 
-# This method converts hop ALERT messages to a string and saves it to a txt file
-def save_message_alert(message):
-    path = f'SNEWS_MSGs/ALERT/{date_str()}/'
-    make_dir(path)
-    text_file = open(f"{path}SNEWS_ALERT_{hr_str()}.txt", "w+")
-    text_file.write(str(message))
-    text_file.close()
+    def save_mgs(self,detector_name,topic):
+        path = f'SNEWS_MSGs/{topic}/{date_str()}/'
+        make_dir(path)
+        text_file = open(f"{path}SNEWS_OBS_{detector_name}_{hr_str()}.txt", "w+")
+        text_file.write(str(message))
+        text_file.close()
+
+    def hop_sub(self):
 
 
-# Sets up a persistent stream to OBSERVATION_TOPIC,
+
+a persistent stream to OBSERVATION_TOPIC,
 # sends OBS message to save_message_obs()
 # this was a testing method
 def sub_obs():
@@ -82,9 +66,3 @@ def sub_alrt():
             save_message_alert(message)
 
 
-# Whenever an alert is sent this method will search throug
-def alert_send_rev_search():
-    pass
-#     with stream.open(set_topic("A"), "r") as s:
-#         for message in s:
-#         # send to reverse search module

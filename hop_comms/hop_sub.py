@@ -28,7 +28,7 @@ class HopSubscribe:
         self.date = self.time_stuff.get_date_str()
         self.snews_time = self.time_stuff.get_snews_time_str()
 
-    def save_mgs(self, topic, message,date):
+    def save_mgs(self, topic, message, date):
         id = message['message_id']
         path = f'SNEWS_MSGs/{topic}/{date}'
         make_dir(path)
@@ -48,28 +48,3 @@ class HopSubscribe:
             for message in s:
                 print(f"{name} from {message['detector_id']}")
 
-
-
-
-# #
-# # a persistent stream to OBSERVATION_TOPIC,
-# # sends OBS message to save_message_obs()
-# # this was a testing method
-# def sub_obs():
-#     stream = Stream(persist=True)
-#
-#     with stream.open(set_topic("O"), "r") as s:
-#         for message in s:
-#             print(f"saw an OBS at: {hr_str()} {date_str()} from {message['detector_id']}")
-#             save_message_obs(message, message['detector_id'])
-#
-#
-# # Sets up a persistent stream to ALERT_TOPIC,
-# # sends OBS message to save_message_alert()
-# def sub_alrt():
-#     stream = Stream(persist=True)
-#
-#     with stream.open(set_topic("A"), "r") as s:
-#         for message in s:
-#             print(f"saw an ALERT at: {hr_str()} {date_str()} from {message['detector_id']}")
-#             save_message_alert(message)

@@ -1,110 +1,111 @@
-import hop, snews, sys
+import hop, snews, sys, time, os, json
 from hop import Stream
 from datetime import datetime
-import time
-import snews
 from enum import Enum
-
-exp_locations = {1:'loc SuperK',2:'loc HyperK', 3:'loc SNO+', 4:'loc KamLAND',
-                 5:'loc LVD', 6:'loc ICECUBE', 7:'loc Borexino', 8:'loc HALO_1kT', 
-                 9:'loc HALO', 10:'loc NOvA', 11:'loc KM3NeT', 12:'loc Baksan', 13:'loc JUNO', 
-                 14:'loc LZ', 15:'loc DUNE', 16:'loc MicroBooNe', 17:'loc SBND', 18:'loc DS_20k', 
-                 19:'loc XENONnT', 20:'loc PandaX_4t'}
-
-class Experiment(Enum):
-    """ Enumerated Experiments
-
-        Notes:
-        print(Experiment.KamLAND.name)
-        > KamLAND
-        print(Experiment.KamLAND.value)
-        > 4
-    """
-
-    Super_K, SuperK   = 1, 1
-    Hyper_K, HyperK   = 2, 2
-    SNOp,SNOplus      = 3, 3
-    KamLAND   = 4
-    LVD       = 5
-    ICE, IceCube      = 6, 6
-    Borexino  = 7
-    HALO_1kT, HALO1kT  = 8, 8
-    HALO      = 9
-    NOvA      = 10
-    KM3NeT    = 11
-    Baksan    = 12
-    JUNO      = 13
-    LZ        = 14
-    DUNE      = 15
-    MicroBooNe= 16
-    SBND      = 17
-    DS_20K, DS20K    = 18, 18
-    XENONnT   = 19
-    PandaX_4T, PandaX4T = 20, 20
+from collections import namedtuple
+from dotenv import load_dotenv
+import uuid
+  
+   
+Detector = namedtuple("Detector", ["name", "id", "location"])
 
 class Publish:
     """ Class to format and publish messages
     """
-    def __init__(self, message=dict(), experiment=None):
-        self.set_experiment_properties_(experiment)
-        self.publish_to = {'Significance_Tier':True, 'Coincidence_Tier':True, 'Timing_Tier':True}
-        self.msg_dict   = self.default_dict()
-        self.format_message_(message)
-        
+    def __init__(self, message, detector, env_path):
+        self.detectors = self.retrieve_detectors()
+        self.detector = self.get_detector(detector)
+        self.publish_to = {'Significance_Tier':True, 'Coincidence_Tier':True, 'Timing_Tier':True}        
         self.common_keys_ = ['detector_id','machine_time','neutrino_time','status']
         self.tier_keys_   = {'Significance_Tier':self.common_keys_ + ['p_value'],
                              'Coincidence_Tier':self.common_keys_,
                              'Timing_Tier':self.common_keys_ + ['time-series']}
-        self.broker            = "kafka.scimma.org"
-        self.observation_topic = f"kafka://{self.broker}/snews.experiments-test"
-        self.alert_topic       = f"kafka://{self.broker}/snews.alert-test"
-        self.heartbeat_topic   = f"kafka://{self.broker}/snews.testing" # should the HB pub to alert?
-        self.__version__ = "0.0.3"
+        self.set_env(env_path)
+        self.broker            = os.getenv("HOP_BROKER")
+        self.observation_topic = os.getenv("OBSERVATION_TOPIC")
+        self.alert_topic       = os.getenv("ALERT_TOPIC")
+        self.heartbeat_topic   = self.observation_topic 
+        self.time_str_format   = os.getenv("TIME_STRING_FORMAT")
+        self.message_dict = message
+        self.format_message(message)
+        self.__version__ = "0.0.4"
 
-        
-    def set_experiment_properties_(self, experiment):
-        """ Sets the experiment-specific properties
+
+    def set_env(self, env_path=None):
+        """ Set environment
+        Arguments
+        ---------
+        env_path : str (optional)
+            path for the environment file. 
+            Use default settings if not given
         """
-        if type(experiment)==type(None):
-            self.exp_name = 'Not Specified'
-            self.exp_id = -999
-            self.exp_loc = 'Not Specified'
-        else:
-            self.exp_name = experiment.name
-            self.exp_id   = experiment.value
-            self.exp_loc  = exp_locations[self.exp_id]
+        env = env_path or './default_env.env'
+        load_dotenv(env)
 
             
     def time_str(self):
         """ Returns datetime object for current time 
             year/month/day hr:min:sec (UTC)
         """
-        return datetime.now().utcnow().strftime("%y/%m/%d %H:%M:%S")
+        return datetime.now().utcnow().strftime(self.time_str_format)
+    
+
+    # retrieve the detector properties
+    def retrieve_detectors(self):
+        if not os.path.isfile('detector_properties.json'):
+            os.system('python make_detector_file.py')
+
+        with open('detector_properties.json') as json_file:
+            detectors = json.load(json_file)
+
+        for k,v in detectors.items():
+            detectors[k] = Detector(v[0], v[1], v[2])
+        return detectors
+
+    
+    def get_detector(self, detector):
+        """ Return the selected detector properties
+        """
+        if isinstance(detector, Detector): return detector
+        if isinstance(detector, str): 
+            try:
+                return self.detectors[detector]
+            except KeyError:
+                print(f'{detector} is not a valid detector!')
+                return self.detectors['TEST']
 
 
     def default_dict(self):
         """ Returns the default dictionary
             with all entries being 'none'
         """
-        return {"message_id": 0, 
-                "detector_id": self.exp_id, 
+        return {"message_id": str(uuid.uuid4()), 
+                "detector_id": self.detector.id, 
                 "sent_time": self.time_str(), 
-                "neutrino_time": "01/01/01 01:01:01", 
-                "machine_time": "01/01/01 01:01:01", 
-                "location": self.exp_loc, 
+                "neutrino_time": self.time_str(), 
+                "machine_time": self.time_str(), 
+                "location": self.detector.location, 
                 "p_value": 0, 
                 "status": "none", 
-                "content": "none",
-                "time-series":0}
+                "content": "none"}
 
 
-    def format_message_(self, message):
+    def format_message(self, message):
         """ Format the message
+            Takes the deafult dict and modifies the fields
+            according to input message
         """
+        # if no message is provided, make default
+        if type(message)==type(None):
+            self.message_dict = self.default_dict()
         if isinstance(message,dict):
             # overwrite default ones, add new ones, keep missing ones
-            self.msg_dict = {**self.msg_dict, **message}
+            self.message_dict = {**self.message_dict, **message}
         if isinstance(message,list):
+            pass
+        if isinstance(message,hop.plugins.snews.SNEWSObservation):
+            pass
+        if isinstance(message,str):
             pass
 
 
@@ -115,7 +116,7 @@ class Publish:
             if flag:
                 # if publish_to:tier is True
                 # select the relevant keys
-                tier_data = {x:self.msg_dict[x] for x in self.tier_keys_[tier]}
+                tier_data = {x:self.message_dict[x] for x in self.tier_keys_[tier]}
                 stream = Stream(persist=False)
                 with stream.open(self.observation_topic, "w") as s:
                     s.write(tier_data)
@@ -127,53 +128,57 @@ class Publish:
     def display_message(self):
         """ Display the mesagge without publishing
         """
-        print(f"Following OBS message to be published:\n{self.time_str()}\n")
-        for k,v in self.msg_dict.items():
+        print(f"Following OBS message to be published:\nCurrent time:{self.time_str()}\n")
+        for k,v in self.message_dict.items():
               print(f'{k:<20s}:{v}')
-        print(f"\n> modify self.msg_dict or \n> use .publish_to_tiers() method to publish (see .publish_to)")
+        print(f"\n> modify self.message_dict or \n> use .publish_to_tiers() method to publish (see .publish_to)")
 
 
 class Publish_Observation(Publish):
     """ Class to publish observation messages
     """
-    def __init__(self, msg=dict(), experiment=None, welcome=False):
-        super().__init__(msg, experiment=experiment)
+    def __init__(self, msg=None, detector='TEST', welcome=False, env_path=None):
+        super().__init__(msg, detector, env_path)
         if welcome: self.summarize()
         
     def summarize(self):
         """ Summarize the current configuration
         """
-        header = f'\n ### Publish SNEWS Observation Messages ###\n'
-        exp_str = ''
-        if self.exp_id != -999: exp_str=f'#{self.exp_name:_^40}#\n'
-        versions = f'Your Python version:{sys.version}\n'+\
-        f'Current hop-client version:{hop.__version__}\n'+\
+        print(
+        '#'.ljust(50, '#')+
+        f'\n# {"Publish SNEWS Observation Messages":^46} #\n'
+        f'#{self.detector.name:_^48}#\n'
+        f'#{str(self.detector.id)+"-"+self.detector.location:_^48}#\n'+
+        '#'.center(51, '#')+
+        f'\nYour Python version:\n {sys.version}\n'
+        f'Current hop-client version:{hop.__version__}\n'
         f'             snews version:{snews.__version__}\n\n'
-        topic_info = f'Publishing to {self.broker}\n'+\
-        f' Observation Topic: {self.observation_topic}\n\n'
-        tier_info = f'> Submitting messages to the following Tiers;\n'+\
+        f'Publishing to {self.broker}\n'
+        f'Observation Topic:\n==> {self.observation_topic}\n\n'
+        f'> Selected Tiers;\n'
         f'{" & ".join([tier for tier in self.publish_to.keys() if self.publish_to[tier]==True])}\n'
-        f'See self.publish_to to change\n'
-        print(header,exp_str,versions,topic_info, tier_info)
+        '-> to change, modify `self.publish_to`')
     
     
     def publish(self):
         """ Publish the current message
         """
+        self.message_dict['status'] = 'ON'
         stream = Stream(persist=False)
         with stream.open(self.observation_topic, "w") as s:
-            s.write(self.msg_dict)
+            s.write(self.message_dict)
         print(f"\nPublished OBS message to {self.observation_topic}:")
-        for k,v in self.msg_dict.items():
+        for k,v in self.message_dict.items():
             print(f'{k:<20s}:{v}')
     
     
 class Publish_Heartbeat(Publish):
     """ Class to publish hearbeat messages continuously
     """
-    def __init__(self, msg=dict(), experiment=None,):
-        super().__init__(msg, experiment)
-        self.rate = 60     # seconds            
+    def __init__(self, msg=None, detector='TEST', rate=30, env_path=None):
+        super().__init__(msg, detector, env_path)
+        self.rate = rate     # seconds          
+        self.run_continouosly = self.background_schedule(self.rate)
      
     def retrieve_status(self):
         """ Script to retrieve detector status
@@ -181,12 +186,12 @@ class Publish_Heartbeat(Publish):
         import numpy as np
         return np.random.choice(['ON','OFF'])
     
-    # TODO: needs to run continously in background
-    # until stopped
+
     def publish(self):
-        """ Publish the current message
+        """ Publish heartbeat message
+            Publish default dict
         """
-        heartbeat_message = self.msg_dict
+        heartbeat_message = self.message_dict
         heartbeat_message['status'] = self.retrieve_status()
         heartbeat_message['sent_time'] = self.time_str()
         stream = Stream(persist=True)
@@ -201,16 +206,19 @@ class Publish_Heartbeat(Publish):
             
             
     # NEEDS WORK
-    def background_schedule(self):
+    def background_schedule(self, schedule=10):
+        """ Publish Heartbeat messages in background
+            On a given schedule
+
+            Notes
+            -----
+            Needs more work. Killing the process is not easy.
+        """
         from apscheduler.schedulers.background import BackgroundScheduler
         import os 
 
-        def tick():
-            print('Tick! The time is: %s' % datetime.now())
-
         scheduler = BackgroundScheduler()
-#         scheduler.add_job(tick, 'interval', seconds=30)
-        scheduler.add_job(self.publish, 'interval', seconds=10)
+        scheduler.add_job(self.publish, 'interval', seconds=schedule)
         scheduler.start()
         print('Press Ctrl+{0} to exit'.format('Break' if os.name == 'nt' else 'C'))
         try:

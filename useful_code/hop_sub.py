@@ -38,7 +38,7 @@ class HopSubscribe:
         id = message['message_id']
         path = f'SNEWS_MSGs/{topic}/{date}'
         snews_utils.make_dir(path)
-        logger = snews_utils.get_logger('hopsub', path+'loggings.log')
+        logger = snews_utils.get_logger('hopsub', path+'/loggings.log')
         logger.info(str(message))
         # text_file = open(f"{path}/{id}.txt", "w+")
         # text_file.write(str(message))

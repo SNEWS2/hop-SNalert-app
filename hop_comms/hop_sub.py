@@ -1,7 +1,7 @@
 # Author: Sebastian Torres-Lara, Univ of Houston
 
 # Imports
-import snew_util
+import snew_utils
 from hop import Stream
 from pathlib import Path
 import os
@@ -31,7 +31,7 @@ class HopSubscribe:
     def save_mgs(self, topic, message, date):
         id = message['message_id']
         path = f'SNEWS_MSGs/{topic}/{date}'
-        make_dir(path)
+        snew_utils.make_dir(path)
         text_file = open(f"{path}/{id}.txt", "w+")
         text_file.write(str(message))
         text_file.close()
@@ -47,4 +47,5 @@ class HopSubscribe:
         with stream.open(broker, "r") as s:
             for message in s:
                 print(f"{name} from {message['detector_id']}")
+                save_mgs(name,message,self.date)
 

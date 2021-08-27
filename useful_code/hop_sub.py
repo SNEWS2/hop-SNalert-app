@@ -7,6 +7,9 @@ to subscribe and listen to the alert topics
 Sebastian Torres-Lara, Univ of Houston
 Melih Kara kara@kit.edu
 
+Notes
+https://docs.python.org/3/howto/logging.html
+
 """
 
 # Imports
@@ -19,18 +22,27 @@ from collections import namedtuple
 
 class HopSubscribe:
     def __init__(self, env):
-        self.time_stuff = snew_util.TimeStuff(env)
-        self.hr = self.time_stuff.get_hr_str()
-        self.date = self.time_stuff.get_date_str()
-        self.snews_time = self.time_stuff.get_snews_time_str()
+        snews_utils.set_env(env_path)
+        self.broker            = os.getenv("HOP_BROKER")
+        self.observation_topic = os.getenv("OBSERVATION_TOPIC") # only snews can subscribe
+        self.alert_topic       = os.getenv("ALERT_TOPIC")
+
+        # time object/strings
+        self.times = snews_utils.TimeStuff(env_path)
+        self.hr = self.times.get_hour()
+        self.date = self.times.get_date()
+        self.snews_time = self.times.get_snews_time()
+
 
     def save_mgs(self, topic, message, date):
         id = message['message_id']
         path = f'SNEWS_MSGs/{topic}/{date}'
         snews_utils.make_dir(path)
-        text_file = open(f"{path}/{id}.txt", "w+")
-        text_file.write(str(message))
-        text_file.close()
+        logger = snews_utils.get_logger('hopsub', path+'loggings.log')
+        logger.info(str(message))
+        # text_file = open(f"{path}/{id}.txt", "w+")
+        # text_file.write(str(message))
+        # text_file.close()
 
     def topic_sub(self, which_topic):
         # set topic enum, get name and broker

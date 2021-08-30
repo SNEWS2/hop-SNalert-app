@@ -220,5 +220,8 @@ class Publish_Alert:
 
     # decider should call this
     def publish():
-
-        pass
+        from IPython.display import HTML, display
+        giphy_snews = "https://raw.githubusercontent.com/SNEWS2/hop-SNalert-app/KaraMelih-dev/useful_code/snalert.gif"
+        if snews_utils.isnotebook():
+            display(HTML(f'<img src={giphy_snews}>'))
+        

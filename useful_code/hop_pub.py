@@ -23,10 +23,11 @@ class Publish:
     def __init__(self, message, detector, env_path):
         ####
         self.publish_to = {'Significance_Tier':True, 'Coincidence_Tier':True, 'Timing_Tier':True}        
-        self.common_keys_ = ['detector_id','machine_time','neutrino_time','status']
+        self.common_keys_ = ['detector_id','machine_time','neutrino_time',
+                             'sent_time','status']
         self.tier_keys_   = {'Significance_Tier':self.common_keys_ + ['p_value'],
                              'Coincidence_Tier':self.common_keys_,
-                             'Timing_Tier':self.common_keys_ + ['time-series']}
+                             'Timing_Tier':self.common_keys_ + ['content']}
         ####
         self.detector = snews_utils.get_detector(detector)
         snews_utils.set_env(env_path)
@@ -39,7 +40,7 @@ class Publish:
 
         self.message_dict = message
         self.format_message(message)
-        self.__version__ = "0.0.5"
+        self.__version__ = "0.0.6"
 
 
     def id_format(self, topic_type='O'):
@@ -104,9 +105,13 @@ class Publish:
                 # if publish_to:tier is True
                 # select the relevant keys
                 tier_data = {x:self.message_dict[x] for x in self.tier_keys_[tier]}
+                # update sent time (overwrite)
+                tier_data['sent_time'] = self.time_str()
                 stream = Stream(persist=False)
                 with stream.open(self.observation_topic, "w") as s:
-                    s.write(tier_data)
+                    try:
+                        s.write(tier_data)
+                    except: None
                 print(f"\nPublishing OBS message to {tier}:")
                 for k,v in tier_data.items():
                       print(f'{k:<20s}:{v}')
@@ -137,6 +142,7 @@ class Publish_Observation(Publish):
         obs_message = self.message_dict
         obs_message['message_id'] = self.id_format(topic_type='O')
         obs_message['status'] = 'ON'
+        obs_message['sent_time'] = self.time_str()
         stream = Stream(persist=False)
         with stream.open(self.observation_topic, "w") as s:
             s.write(obs_message)
@@ -153,7 +159,7 @@ class Publish_Heartbeat(Publish):
         self.rate = rate     # seconds          
         self.summarize = lambda env_path : snews_utils.summarize(self.detector, "HEARTBEAT", env_path)
         self.run_continouosly = self.background_schedule(self.rate)
-     
+
 
     def retrieve_status(self):
         """ Script to retrieve detector status
@@ -166,15 +172,18 @@ class Publish_Heartbeat(Publish):
         """ Publish heartbeat message
             Publish default dict
         """
-        heartbeat_message = self.message_dict
+        # hb_keys = ['detector_id','sent_time','status']
+        # heartbeat_message = {k:v for k,v in self.message_dict if k in hb_keys}
+        heartbeat_message = {}
+        heartbeat_message['detector_id'] = self.detector.id
         heartbeat_message['message_id'] = self.id_format(topic_type='H')
         heartbeat_message['status'] = self.retrieve_status()
         heartbeat_message['sent_time'] = self.time_str()
         stream = Stream(persist=True)
         try:
-            with stream.open(self.observation_topic, "w") as s:
+            with stream.open(self.heartbeat_topic, "w") as s:
                 s.write(heartbeat_message)
-            print(f"\nPublished the Heartbeat message to {self.observation_topic}:")
+            print(f"\nPublished the Heartbeat message to {self.heartbeat_topic}:")
             for k,v in heartbeat_message.items():
                 print(f'{k:<20s}:{v}')
         except:
@@ -220,8 +229,14 @@ class Publish_Alert:
 
     # decider should call this
     def publish(self):
-        from IPython.display import HTML, display
-        giphy_snews = "https://raw.githubusercontent.com/SNEWS2/hop-SNalert-app/KaraMelih-dev/useful_code/snalert.gif"
-        if snews_utils.isnotebook():
-            display(HTML(f'<img src={giphy_snews}>'))
-        
+        # from IPython.display import HTML, display
+        # giphy_snews = "https://raw.githubusercontent.com/SNEWS2/hop-SNalert-app/KaraMelih-dev/useful_code/snalert.gif"
+        # if snews_utils.isnotebook():
+        #     display(HTML(f'<img src={giphy_snews}>'))
+        snews_utils.display_gif()
+        alert_message = {'time':self.time_str()}
+        alert_message['content'] = 'This is a SNEWS Alarm!'
+        stream = Stream(persist=False)
+        with stream.open(self.alert_topic, "w") as s:
+            s.write(alert_message)
+        print(f"\nPublished ALERT message to {self.alert_topic} !!!")

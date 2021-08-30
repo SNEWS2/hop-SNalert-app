@@ -15,7 +15,6 @@ https://docs.python.org/3/howto/logging.html
 # Imports
 import snews_utils
 from hop import Stream
-from pathlib import Path
 import os, json
 from collections import namedtuple
 
@@ -26,6 +25,8 @@ class HopSubscribe:
         self.broker            = os.getenv("HOP_BROKER")
         self.observation_topic = os.getenv("OBSERVATION_TOPIC") # only snews can subscribe
         self.alert_topic       = os.getenv("ALERT_TOPIC")
+        # for testing
+        self.heartbeat_topic   = self.observation_topic
         self.logger = snews_utils.get_logger('snews_sub','logging.log')
 
         # time object/strings
@@ -57,7 +58,7 @@ class HopSubscribe:
             json.dump(data, outfile, indent=4, sort_keys=True)
         # self.logger.info(str(message))
 
-    def subscribe(self, which_topic='A'):
+    def subscribe(self, which_topic='A', verbose=False):
         ''' Subscribe and listen to a given topic
             Arguments
             ---------
@@ -82,6 +83,13 @@ class HopSubscribe:
         stream = Stream(persist=True)
         with stream.open(broker, "r") as s:
             for message in s:
-                print(f"{name} from {message['detector_id']}"
-                    f"at{message['sent_time']}")
+                if which_topic.upper()=='A': snews_utils.display_gif()
+                else:
+                    print(f"{name} from {message['detector_id']}"
+                          f" at {message['sent_time']}")
+                if verbose:
+                    print('#'.center(50, '#'))
+                    for k,v in message.items():
+                        print(f'# {k:<20s}:{v:<25} #')
+                    print('#'.center(50, '#'))
                 self.save_message(message)

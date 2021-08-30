@@ -50,13 +50,11 @@ class TimeStuff:
 def set_topic_state(which_topic):
     Topics = namedtuple('Topics', ['topic_name', 'topic_broker'])
     topics = {
-        'ALERT': Topics('ALERT', 'kafka://kafka.scimma.org/snews.alert-test'),
-        'OBSERVATION': Topics('OBSERVATION', 'kafka://kafka.scimma.org/snews.experiments-test')
+        'A': Topics('ALERT', 'kafka://kafka.scimma.org/snews.alert-test'),
+        'O': Topics('OBSERVATION', 'kafka://kafka.scimma.org/snews.experiments-test'),
+        'H': Topics('HEARTBEAT', 'kafka://kafka.scimma.org/snews.experiments-test')
     }
-    if which_topic == 'A':
-        return topics['ALERT']
-    elif which_topic == 'O':
-        return topics['OBSERVATION']
+    return topics[which_topic.upper()]
 
 
 # retrieve the detector properties
@@ -149,6 +147,12 @@ def get_logger(scriptname, logfile_name):
     logger.addHandler(file_handler)
     return logger
 
+
+def display_gif():
+    if isnotebook():
+        from IPython.display import HTML, display
+        giphy_snews = "https://raw.githubusercontent.com/SNEWS2/hop-SNalert-app/KaraMelih-dev/useful_code/snalert.gif"
+        display(HTML(f'<img src={giphy_snews}>'))
 
 ## Not working properly
 # def run_parallel(nparallel=2):

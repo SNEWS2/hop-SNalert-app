@@ -14,3 +14,6 @@ doc/_build/
 useful_code/.ipynb_checkpoints/
 useful_code/Tests.ipynb
 useful_code/hop_comms.ipynb
+useful_code/local-testing.ipynb
+useful_code/logging.log
+useful_code/slack_test.py

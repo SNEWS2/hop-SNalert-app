@@ -2,6 +2,7 @@ from dotenv import load_dotenv
 from datetime import datetime
 from collections import namedtuple
 import os, json
+from pathlib import Path
 
 
 def check_mongo_connection():
@@ -105,11 +106,11 @@ def summarize(detector, topic_type_, env_path=None):
     alert_topic       = os.getenv("ALERT_TOPIC")
     topic_type = f"Publish SNEWS {topic_type_} Messages"
     print(
-    '#'.ljust(50, '#')+
+    '#'.center(50, '#')+
     f'\n# {topic_type:^46} #\n'
     f'#{detector.name:_^48}#\n'
     f'#{str(detector.id)+"-"+detector.location:_^48}#\n'+
-    '#'.center(51, '#')+
+    '#'.center(50, '#')+
     f'\nYour Python version:\n {sys.version}\n'
     f'Current hop-client version:{hop.__version__}\n'
     f'             snews version:{snews.__version__}\n\n'
@@ -147,3 +148,24 @@ def get_logger(scriptname, logfile_name):
     # add file handler to logger
     logger.addHandler(file_handler)
     return logger
+
+
+## Not working properly
+# def run_parallel(nparallel=2):
+#     """ Run publish & subscribe methods in parallel
+#         Only works for notebooks. Requires ipyparallel
+#         Arguments
+#         ---------
+#         nparallel : int
+#             number of cells to run in parallel
+#     """
+#     if not isnotebook():
+#         import sys
+#         sys.exit('Cannot run processes in parallel')
+#     # enable the extension in the current environment
+#     os.system('ipcluster nbextension enable --user')
+#     os.system(f'ipcluster start -n {nparallel}')
+#     from ipyparallel import Client
+#     rc = Client()
+#     print("Run `%%px -a -t 0` magic command on the notebook!")
+#     return None

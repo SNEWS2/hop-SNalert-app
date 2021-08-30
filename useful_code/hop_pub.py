@@ -78,9 +78,17 @@ class Publish:
             pass
         if isinstance(message,hop.plugins.snews.SNEWSObservation):
             pass
+        # read from a file
         if isinstance(message,str):
-            # read from txt, json, pkl
-            pass
+            try:
+                with open(message) as json_file:
+                    self.message_dict = json.load(json_file)
+            except:
+                print(f'{message} is not a json file!'
+                    'Using a default example dict')
+                self.message_dict = self.default_dict()
+            finally:
+                self.format_message(self.message_dict)
 
 
     # How to handle different tiers?
@@ -108,7 +116,8 @@ class Publish:
         print(f"Following OBS message to be published:\nCurrent time:{self.time_str}\n")
         for k,v in self.message_dict.items():
               print(f'{k:<20s}:{v}')
-        print(f"\n> modify self.message_dict or \n> use .publish_to_tiers() method to publish (see .publish_to)")
+        print(f"\n> modify self.message_dict or \n"
+               "> use .publish_to_tiers() method to publish (see .publish_to)")
 
 
 class Publish_Observation(Publish):

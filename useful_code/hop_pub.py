@@ -21,12 +21,14 @@ class Publish:
     """ Class to format and publish messages
     """
     def __init__(self, message, detector, env_path):
-        self.detector = snews_utils.get_detector(detector)
+        ####
         self.publish_to = {'Significance_Tier':True, 'Coincidence_Tier':True, 'Timing_Tier':True}        
         self.common_keys_ = ['detector_id','machine_time','neutrino_time','status']
         self.tier_keys_   = {'Significance_Tier':self.common_keys_ + ['p_value'],
                              'Coincidence_Tier':self.common_keys_,
                              'Timing_Tier':self.common_keys_ + ['time-series']}
+        ####
+        self.detector = snews_utils.get_detector(detector)
         snews_utils.set_env(env_path)
         self.broker            = os.getenv("HOP_BROKER")
         self.observation_topic = os.getenv("OBSERVATION_TOPIC")

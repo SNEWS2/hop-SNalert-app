@@ -219,7 +219,7 @@ class Publish_Alert:
         self.time_str = lambda : self.times.get_snews_time()
 
     # decider should call this
-    def publish():
+    def publish(self):
         from IPython.display import HTML, display
         giphy_snews = "https://raw.githubusercontent.com/SNEWS2/hop-SNalert-app/KaraMelih-dev/useful_code/snalert.gif"
         if snews_utils.isnotebook():

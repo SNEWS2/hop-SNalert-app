@@ -151,7 +151,7 @@ def get_logger(scriptname, logfile_name):
 def display_gif():
     if isnotebook():
         from IPython.display import HTML, display
-        giphy_snews = "https://raw.githubusercontent.com/SNEWS2/hop-SNalert-app/KaraMelih-dev/useful_code/snalert.gif"
+        giphy_snews = "https://raw.githubusercontent.com/SNEWS2/hop-SNalert-app/KaraMelih-dev/hop_comms/snalert.gif"
         display(HTML(f'<img src={giphy_snews}>'))
 
 ## Not working properly

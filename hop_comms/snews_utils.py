@@ -25,7 +25,7 @@ def set_env(self, env_path=None):
 
 
 def make_dir(path):
-    if Path(path).is_dir():
+    if os.path.isdir(path):
         pass
     else:
         os.makedirs(path)

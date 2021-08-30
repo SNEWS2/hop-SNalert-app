@@ -18,7 +18,7 @@ def readable_msgs(dic):
 # this method send a slack message to SNEWS_ALERTS-general
 def send_slack_msg(message_type, snews_message):
     # verification token for slack app and channel id
-    slack_token = 'xoxb-2120915545714-2134186008769-HHEyvrgsqNQA2iya6rdfEPsr'
+    slack_token = 'xoxb-2120915545714-2134186008769-efonv0EKfryvAH7JNde6IrMm'
     slack_channel_id = 'C02344AHKHV'
     # set up client and give it the slack token
     client = WebClient(token=slack_token)
@@ -26,5 +26,3 @@ def send_slack_msg(message_type, snews_message):
     slack_message = f"Message from {snews_message['detector_id']}\nType: {message_type}\n{readable_msgs(snews_message)}\n\n"
     # pass message to WebClient and send it to the slack channel
     client.chat_postMessage(channel=slack_channel_id, text=slack_message)
-
-

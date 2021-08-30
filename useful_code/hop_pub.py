@@ -35,7 +35,7 @@ class Publish:
         self.alert_topic       = os.getenv("ALERT_TOPIC")
         self.heartbeat_topic   = self.observation_topic 
         self.times = snews_utils.TimeStuff(env_path)
-        self.time_str = self.times.get_snews_time()
+        self.time_str = lambda : self.times.get_snews_time()
 
         self.message_dict = message
         self.format_message(message)
@@ -56,9 +56,9 @@ class Publish:
         """
         return {"message_id": self.id_format(), 
                 "detector_id": self.detector.id, 
-                "sent_time": self.time_str, 
-                "neutrino_time": self.time_str, 
-                "machine_time": self.time_str, 
+                "sent_time": self.time_str(), 
+                "neutrino_time": self.time_str(), 
+                "machine_time": self.time_str(), 
                 "location": self.detector.location, 
                 "p_value": 0, 
                 "status": "none", 
@@ -115,7 +115,7 @@ class Publish:
     def display_message(self):
         """ Display the mesagge without publishing
         """
-        print(f"Following OBS message to be published:\nCurrent time:{self.time_str}\n")
+        print(f"Following OBS message to be published:\nCurrent time:{self.time_str()}\n")
         for k,v in self.message_dict.items():
               print(f'{k:<20s}:{v}')
         print(f"\n> modify self.message_dict or \n"
@@ -169,7 +169,7 @@ class Publish_Heartbeat(Publish):
         heartbeat_message = self.message_dict
         heartbeat_message['message_id'] = self.id_format(topic_type='H')
         heartbeat_message['status'] = self.retrieve_status()
-        heartbeat_message['sent_time'] = self.time_str
+        heartbeat_message['sent_time'] = self.time_str()
         stream = Stream(persist=True)
         try:
             with stream.open(self.observation_topic, "w") as s:
@@ -178,7 +178,7 @@ class Publish_Heartbeat(Publish):
             for k,v in heartbeat_message.items():
                 print(f'{k:<20s}:{v}')
         except:
-            print(f'publish() failed at {self.time_str}')
+            print(f'publish() failed at {self.time_str()}')
             
             
     # NEEDS WORK
@@ -216,8 +216,9 @@ class Publish_Alert:
         self.broker            = os.getenv("HOP_BROKER")
         self.alert_topic       = os.getenv("ALERT_TOPIC")
         self.times = snews_utils.TimeStuff(env_path)
-        self.time_str = self.times.get_snews_time()
+        self.time_str = lambda : self.times.get_snews_time()
 
     # decider should call this
     def publish():
+
         pass

@@ -21,7 +21,7 @@ def set_env(self, env_path=None):
             path for the environment file. 
             Use default settings if not given
         """
-        env = env_path or './default_env.env'
+        env = env_path or './auxiliary/default_env.env'
         load_dotenv(env)
 
 
@@ -58,14 +58,14 @@ def set_topic_state(which_topic):
 
 
 # retrieve the detector properties
-def retrieve_detectors(detectors_path="./detector_properties.json"):
+def retrieve_detectors(detectors_path="./auxiliary/detector_properties.json"):
     ''' Retrieve the name-ID-location of the
         participating detectors.
 
     '''
     # search for the pre-saved detectors file, create if not exist
     if not os.path.isfile(detectors_path):
-        os.system(f'python make_detector_file.py')
+        os.system(f'python auxiliary/make_detector_file.py')
 
     with open(detectors_path) as json_file:
         detectors = json.load(json_file)
@@ -77,7 +77,7 @@ def retrieve_detectors(detectors_path="./detector_properties.json"):
     return detectors
 
 
-def get_detector(detector, detectors_path="./detector_properties.json"):
+def get_detector(detector, detectors_path="./auxiliary/detector_properties.json"):
     """ Return the selected detector properties
 
     """
@@ -151,7 +151,7 @@ def get_logger(scriptname, logfile_name):
 def display_gif():
     if isnotebook():
         from IPython.display import HTML, display
-        giphy_snews = "https://raw.githubusercontent.com/SNEWS2/hop-SNalert-app/KaraMelih-dev/hop_comms/snalert.gif"
+        giphy_snews = "https://raw.githubusercontent.com/SNEWS2/hop-SNalert-app/KaraMelih-dev/hop_comms/auxiliary/snalert.gif"
         display(HTML(f'<img src={giphy_snews}>'))
 
 ## Not working properly

@@ -19,8 +19,18 @@ Currently, it is not clear how we want to handle different tiers. We can either
 -	publish a different message to each tier containing only the relevant keys for that tier. Or,
 -	make a single message depending on the experiments selection and publish that single message. Later, we parse this.
 
-The current script implements the former. 
+The current script implements the former. <br>
 <img src="./auxiliary/imgs/different_tiers.png" alt="tiers" width="400"/>
 
 ### `Publish_Heartbeat`
+The experiment, an environment file and a rate in seconds can be given. It uses `APScheduler` to publish messages at a given rate in the background. This can run on jupyter notebook in background while other cells can still be executed.
 <img src="./auxiliary/imgs/heartbeat_messages.png" alt="hb message" width="500"/>
+
+## `hop_sub`
+Allows to listen different SNEWS topics. It displays and also saves the messages that it listens to. One can simply do;
+```python
+from hop_sub import HopSubscribe
+subscriber = HopSubscribe()
+subscriber.subscribe('O', verbose=True)
+```
+Where `HopSubscribe` can also be initialized with an alternative environment file containing different broker/topics.

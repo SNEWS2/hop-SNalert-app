@@ -21,7 +21,7 @@ def set_env(self, env_path=None):
             path for the environment file. 
             Use default settings if not given
         """
-        env = env_path or './auxiliary/default_env.env'
+        env = env_path or './auxiliary/test-config.env'
         load_dotenv(env)
 
 

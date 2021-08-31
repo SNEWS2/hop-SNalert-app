@@ -11,7 +11,7 @@ Observation and Heartbeat modules can be initialized with a detector name, in wh
 
 ### `Publish_Observation` 
 Can be initialized with a message, detector name and an environment file. If nothing is given it sets a `'TEST'` detector with a default environment and a default observation message. <br>
-![welcome message](./auxiliary/imgs/welcome_message.png)
+<img src="./auxiliary/imgs/welcome_message.png" alt="message" width="500"/>
 
 It can read a message from a json file when a string is provided. If a dictionary is given, it merges this input with the default dictionary. This ensures that some fields always exists. The 'sent_time' is automatically updated for each call. <br>
 The message can be displayed and modified before it is actually published with `.publish()` method.<br>
@@ -20,7 +20,7 @@ Currently, it is not clear how we want to handle different tiers. We can either
 -	make a single message depending on the experiments selection and publish that single message. Later, we parse this.
 
 The current script implements the former. 
-![tiers](./auxiliary/imgs/different_tiers.png)
+<img src="./auxiliary/imgs/different_tiers.png" alt="tiers" width="400"/>
 
 ### `Publish_Heartbeat`
-![hb message](./auxiliary/imgs/heratbeat_messages.png)
+<img src="./auxiliary/imgs/heartbeat_messages.png" alt="hb message" width="500"/>

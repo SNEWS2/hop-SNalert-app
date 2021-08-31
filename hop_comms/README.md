@@ -20,7 +20,7 @@ Currently, it is not clear how we want to handle different tiers. We can either
 -	make a single message depending on the experiments selection and publish that single message. Later, we parse this.
 
 The current script implements the former. 
-[!tiers](./auxiliary/imgs/different_tiers.png)
+![tiers](./auxiliary/imgs/different_tiers.png)
 
 ### `Publish_Heartbeat`
-[!hb message](./auxiliary/imgs/heratbeat_messages.png)
+![hb message](./auxiliary/imgs/heratbeat_messages.png)

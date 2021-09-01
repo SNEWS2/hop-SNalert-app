@@ -37,7 +37,16 @@ class Storage:
         specific_coll.insert_one(mgs)
 
     def get_all_messages(self, sort_order=pymongo.ASCENDING):
-        return self.all_mgs.find().sort('sent_time',sort_order)
+        return self.all_mgs.find().sort('sent_time', sort_order)
+
+    def get_cache(self, sort_order=pymongo.ASCENDING):
+        return self.test_cache.find().sort('sent_time', sort_order)
+
+    def is_cache_empty(self):
+        if self.test_cache.count() <= 1:
+            return True
+        else:
+            return  False
 
     
 

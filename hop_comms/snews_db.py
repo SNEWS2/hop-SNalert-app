@@ -9,7 +9,7 @@ class Storage:
         snews_utils.set_env(env)
         self.mgs_expiration = os.getenv('MSG_EXPIRATION')
         self.coinc_threshold = os.getenv('COINCIDENCE_THRESHOLD')
-        self.mongo_server = os.getenv('DATABASE_SERVE')
+        self.mongo_server = os.getenv('DATABASE_SERVER')
 
         self.client = pymongo.MongoClient(self.mongo_server)
         self.db = self.client.database
@@ -23,16 +23,23 @@ class Storage:
         # set index
         self.all_mgs.create_index('sent_time')
         self.test_cache.create_index('sent_time', expireAfterSeconds=self.mgs_expiration)
-
+        self.false_warnings.create_index('sent_time')
         self.coll_list = {
             'Test': self.test_cache,
             'False': self.false_warnings,
 
         }
 
-    def insert_mgs(self, coll, mgs):
-        coll = self.coll_list[coll]
+    def insert_mgs(self, mgs):
+        mgs_type = mgs['messsage_id'].split('_')[1]
+        specific_coll = self.coll_list[mgs_type]
         self.all_mgs.insert_one(mgs)
+        specific_coll.insert_one(mgs)
+
+    def get_all_messages(self, sort_order=pymongo.ASCENDING):
+        return self.all_mgs.find().sort('sent_time',sort_order)
+
+    
 
 
 class Decider:

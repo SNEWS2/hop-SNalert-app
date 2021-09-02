@@ -46,14 +46,16 @@ class Storage:
         if self.test_cache.count() <= 1:
             return True
         else:
-            return  False
+            return False
 
-    
+    def get_false_warnings(self, sort_order=pymongo.ASCENDING):
+        return self.false_warnings.find().sort('sent_time', sort_order)
 
+    def empty_false_warnings(self):
+        if self.false_warnings.count() <= 1:
+            return True
+        else:
+            return False
 
-class Decider:
-    def __init__(self):
-        pass
-
-    def check_coincidence(self):
+    def purge_false_mgs(self):
         pass

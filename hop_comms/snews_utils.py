@@ -155,6 +155,14 @@ def display_gif():
         giphy_snews = "https://raw.githubusercontent.com/SNEWS2/hop-SNalert-app/snews2_dev/hop_comms/auxiliary/snalert.gif"
         display(HTML(f'<img src={giphy_snews}>'))
 
+
+def data_enum(machine_time=None, nu_time=None, p_value=None, timing_series=None, detector_status=None,
+              false_mgs_id=None, content=None):
+    data = namedtuple('data',
+                      ['machine_time', 'nu_time', 'p_value', 'timing_series', 'detector_status', 'false_id'])
+    return data(machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id, content)
+
+# Note from from Seb: :(
 ## Not working properly
 # def run_parallel(nparallel=2):
 #     """ Run publish & subscribe methods in parallel

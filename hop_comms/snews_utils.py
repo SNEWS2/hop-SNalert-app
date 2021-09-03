@@ -157,10 +157,10 @@ def display_gif():
 
 
 def data_enum(machine_time=None, nu_time=None, p_value=None, timing_series=None, detector_status=None,
-              false_mgs_id=None, content=None):
+              false_mgs_id=None):
     data = namedtuple('data',
                       ['machine_time', 'nu_time', 'p_value', 'timing_series', 'detector_status', 'false_id'])
-    return data(machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id, content)
+    return data(machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id)
 
 # Note from from Seb: :(
 ## Not working properly

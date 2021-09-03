@@ -14,7 +14,7 @@ from datetime import datetime
 from collections import namedtuple
 from dotenv import load_dotenv
 import snews_utils
-  
+from hop_mgs_schema import Message_Schema
 Detector = namedtuple("Detector", ["name", "id", "location"])
 
 class Publish:
@@ -30,7 +30,7 @@ class Publish:
                              'Timing_Tier':self.common_keys_ + ['content']}
         ####
         self.detector = snews_utils.get_detector(detector)
-        snews_utils.set_env(env_path)
+        snews_utils.set_env()
         self.broker            = os.getenv("HOP_BROKER")
         self.observation_topic = os.getenv("OBSERVATION_TOPIC")
         self.alert_topic       = os.getenv("ALERT_TOPIC")
@@ -221,7 +221,7 @@ class Publish_Alert:
     """ Class to publish SNEWS SuperNova Alerts
     """
     def __init__(self, env_path=None):
-        snews_utils.set_env(env_path)
+        snews_utils.set_env()
         self.broker            = os.getenv("HOP_BROKER")
         self.alert_topic       = os.getenv("ALERT_TOPIC")
         self.times = snews_utils.TimeStuff(env_path)
@@ -240,3 +240,20 @@ class Publish_Alert:
         with stream.open(self.alert_topic, "w") as s:
             s.write(alert_message)
         print(f"\nPublished ALERT message to {self.alert_topic} !!!")
+
+class Publish_Tier_Obs:
+    def __init__(self, env_path=None):
+        snews_utils.set_env(env_path)
+        self.times = snews_utils.TimeStuff()
+        self.obs_broker = os.getenv("OBSERVATION_TOPIC")
+
+    def publish_tier(self,detector_key, type, data_enum):
+        schema = Message_Schema(detector_key=detector_key)
+        sent_time = self.times.get_snews_time()
+        obs_schema = schema.get_obs_schema(type, data_enum, sent_time)
+
+        stream = Stream(persist=False)
+        with stream.open(self.obs_broker,'w') as s:
+            s.write(obs_schema.mgs)
+            print(obs_schema.mgs)
+

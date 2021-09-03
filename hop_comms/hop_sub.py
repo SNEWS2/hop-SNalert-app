@@ -17,31 +17,32 @@ import snews_utils
 from hop import Stream
 import os, json
 from collections import namedtuple
+from snews_db import Storage
 
 
 class HopSubscribe:
     def __init__(self, env_path=None):
-        snews_utils.set_env(env_path)
-        self.broker            = os.getenv("HOP_BROKER")
-        self.observation_topic = os.getenv("OBSERVATION_TOPIC") # only snews can subscribe
-        self.alert_topic       = os.getenv("ALERT_TOPIC")
+        snews_utils.set_env()
+        self.broker = os.getenv("HOP_BROKER")
+        self.observation_topic = os.getenv("OBSERVATION_TOPIC")  # only snews can subscribe
+        self.alert_topic = os.getenv("ALERT_TOPIC")
         # for testing
-        self.heartbeat_topic   = self.observation_topic
-        self.logger = snews_utils.get_logger('snews_sub','logging.log')
+        self.heartbeat_topic = self.observation_topic
+        self.logger = snews_utils.get_logger('snews_sub', 'logging.log')
 
         # time object/strings
         self.times = snews_utils.TimeStuff(env_path)
         self.hr = self.times.get_hour()
         self.date = self.times.get_date()
-        self.snews_time = lambda : self.times.get_snews_time()
-
+        self.snews_time = lambda: self.times.get_snews_time()
+        self.storage = Storage(env_path)
 
     def save_message(self, message):
         """ Save messages to a json file
         """
         path = f'SNEWS_MSGs/{self.times.get_date()}/'
         snews_utils.make_dir(path)
-        file = path+'subscribed_messages.json'
+        file = path + 'subscribed_messages.json'
         # read the existing file
         try:
             data = json.load(open(file))
@@ -69,7 +70,7 @@ class HopSubscribe:
                 be given
 
         '''
-        if len(which_topic)==1:
+        if len(which_topic) == 1:
             # set topic enum, get name and broker
             topic = snews_utils.set_topic_state(which_topic)
             name = topic.topic_name
@@ -83,13 +84,17 @@ class HopSubscribe:
         stream = Stream(persist=True)
         with stream.open(broker, "r") as s:
             for message in s:
-                if which_topic.upper()=='A': snews_utils.display_gif()
+                #
+                if which_topic.upper() == 'A':
+                    snews_utils.display_gif()
                 else:
-                    print(f"{name} from {message['detector_id']}"
+                    print(f"{name} from {message['_id']}"
                           f" at {message['sent_time']}")
                 if verbose:
                     print('#'.center(50, '#'))
-                    for k,v in message.items():
+                    for k, v in message.items():
                         print(f'# {k:<20s}:{v:<25} #')
                     print('#'.center(50, '#'))
                 self.save_message(message)
+                self.storage.insert_mgs(message)
+                # print(message)

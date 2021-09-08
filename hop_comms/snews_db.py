@@ -19,13 +19,15 @@ class Storage:
         # self.obs_cache = self.db.obs_cache
         # self.sig_tier_cache = self.db.sig_tier_cache
         # self.time_tier_cache = self.db.time_tier_cache
-        # self.coincidence_tier_cache = self.db.coincidence_tier_cache
+        self.coincidence_tier_cache = self.db.coincidence_tier_cache
         # set index
         self.all_mgs.create_index('sent_time')
         self.test_cache.create_index('sent_time', expireAfterSeconds=self.mgs_expiration)
+        self.coincidence_tier_cache.create_index('sent_time', expireAfterSeconds=self.mgs_expiration)
         self.false_warnings.create_index('sent_time')
         self.coll_list = {
             'Test': self.test_cache,
+            'CoincidenceTier': self.coincidence_tier_cache,
             'False': self.false_warnings,
 
         }
@@ -39,8 +41,11 @@ class Storage:
     def get_all_messages(self, sort_order=pymongo.ASCENDING):
         return self.all_mgs.find().sort('sent_time', sort_order)
 
-    def get_cache(self, sort_order=pymongo.ASCENDING):
+    def get_test_cache(self, sort_order=pymongo.ASCENDING):
         return self.test_cache.find().sort('sent_time', sort_order)
+
+    def get_coincidence_tier_cache(self, sort_order=pymongo.ASCENDING):
+        return self.coincidence_tier_cache.find().sort('sent_time', sort_order)
 
     def is_cache_empty(self):
         if self.test_cache.count() <= 1:
@@ -53,6 +58,12 @@ class Storage:
 
     def empty_false_warnings(self):
         if self.false_warnings.count() == 0:
+            return True
+        else:
+            return False
+
+    def empty_coinc_cache(self):
+        if self.coincidence_tier_cache.count() <= 1:
             return True
         else:
             return False

@@ -7,11 +7,12 @@ class Decider:
 
     def __init__(self, env=None):
         snews_utils.set_env()
-        self.storage = Storage()
+        self.storage = Storage(drop_dbs=False)
         self.mgs_expiration = int(os.getenv('MSG_EXPIRATION'))
+        self.coinc_cache = self.storage.coincidence_tier_cache
 
     def check_for_coincidence(self):
-        with self.storage.coincidence_tier_cache.watch() as stream:
+        with self.coinc_cache.watch() as stream:
             while stream.alive():
                 # make sure there are no false mgss
                 self.storage.keep_cache_clean()
@@ -20,4 +21,4 @@ class Decider:
                     print('Cache is empty..')
                 elif self.storage.empty_false_warnings() and not self.storage.empty_coinc_cache():
                     for mgs in self.storage.get_coincidence_tier_cache():
-                        pass
+                        print(mgs)

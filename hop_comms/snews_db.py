@@ -20,7 +20,7 @@ class Storage:
         # self.sig_tier_cache = self.db.sig_tier_cache
         # self.time_tier_cache = self.db.time_tier_cache
         self.coincidence_tier_cache = self.db.coincidence_tier_cache
-        # set index
+
         if drop_dbs:
             # kill all old colls
             self.all_mgs.delete_many({})
@@ -37,6 +37,7 @@ class Storage:
             self.test_cache.create_index('sent_time', expireAfterSeconds=10)
             self.coincidence_tier_cache.create_index('sent_time', expireAfterSeconds=self.mgs_expiration)
             self.false_warnings.create_index('sent_time')
+
         self.coll_list = {
             'Test': self.test_cache,
             'CoincidenceTier': self.coincidence_tier_cache,

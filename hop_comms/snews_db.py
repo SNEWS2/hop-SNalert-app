@@ -5,7 +5,7 @@ import os
 
 #  https://pymongo.readthedocs.io/en/stable/api/pymongo/change_stream.html
 class Storage:
-    def __init__(self, env=None,drop_dbs=True):
+    def __init__(self, env=None, drop_dbs=True):
         snews_utils.set_env()
         self.mgs_expiration = int(os.getenv('MSG_EXPIRATION'))
         self.coinc_threshold = int(os.getenv('COINCIDENCE_THRESHOLD'))
@@ -16,7 +16,6 @@ class Storage:
         self.all_mgs = self.db.all_mgs
         self.false_warnings = self.db.false_warnings
         self.test_cache = self.db.test_cache
-        # self.obs_cache = self.db.obs_cache
         # self.sig_tier_cache = self.db.sig_tier_cache
         # self.time_tier_cache = self.db.time_tier_cache
         self.coincidence_tier_cache = self.db.coincidence_tier_cache
@@ -32,11 +31,11 @@ class Storage:
             self.test_cache.drop_indexes()
             self.coincidence_tier_cache.drop_indexes()
             self.false_warnings.drop_indexes()
-            # set index
-            self.all_mgs.create_index('sent_time')
-            self.test_cache.create_index('sent_time', expireAfterSeconds=10)
-            self.coincidence_tier_cache.create_index('sent_time', expireAfterSeconds=self.mgs_expiration)
-            self.false_warnings.create_index('sent_time')
+        # set index
+        self.all_mgs.create_index('sent_time')
+        self.test_cache.create_index('sent_time', expireAfterSeconds=10)
+        self.coincidence_tier_cache.create_index('sent_time', expireAfterSeconds=self.mgs_expiration)
+        self.false_warnings.create_index('sent_time')
 
         self.coll_list = {
             'Test': self.test_cache,
@@ -83,7 +82,7 @@ class Storage:
 
     def keep_cache_clean(self):
         if self.empty_false_warnings():
-            print('nothing here')
+            print('No false obs\nMove along\n\n')
             pass
         else:
             for warning_mgs in get_false_warnings():

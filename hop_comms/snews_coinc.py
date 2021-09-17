@@ -14,6 +14,9 @@ class Decider:
         self.mgs_expiration = int(os.getenv('MSG_EXPIRATION'))
         self.coinc_cache = self.storage.coincidence_tier_cache
 
+    def str_to_datetime(self,nu_time):
+        return datetime.strptime(nu_time, '%H %M %S %f')
+
     def check_for_coincidence(self):
         with self.coinc_cache.watch() as stream:
             # should it be: for mgs in stream ?
@@ -27,7 +30,7 @@ class Decider:
                 mgs = doc['fullDocument']
                 print(mgs)
                 if i == 0:
-                    initial_nu_time = datetime.strptime(mgs['neutrino_time'], '%H %M %S %f')
+                    initial_nu_time = self.str_to_datetime(mgs['neutrino_time'])
                     old_detector = mgs['detector_name']
                     old_loc = mgs['location']
                     p_vals = [mgs['p_value']]
@@ -40,7 +43,7 @@ class Decider:
                 elif i != 0:
                     curr_loc = mgs['location']
                     curr_p_val = mgs['p_value']
-                    curr_nu_time = datetime.strptime(mgs['neutrino_time'], '%H %M %S %f')
+                    curr_nu_time = self.str_to_datetime(mgs['neutrino_time'])
                     curr_detector = mgs['detector_name']
                     delta_t = (curr_nu_time - initial_nu_time).total_seconds()
                     print(delta_t)
@@ -61,9 +64,14 @@ class Decider:
                         print('P_vals:')
                         print(p_vals)
                         print('')
+
                     else:
+                        if len(detectors) > 1:
+                            print('Publishing Alert to SNEWS')
+
+                        print('reseting coincidence counter')
                         i = 0
-                        initial_nu_time = datetime.strptime(mgs['neutrino_time'], '%H %M %S %f')
+                        initial_nu_time = self.str_to_datetime(mgs['neutrino_time'])
                         old_detector = mgs['detector_name']
                         old_loc = mgs['location']
                         p_vals = [mgs['p_value']]

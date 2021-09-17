@@ -65,3 +65,6 @@ class Message_Schema:
         }
 
         return messages[type]
+
+    def get_alert_schema(self, type, sent_time, p_vals=None, detectors=None, t_series=None, nu_times=None, ids=None):
+        pass

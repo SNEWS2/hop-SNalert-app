@@ -36,7 +36,7 @@ class HopSubscribe:
         self.date = self.times.get_date()
         self.snews_time = lambda: self.times.get_snews_time()
         self.storage = Storage(env_path)
-
+    # don't need this
     def save_message(self, message):
         """ Save messages to a json file
         """
@@ -84,7 +84,9 @@ class HopSubscribe:
         stream = Stream(persist=True)
         with stream.open(broker, "r") as s:
             for message in s:
-                #
+                self.storage.insert_mgs(message)
+                print(message)
+
                 if which_topic.upper() == 'A':
                     snews_utils.display_gif()
                 else:
@@ -95,6 +97,7 @@ class HopSubscribe:
                     for k, v in message.items():
                         print(f'# {k:<20s}:{v:<25} #')
                     print('#'.center(50, '#'))
-                self.save_message(message)
-                self.storage.insert_mgs(message)
+                # Don't need this mgs is already saved on the MongoDB
+                # self.save_message(message)
+
                 # print(message)

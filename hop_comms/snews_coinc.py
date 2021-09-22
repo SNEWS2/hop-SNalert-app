@@ -3,6 +3,7 @@ from snews_db import Storage
 import os
 from datetime import datetime
 import time
+from hop_pub import Publish_Alert
 
 
 class Decider:
@@ -10,9 +11,11 @@ class Decider:
     def __init__(self, env=None):
         snews_utils.set_env()
         self.storage = Storage(drop_dbs=False)
+        self.topic_type = "CoincidenceTier"
         self.coinc_treshold = float(os.getenv('COINCIDENCE_THRESHOLD'))
         self.mgs_expiration = int(os.getenv('MSG_EXPIRATION'))
         self.coinc_cache = self.storage.coincidence_tier_cache
+        self.Alert = Publish_Alert()
 
     def str_to_datetime(self,nu_time):
         return datetime.strptime(nu_time, '%H %M %S %f')
@@ -68,6 +71,9 @@ class Decider:
                     else:
                         if len(detectors) > 1:
                             print('Publishing Alert to SNEWS')
+                            data_enum = snews_utils.data_enum_alert()
+                            self.Alert.publish(type=self.topic_type,data_enum=data_enum)
+
 
                         print('reseting coincidence counter')
                         i = 0

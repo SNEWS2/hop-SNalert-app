@@ -156,12 +156,19 @@ def display_gif():
         display(HTML(f'<img src={giphy_snews}>'))
 
 
-def data_enum(machine_time=None, nu_time=None, p_value=None, timing_series=None, detector_status=None,
-              false_mgs_id=None):
+def data_enum_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None, detector_status=None,
+                  false_mgs_id=None):
     data = namedtuple('data',
                       ['machine_time', 'nu_time', 'p_value', 'timing_series', 'detector_status', 'false_id'])
     return data(machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id)
 
+
+def data_enum_alert(p_vals=None, detectors=None, t_series=None, nu_times=None,
+                    ids=None, locs=None, status=None, machine_times=None):
+    data = namedtuple("data", ['p_vals', 'detectors', 't_series', 'nu_times', 'ids', 'locs', 'status', 'machine_times'])
+
+    return data(p_vals, detectors, t_series, nu_times,
+                ids, locs, status, machine_times)
 # Note from from Seb: :(
 ## Not working properly
 # def run_parallel(nparallel=2):

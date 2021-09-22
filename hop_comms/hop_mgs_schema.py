@@ -10,39 +10,32 @@ class Message_Schema:
         self.detector_loc = self.detector.location
         self.times = TimeStuff(env_path)
 
-    def id_format(self, topic_type):
+    def id_format(self, topic_state, topic_type):
         """ Returns formatted message ID
             time format should always be same for all detectors
         """
         date_time = self.times.get_snews_time(fmt="%y/%m/%d_%H:%M:%S")
-        return f'{self.detector.id}_{topic_type}_{date_time}'
+        if topic_state == 'OBS':
+            return f'{self.detector.id}_{topic_type}_{date_time}'
+        elif topic_state == 'ALERT':
+            return f'SNEWS_ALERT_{topic_type}_{date_time}'
 
     def get_obs_schema(self, type, data_enum, sent_time):
         message_type = namedtuple('message_type', ['topic_name', 'mgs'])
         messages = {
-            "Test": message_type("Test", {
-                "_id": self.id_format("Test"),
-                "detector_name": self.detector_name,
-                "sent_time": sent_time,
-                "neutrino_time": data_enum.nu_time,
-                "machine_time": data_enum.machine_time,
-                "location": self.detector_loc,
-                "p_value": data_enum.p_value,
-                "status": data_enum.detector_status,
-            }),
             "TimeTier": message_type('TimeTier', {
-                "_id": self.id_format("TimeTier"),
+                "_id": self.id_format("OBS", "TimeTier"),
                 "detector_name": self.detector_name,
                 "sent_time": sent_time,
                 "neutrino_time": data_enum.nu_time,
                 "machine_time": data_enum.machine_time,
                 "location": self.detector_loc,
                 "status": data_enum.detector_status,
-                "timing_series_series": data_enum.timing_series
+                "timing_series": data_enum.timing_series
 
             }),
             "SigTier": message_type('SigTier', {
-                "_id": self.id_format("SigTier"),
+                "_id": self.id_format("OBS", "SigTier"),
                 "detector_name": self.detector_name,
                 "sent_time": sent_time,
                 "neutrino_time": data_enum.nu_time,
@@ -52,7 +45,7 @@ class Message_Schema:
                 "status": data_enum.detector_status,
             }),
             "CoincidenceTier": message_type('CoincidenceTier', {
-                "_id": self.id_format("CoincidenceTier"),
+                "_id": self.id_format("OBS", "CoincidenceTier"),
                 "detector_name": self.detector_name,
                 "sent_time": sent_time,
                 "neutrino_time": data_enum.nu_time,
@@ -66,5 +59,40 @@ class Message_Schema:
 
         return messages[type]
 
-    def get_alert_schema(self, type, sent_time, p_vals=None, detectors=None, t_series=None, nu_times=None, ids=None):
-        pass
+    def get_alert_schema(self, type, sent_time, data_enum):
+        message_type = namedtuple('message_type', ['topic_name', 'mgs'])
+        messages = {
+            "TimeTier": message_type('TimeTier', {
+                "_id": self.id_format("ALERT", "TimeTier"),
+                "detector_name": self.detector_name,
+                "sent_time": sent_time,
+                "neutrino_time": data_enum.nu_time,
+                "machine_time": data_enum.machine_time,
+                "location": self.detector_loc,
+                "status": data_enum.detector_status,
+                "timing_series": data_enum.timing_series
+
+            }),
+            "SigTier": message_type('SigTier', {
+                "_id": self.id_format("ALERT", "SigTier"),
+                "detector_name": self.detector_name,
+                "sent_time": sent_time,
+                "neutrino_time": data_enum.nu_time,
+                "machine_time": data_enum.machine_time,
+                "location": self.detector_loc,
+                "p_value": data_enum.p_value,
+                "status": data_enum.detector_status,
+            }),
+            "CoincidenceTier": message_type('CoincidenceTier', {
+                "_id": self.id_format("ALERT", "CoincidenceTier"),
+                "detector_name": data_enum.detectors,
+                "sent_time": sent_time,
+                "neutrino_times": data_enum.nu_times,
+                "machine_times": data_enum.machine_times,
+                "locations": data_enum.locs,
+                "p_values": data_enum.p_vals,
+                "status": data_enum.status,
+            }),
+
+        }
+        return messages[type]

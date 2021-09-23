@@ -36,8 +36,8 @@ class TimeStuff:
     ''' SNEWS format datetime objects
     '''
 
-    def __init__(self, env=None):
-        set_env()
+    def __init__(self, env_path=None):
+        set_env(env_path)
         self.snews_t_format = os.getenv("TIME_STRING_FORMAT")
         self.hour_fmt = "%H:%M:%S"
         self.date_fmt = "%y_%m_%d"
@@ -47,6 +47,8 @@ class TimeStuff:
         self.get_hour = lambda fmt=self.hour_fmt: datetime.utcnow().strftime(fmt)
         self.get_date = lambda fmt=self.date_fmt: datetime.utcnow().strftime(fmt)
 
+    def str_to_datetime(self,nu_time):
+        return datetime.strptime(nu_time, '%H %M %S %f')
 
 def set_topic_state(which_topic):
     Topics = namedtuple('Topics', ['topic_name', 'topic_broker'])

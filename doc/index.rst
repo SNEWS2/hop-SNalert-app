@@ -1,4 +1,4 @@
-snews documentation
+SNEWS documentation
 ====================================================
 
 User's Guide
@@ -12,6 +12,7 @@ User's Guide
    user/architecture
    user/messages
    user/protocol
+   user/hop-comms
 
 API Reference
 -------------

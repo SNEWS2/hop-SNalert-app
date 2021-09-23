@@ -47,6 +47,7 @@ SNEWS coincidence requirement protocol (the :code:`deciding()` function).
 Pseudocode for the deciding protocol logic is:
 
 .. code::
+
    # check if any messages are in the cache
    if not self.db.cacheEmpty():
      # fetch messages in the cache
@@ -103,3 +104,5 @@ For the first release/pre-release of SNEWS 2.0, MongoDB is used
 to implement this IStorage interface. TTL indexes are used to expire
 messages. Two MongoDB collections are created here, with one storing all messages
 and the other one acting as a timed cache for coincidence requirement check.
+
+

@@ -26,7 +26,7 @@ class Publish_Heartbeat:
     def __init__(self, msg=None, detector='TEST', rate=30, env_path=None):
         super().__init__(msg, detector, env_path)
         self.rate = rate  # seconds
-        self.summarize = lambda env_path: snews_utils.summarize(self.detector, "HEARTBEAT", env_path)
+        # self.summarize = lambda env_path: snews_utils.summarize(self.detector, "HEARTBEAT", env_path)
         self.run_continouosly = self.background_schedule(self.rate)
 
     def retrieve_status(self):
@@ -41,12 +41,11 @@ class Publish_Heartbeat:
         """
         # hb_keys = ['detector_id','sent_time','status']
         # heartbeat_message = {k:v for k,v in self.message_dict if k in hb_keys}
-        #
-        heartbeat_message = {}
-        heartbeat_message['detector_id'] = self.detector.id
-        heartbeat_message['message_id'] = self.id_format(topic_type='H')
-        heartbeat_message['status'] = self.retrieve_status()
-        heartbeat_message['sent_time'] = self.time_str()
+        schema = Message_Schema(detector_key=detector)
+        sent_time = self.time_str()
+        data_enum = snews_utils.data_enum_obs(detector_status=self.retrieve_status(), machine_time=None)
+        heartbeat_message = schema.get_obs_schema(type='Heartbeat', sent_time=sent_time, data_enum=data_enum)
+
         stream = Stream(persist=True)
         try:
             with stream.open(self.heartbeat_topic, "w") as s:
@@ -114,7 +113,7 @@ class Publish_Tier_Obs:
         self.times = snews_utils.TimeStuff()
         self.obs_broker = os.getenv("OBSERVATION_TOPIC")
 
-    def publish(self, detector,type, data_enum):
+    def publish(self, detector, type, data_enum):
         schema = Message_Schema(detector_key=detector)
         sent_time = self.times.get_snews_time()
         obs_schema = schema.get_obs_schema(type, data_enum, sent_time)

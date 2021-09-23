@@ -54,6 +54,14 @@ class Message_Schema:
                 "p_value": data_enum.p_value,
                 "status": data_enum.detector_status,
             }),
+            "Heartbeat": message_type('Heartbeat', {
+                "_id": self.id_format("OBS", "Heartbeat"),
+                "detector_name": self.detector_name,
+                "sent_time": sent_time,
+                "machine_time": data_enum.machine_time,
+                "location": self.detector_loc,
+                "status": data_enum.detector_status,
+            }),
 
         }
 

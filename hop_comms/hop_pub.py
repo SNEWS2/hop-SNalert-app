@@ -19,7 +19,7 @@ from hop_mgs_schema import Message_Schema
 Detector = namedtuple("Detector", ["name", "id", "location"])
 
 
-class Publish_Heartbeat(Publish):
+class Publish_Heartbeat:
     """ Class to publish hearbeat messages continuously
     """
 
@@ -41,6 +41,7 @@ class Publish_Heartbeat(Publish):
         """
         # hb_keys = ['detector_id','sent_time','status']
         # heartbeat_message = {k:v for k,v in self.message_dict if k in hb_keys}
+        #
         heartbeat_message = {}
         heartbeat_message['detector_id'] = self.detector.id
         heartbeat_message['message_id'] = self.id_format(topic_type='H')
@@ -88,7 +89,7 @@ class Publish_Alert:
     """
 
     def __init__(self, env_path=None):
-        snews_utils.set_env()
+        snews_utils.set_env(env_path)
         self.broker = os.getenv("HOP_BROKER")
         self.alert_topic = os.getenv("ALERT_TOPIC")
         self.times = snews_utils.TimeStuff(env_path)
@@ -113,8 +114,8 @@ class Publish_Tier_Obs:
         self.times = snews_utils.TimeStuff()
         self.obs_broker = os.getenv("OBSERVATION_TOPIC")
 
-    def publish(self, type, data_enum):
-        schema = Message_Schema()
+    def publish(self, detector,type, data_enum):
+        schema = Message_Schema(detector_key=detector)
         sent_time = self.times.get_snews_time()
         obs_schema = schema.get_obs_schema(type, data_enum, sent_time)
 

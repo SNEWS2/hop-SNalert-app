@@ -64,24 +64,25 @@ class Message_Schema:
         messages = {
             "TimeTier": message_type('TimeTier', {
                 "_id": self.id_format("ALERT", "TimeTier"),
-                "detector_name": self.detector_name,
+                "detector_name": data_enum.detectors,
                 "sent_time": sent_time,
-                "neutrino_time": data_enum.nu_time,
-                "machine_time": data_enum.machine_time,
-                "location": self.detector_loc,
-                "status": data_enum.detector_status,
-                "timing_series": data_enum.timing_series
+                "neutrino_times": data_enum.nu_times,
+                "machine_times": data_enum.machine_times,
+                "timing_series": data_enum.timing_series,
+                "locations": data_enum.locs,
+                "status": data_enum.status,
+
 
             }),
             "SigTier": message_type('SigTier', {
                 "_id": self.id_format("ALERT", "SigTier"),
-                "detector_name": self.detector_name,
+                "detector_name": data_enum.detectors,
                 "sent_time": sent_time,
-                "neutrino_time": data_enum.nu_time,
-                "machine_time": data_enum.machine_time,
-                "location": self.detector_loc,
-                "p_value": data_enum.p_value,
-                "status": data_enum.detector_status,
+                "neutrino_times": data_enum.nu_times,
+                "machine_times": data_enum.machine_times,
+                "locations": data_enum.locs,
+                "p_values": data_enum.p_vals,
+                "status": data_enum.status,
             }),
             "CoincidenceTier": message_type('CoincidenceTier', {
                 "_id": self.id_format("ALERT", "CoincidenceTier"),

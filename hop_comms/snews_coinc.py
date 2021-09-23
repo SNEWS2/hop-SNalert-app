@@ -51,7 +51,7 @@ class Decider:
                     delta_t = (curr_nu_time - initial_nu_time).total_seconds()
                     print(delta_t)
 
-                    if old_loc != curr_loc and old_detector != curr_detector and delta_t <= self.coinc_treshold:
+                    if old_detector != curr_detector and delta_t <= self.coinc_treshold:
                         p_vals.append(curr_p_val)
                         detectors.append(curr_detector)
                         nu_times.append(mgs['neutrino_time'])
@@ -67,11 +67,11 @@ class Decider:
                         print('P_vals:')
                         print(p_vals)
                         print('')
-
+                    # coinc is broken
                     else:
                         if len(detectors) > 1:
                             print('Publishing Alert to SNEWS')
-                            data_enum = snews_utils.data_enum_alert()
+                            data_enum = snews_utils.data_enum_alert(p_vals=p_vals,detectors=detectors,nu_times=delta_ts)
                             self.Alert.publish(type=self.topic_type,data_enum=data_enum)
 
 

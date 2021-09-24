@@ -20,14 +20,14 @@ Detector = namedtuple("Detector", ["name", "id", "location"])
 
 
 class Publish_Heartbeat:
-    """ Class to publish hearbeat messages continuously
+    """ Class to publish heartbeat messages continuously
     """
 
-    def __init__(self, msg=None, detector='TEST', rate=30, env_path=None):
+    def __init__(self, msg=None, rate=30, env_path=None):
         super().__init__(msg, detector, env_path)
         self.rate = rate  # seconds
         # self.summarize = lambda env_path: snews_utils.summarize(self.detector, "HEARTBEAT", env_path)
-        self.run_continouosly = self.background_schedule(self.rate)
+        self.run_continuously = self.background_schedule(self.rate)
 
     def retrieve_status(self):
         """ Script to retrieve detector status
@@ -35,7 +35,7 @@ class Publish_Heartbeat:
         import numpy as np
         return np.random.choice(['ON', 'OFF'])
 
-    def publish(self):
+    def publish(self,detector='TEST'):
         """ Publish heartbeat message
             Publish default dict
         """
@@ -43,7 +43,8 @@ class Publish_Heartbeat:
         # heartbeat_message = {k:v for k,v in self.message_dict if k in hb_keys}
         schema = Message_Schema(detector_key=detector)
         sent_time = self.time_str()
-        data_enum = snews_utils.data_enum_obs(detector_status=self.retrieve_status(), machine_time=None)
+        machine_time = self.time_str()
+        data_enum = snews_utils.data_enum_obs(detector_status=self.retrieve_status(), machine_time=machine_time)
         heartbeat_message = schema.get_obs_schema(type='Heartbeat', sent_time=sent_time, data_enum=data_enum)
 
         stream = Stream(persist=True)
@@ -81,7 +82,7 @@ class Publish_Heartbeat:
             scheduler.shutdown()
 
 
-# Publish Alerts based on coincidince.
+# Publish Alerts based on coincidence.
 # Only relevant for the server
 class Publish_Alert:
     """ Class to publish SNEWS SuperNova Alerts
@@ -97,9 +98,9 @@ class Publish_Alert:
     # decider should call this
 
     def publish(self, type, data_enum):
-        schema = Message_Schema()
+        schema = Message_Schema(detector_key='ALERT')
         sent_time = self.times.get_snews_time()
-        alert_schema = schema.get_alert_schema(type, data_enum, sent_time)
+        alert_schema = schema.get_alert_schema(type=type,  sent_time=sent_time, data_enum=data_enum)
 
         stream = Stream(persist=False)
         with stream.open(self.alert_topic, "w") as s:

@@ -84,7 +84,8 @@ class HopSubscribe:
         stream = Stream(persist=True)
         with stream.open(broker, "r") as s:
             for message in s:
-                self.storage.insert_mgs(message)
+                if which_topic == 'O':
+                    self.storage.insert_mgs(message)
                 print(message)
 
                 if which_topic.upper() == 'A':

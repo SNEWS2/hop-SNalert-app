@@ -12,7 +12,7 @@ The SNEWS 2.0 implementation has three major components:
 Model
 ------
 
-The model initializes a Decider object and opens up a kafka stream
+The model initializes a CoincDecider object and opens up a kafka stream
 through hop-client to read in messages from detectors. The model would
 evoke different processing functions depending on the message type. The message
 types and corresponding processing algorithms are stored as a mapping in
@@ -38,7 +38,7 @@ the model updates the status of status and machine time of the detector included
 in this message.
 
 
-Decider
+CoincDecider
 --------
 
 A decider consists of a Database Storage object and an implementation of the

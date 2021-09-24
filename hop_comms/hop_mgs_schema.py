@@ -5,10 +5,13 @@ from snews_utils import TimeStuff
 
 class Message_Schema:
     def __init__(self, env_path=None, detector_key='Detector0'):
-        self.detector = snews_utils.get_detector(detector_key)
-        self.detector_name = self.detector.name
-        self.detector_loc = self.detector.location
-        self.times = TimeStuff(env_path)
+        if detector_key == 'ALERT':
+            self.times = TimeStuff(env_path)
+        else:
+            self.detector = snews_utils.get_detector(detector_key)
+            self.detector_name = self.detector.name
+            self.detector_loc = self.detector.location
+            self.times = TimeStuff(env_path)
 
     def id_format(self, topic_state, topic_type):
         """ Returns formatted message ID
@@ -76,7 +79,7 @@ class Message_Schema:
                 "sent_time": sent_time,
                 "neutrino_times": data_enum.nu_times,
                 "machine_times": data_enum.machine_times,
-                "timing_series": data_enum.timing_series,
+                "timing_series": data_enum.t_series,
                 "locations": data_enum.locs,
                 "status": data_enum.status,
 

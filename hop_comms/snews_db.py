@@ -41,7 +41,6 @@ class Storage:
             'Test': self.test_cache,
             'CoincidenceTier': self.coincidence_tier_cache,
             'False': self.false_warnings,
-
         }
 
     def insert_mgs(self, mgs):

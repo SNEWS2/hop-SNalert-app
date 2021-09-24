@@ -36,6 +36,7 @@ class HopSubscribe:
         self.date = self.times.get_date()
         self.snews_time = lambda: self.times.get_snews_time()
         self.storage = Storage(env_path)
+        
     # don't need this
     def save_message(self, message):
         """ Save messages to a json file
@@ -84,10 +85,8 @@ class HopSubscribe:
         stream = Stream(persist=True)
         with stream.open(broker, "r") as s:
             for message in s:
-                if which_topic == 'O':
+                if which_topic.upper() == 'O':
                     self.storage.insert_mgs(message)
-                print(message)
-
                 if which_topic.upper() == 'A':
                     snews_utils.display_gif()
                 else:
@@ -99,6 +98,8 @@ class HopSubscribe:
                         print(f'# {k:<20s}:{v:<25} #')
                     print('#'.center(50, '#'))
                 # Don't need this mgs is already saved on the MongoDB
+                # What if the user wants to store the alert messages?
+                # Do all users have access to MongoDB? 
                 # self.save_message(message)
 
                 # print(message)

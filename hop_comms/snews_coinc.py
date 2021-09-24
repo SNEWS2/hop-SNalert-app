@@ -5,6 +5,11 @@ import os
 import time
 from hop_pub import Publish_Alert
 
+# comment: we should keep in mind that lists [], and numpy arrays np.array([])
+# behave differently in calculations e.g. np.array([1,2,3])*2 = np.array([2,4,6])
+# whereas [1,2,3]*2 = [1,2,3,1,2,3]
+# it is more efficient to append to lists but we should be careful when performing
+# some calculations with the p-values or delta ts.
 
 class CoincDecider:
     """
@@ -74,11 +79,10 @@ class CoincDecider:
             self.old_loc = mgs['location']
             self.old_detector = mgs['detector_name']
             self.append_arrs(mgs)
-
         else:
             pass
 
-    def check_for_conic(self, mgs):
+    def check_for_coinc(self, mgs):
         if self.counter != 0:
             self.curr_nu_time = self.times.str_to_datetime(mgs['neutrino_time'])
             self.curr_loc = mgs['location']
@@ -89,7 +93,9 @@ class CoincDecider:
                 self.append_arrs(mgs)
                 print('got something')
                 print(f'{self.delta_ts}')
-                pass
+            # should the same experiment sends two messages one after the other
+            # the coincidence would break since curr_loc == old_loc
+            # do we want this?
             elif self.delta_t > self.coinc_threshold or self.curr_loc == self.old_loc:
                 print('Coincidence is broken, checking to see if an ALERT can be published.../n/n')
                 self.coinc_broken = True
@@ -97,11 +103,17 @@ class CoincDecider:
             pass
 
     def pub_alert(self):
+        """ When the coincidence is broken publish alert
+            if there were more than 1 detectors in the 
+            given coincidence window
+        """
         if self.coinc_broken and len(self.detectors) > 1:
-            alert_enum = snews_utils.data_enum_alert(detectors=self.detectors, p_vals=self.p_vals,
-                                                     nu_times=self.nu_times, machine_times=self.machine_times)
+            alert_enum = snews_utils.data_enum_alert(detectors=self.detectors, 
+                                                     p_vals=self.p_vals,
+                                                     nu_times=self.nu_times, 
+                                                     machine_times=self.machine_times)
             self.alert.publish(type=self.topic_type, data_enum=alert_enum)
-            print('published alert!!!')
+            print('Published an Alert!!!')
         else:
             pass
 
@@ -113,14 +125,18 @@ class CoincDecider:
             # should it be: for mgs in stream ?
             while self.storage.empty_coinc_cache():
                 print('Nothing here, please wait...')
-                time.sleep(10)
+                time.sleep(10)  # if it sleeps 10sec here, the next time
+                                # it checks the while condition there may
+                                # be 3-4 messages from 9 sec ago. In this case
+                                # we will trigger an alert 9 sec late.
+                                # Just thinking out loud :D we can discuss this.
             for doc in stream:
                 self.storage.keep_cache_clean()
                 print('Incoming message !!!')
                 mgs = doc['fullDocument']
                 print(mgs)
                 self.set_initial_signal(mgs)
-                self.check_for_conic(mgs)
+                self.check_for_coinc(mgs)
                 self.pub_alert()
                 if self.coinc_broken:
                     self.counter = 0

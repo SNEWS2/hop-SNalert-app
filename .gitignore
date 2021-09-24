@@ -22,6 +22,5 @@ hop_comms/SNEWS_MSGs/21_08_30/subscribed_messages.json
 hop_comms/slack_test.py
 hop_comms/logging.log
 hop_comms/local-testing.ipynb
-hop_comms/.ipynb_checkpoints/local-testing-checkpoint.ipynb
-hop_comms/.ipynb_checkpoints/dev-testing-checkpoint.ipynb
-hop_comms/.ipynb_checkpoints/dev-testing2-subscribe-checkpoint.ipynb
+hop_comms/.ipynb_checkpoints/
+hop_comms/local_tests.ipynb

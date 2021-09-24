@@ -1,6 +1,6 @@
 """
 An interface for SNEWS member experiment 
-to publish their observation and heartbeat messages 
+to publish their observation and heartbeat messages.
 
 Created: 
 August 2021
@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 import snews_utils
 from hop_mgs_schema import Message_Schema
 
-Detector = namedtuple("Detector", ["name", "id", "location"])
+# Detector = namedtuple("Detector", ["name", "id", "location"])
 
 
 class Publish_Heartbeat:
@@ -45,7 +45,7 @@ class Publish_Heartbeat:
         sent_time = self.time_str()
         machine_time = self.time_str()
         data_enum = snews_utils.data_enum_obs(detector_status=self.retrieve_status(), machine_time=machine_time)
-        heartbeat_message = schema.get_obs_schema(type='Heartbeat', sent_time=sent_time, data_enum=data_enum)
+        heartbeat_message = schema.get_obs_schema(msg_type='Heartbeat', sent_time=sent_time, data_enum=data_enum)
 
         stream = Stream(persist=True)
         try:
@@ -96,11 +96,10 @@ class Publish_Alert:
         self.time_str = lambda: self.times.get_snews_time()
 
     # decider should call this
-
-    def publish(self, type, data_enum):
+    def publish(self, msg_type, data_enum):
         schema = Message_Schema(detector_key='ALERT')
         sent_time = self.times.get_snews_time()
-        alert_schema = schema.get_alert_schema(type=type,  sent_time=sent_time, data_enum=data_enum)
+        alert_schema = schema.get_alert_schema(msg_type=msg_type, sent_time=sent_time, data_enum=data_enum)
 
         stream = Stream(persist=False)
         with stream.open(self.alert_topic, "w") as s:
@@ -114,10 +113,10 @@ class Publish_Tier_Obs:
         self.times = snews_utils.TimeStuff()
         self.obs_broker = os.getenv("OBSERVATION_TOPIC")
 
-    def publish(self, detector, type, data_enum):
+    def publish(self, detector, msg_type, data_enum):
         schema = Message_Schema(detector_key=detector)
         sent_time = self.times.get_snews_time()
-        obs_schema = schema.get_obs_schema(type, data_enum, sent_time)
+        obs_schema = schema.get_obs_schema(msg_type, data_enum, sent_time)
 
         stream = Stream(persist=False)
         with stream.open(self.obs_broker, 'w') as s:

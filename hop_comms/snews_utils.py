@@ -8,10 +8,8 @@ from pathlib import Path
 def check_mongo_connection():
     pass
 
-
 def check_hop_connection():
     pass
-
 
 def set_env(env_path=None):
     """ Set environment
@@ -23,7 +21,6 @@ def set_env(env_path=None):
     """
     env = env_path or './auxiliary/test-config.env'
     load_dotenv(env)
-
 
 def make_dir(path):
     if Path(path).is_dir():
@@ -41,7 +38,6 @@ class TimeStuff:
         self.snews_t_format = os.getenv("TIME_STRING_FORMAT")
         self.hour_fmt = "%H:%M:%S"
         self.date_fmt = "%y_%m_%d"
-
         self.get_datetime = datetime.utcnow()
         self.get_snews_time = lambda fmt=self.snews_t_format: datetime.utcnow().strftime(fmt)
         self.get_hour = lambda fmt=self.hour_fmt: datetime.utcnow().strftime(fmt)
@@ -59,12 +55,10 @@ def set_topic_state(which_topic):
     }
     return topics[which_topic.upper()]
 
-
 # retrieve the detector properties
 def retrieve_detectors(detectors_path="./auxiliary/detector_properties.json"):
     ''' Retrieve the name-ID-location of the
         participating detectors.
-
     '''
     # search for the pre-saved detectors file, create if not exist
     if not os.path.isfile(detectors_path):
@@ -78,7 +72,6 @@ def retrieve_detectors(detectors_path="./auxiliary/detector_properties.json"):
     for k, v in detectors.items():
         detectors[k] = Detector(v[0], v[1], v[2])
     return detectors
-
 
 def get_detector(detector, detectors_path="./auxiliary/detector_properties.json"):
     """ Return the selected detector properties
@@ -94,7 +87,6 @@ def get_detector(detector, detectors_path="./auxiliary/detector_properties.json"
         except KeyError:
             print(f'{detector} is not a valid detector!')
             return detectors['TEST']
-
 
 def summarize(detector, topic_type_, env_path=None):
     """ Summarize the current configuration
@@ -119,7 +111,6 @@ def summarize(detector, topic_type_, env_path=None):
         f'Observation Topic:\n==> {observation_topic}\n'
         f'Heartbeat Topic:\n==> {heartbeat_topic}\n\n')
 
-
 def isnotebook():
     """ Tell if the script is running on a notebook
     """
@@ -133,7 +124,6 @@ def isnotebook():
             return False  # Other type (?)
     except NameError:
         return False  # Probably standard Python interpreter
-
 
 def get_logger(scriptname, logfile_name):
     import logging
@@ -150,27 +140,25 @@ def get_logger(scriptname, logfile_name):
     logger.addHandler(file_handler)
     return logger
 
-
 def display_gif():
     if isnotebook():
         from IPython.display import HTML, display
         giphy_snews = "https://raw.githubusercontent.com/SNEWS2/hop-SNalert-app/snews2_dev/hop_comms/auxiliary/snalert.gif"
         display(HTML(f'<img src={giphy_snews}>'))
 
-
-def data_enum_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None, detector_status=None,
-                  false_mgs_id=None):
+def data_enum_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None, 
+                  detector_status=None, false_mgs_id=None):
     data = namedtuple('data',
                       ['machine_time', 'nu_time', 'p_value', 'timing_series', 'detector_status', 'false_id'])
-    return data(machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id)
-
+    return data(machine_time, nu_time, p_value, timing_series, 
+                detector_status, false_mgs_id)
 
 def data_enum_alert(p_vals=None, detectors=None, t_series=None, nu_times=None,
                     ids=None, locs=None, status=None, machine_times=None):
     data = namedtuple("data", ['p_vals', 'detectors', 't_series', 'nu_times', 'ids', 'locs', 'status', 'machine_times'])
-
     return data(p_vals, detectors, t_series, nu_times,
                 ids, locs, status, machine_times)
+
 # Note from from Seb: :(
 ## Not working properly
 # def run_parallel(nparallel=2):

@@ -45,7 +45,7 @@ class Storage:
             'Test': self.test_cache,
             'CoincidenceTier': self.coincidence_tier_cache,
             'False': self.false_warnings,
-            'CoincidenceTierAlerts':self.coincidence_tier_alerts,
+            'CoincidenceTierAlert':self.coincidence_tier_alerts,
         }
 
     def insert_mgs(self, mgs):
@@ -83,6 +83,9 @@ class Storage:
             return True
         else:
             return False
+
+    def purge_cache(self,coll):
+        self.coll_list[coll].delete_many({})
 
     def keep_cache_clean(self):
         if self.empty_false_warnings():

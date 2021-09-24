@@ -45,7 +45,7 @@ class Publish_Heartbeat:
         sent_time = self.time_str()
         machine_time = self.time_str()
         data_enum = snews_utils.data_enum_obs(detector_status=self.retrieve_status(), machine_time=machine_time)
-        heartbeat_message = schema.get_obs_schema(msg_type='Heartbeat', sent_time=sent_time, data_enum=data_enum)
+        heartbeat_message = schema.get_schema(msg_type='Heartbeat', data_enum=data_enum, sent_time=sent_time)
 
         stream = Stream(persist=True)
         try:
@@ -98,7 +98,7 @@ class Publish_Alert:
 
     # decider should call this
     def publish(self, msg_type, data_enum):
-        schema = Message_Schema(detector_key='ALERT')
+        schema = Message_Schema(alert=True)
         sent_time = self.times.get_snews_time()
         alert_schema = schema.get_alert_schema(msg_type=msg_type, sent_time=sent_time, data_enum=data_enum)
 

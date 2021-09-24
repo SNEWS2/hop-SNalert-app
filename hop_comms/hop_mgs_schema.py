@@ -4,8 +4,8 @@ from snews_utils import TimeStuff
 
 
 class Message_Schema:
-    def __init__(self, env_path=None, detector_key='Detector0'):
-        if detector_key == 'ALERT':
+    def __init__(self, env_path=None, detector_key='Detector0',alert = False):
+        if alert:
             self.times = TimeStuff(env_path)
         else:
             self.detector = snews_utils.get_detector(detector_key)
@@ -23,7 +23,7 @@ class Message_Schema:
         if topic_state == 'OBS':
             return f'{self.detector.id}_{topic_type}_{date_time}'
         elif topic_state == 'ALERT':
-            return f'{topic_type}_{date_time}'
+            return f'SNEWS_{topic_type}_{date_time}'
 
     def get_obs_schema(self, msg_type, data_enum, sent_time):
         """ Create a message schema for given topic type.
@@ -85,13 +85,14 @@ class Message_Schema:
                 "location": self.detector_loc,
                 "status": data_enum.detector_status,
             }),
+
         }
         return messages[msg_type]
 
     def get_alert_schema(self, msg_type, sent_time, data_enum):
         message_type = namedtuple('message_type', ['topic_name', 'mgs'])
         messages = {
-            "TimeTier": message_type('TimeTier', {
+            "TimeTierAlert": message_type('TimeTier', {
                 "_id": self.id_format("ALERT", "TimeTier"),
                 "detector_names": data_enum.detectors,
                 "sent_time": sent_time,
@@ -101,7 +102,7 @@ class Message_Schema:
                 "locations": data_enum.locs,
 
             }),
-            "SigTier": message_type('SigTier', {
+            "SigTierAlert": message_type('SigTier', {
                 "_id": self.id_format("ALERT", "SigTier"),
                 "detector_name": data_enum.detectors,
                 "sent_time": sent_time,
@@ -111,7 +112,7 @@ class Message_Schema:
                 "p_values": data_enum.p_vals,
 
             }),
-            "CoincidenceTier": message_type('CoincidenceTier', {
+            "CoincidenceTierAlert": message_type('CoincidenceTier', {
                 "_id": self.id_format("ALERT", "CoincidenceTier"),
                 "detector_names": data_enum.detectors,
                 "sent_time": sent_time,
@@ -130,3 +131,4 @@ class Message_Schema:
 ### Since both these functions are backhand, we can easily merge them
 ###-----------
 ### Moreover, why do the ALERT messages have detector ids or status?
+

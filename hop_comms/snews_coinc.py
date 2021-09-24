@@ -21,9 +21,9 @@ class CoincDecider:
         snews_utils.set_env(env_path)
 
         self.storage = Storage(drop_dbs=False)
-        self.topic_type = "CoincidenceTier"
+        self.topic_type = "CoincidenceTierAlert"
         self.coinc_threshold = float(os.getenv('COINCIDENCE_THRESHOLD'))
-        self.mgs_expiration = int(os.getenv('MSG_EXPIRATION'))
+        self.mgs_expiration = float(os.getenv('MSG_EXPIRATION'))
         self.coinc_cache = self.storage.coincidence_tier_cache
         self.alert = Publish_Alert()
         self.times = snews_utils.TimeStuff(env_path)
@@ -101,6 +101,19 @@ class CoincDecider:
                 self.coinc_broken = True
         else:
             pass
+    def waited_long_enough(self):
+        curr_cache_len = self.storage.coincidence_tier_cache.count()
+        stagnant_cache = True
+        t0 = time.time()
+        while stagnant_cache:
+            t1 = time.time()
+            delta_t = t1-t0
+            if self.storage.coincidence_tier_cache.count() > curr_cache_len and delta_t < self.mgs_expiration:
+                break
+            elif delta_t > self.mgs_expiration:
+                print('waited too long !!')
+                self.coinc_broken = True
+                break
 
     def pub_alert(self):
         """ When the coincidence is broken publish alert
@@ -133,9 +146,12 @@ class CoincDecider:
                 print(mgs)
                 self.set_initial_signal(mgs)
                 self.check_for_coinc(mgs)
+                self.waited_long_enough()
                 self.pub_alert()
+
                 if self.coinc_broken:
                     self.counter = 0
                     self.reset_arr()
-                    self.set_initial_signal(mgs)
-                self.counter += 1
+                    self.storage.purge_cache(coll=self.topic_type)
+                if not self.coinc_broken:
+                    self.counter += 1

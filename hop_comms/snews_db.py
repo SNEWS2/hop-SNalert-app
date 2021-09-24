@@ -19,28 +19,33 @@ class Storage:
         # self.sig_tier_cache = self.db.sig_tier_cache
         # self.time_tier_cache = self.db.time_tier_cache
         self.coincidence_tier_cache = self.db.coincidence_tier_cache
+        self.coincidence_tier_alerts = self.db.coincidence_tier_alerts
 
         if drop_dbs:
             # kill all old colls
             self.all_mgs.delete_many({})
             self.test_cache.delete_many({})
             self.coincidence_tier_cache.delete_many({})
+            self.coincidence_tier_alerts.delete_many({})
             self.false_warnings.delete_many({})
             # drop the old index
             self.all_mgs.drop_indexes()
             self.test_cache.drop_indexes()
             self.coincidence_tier_cache.drop_indexes()
             self.false_warnings.drop_indexes()
+            self.coincidence_tier_alerts.drop_indexes()
         # set index
         self.all_mgs.create_index('sent_time')
         self.test_cache.create_index('sent_time', expireAfterSeconds=10)
         self.coincidence_tier_cache.create_index('sent_time', expireAfterSeconds=self.mgs_expiration)
         self.false_warnings.create_index('sent_time')
+        self.coincidence_tier_alerts.create_index('sent_time')
 
         self.coll_list = {
             'Test': self.test_cache,
             'CoincidenceTier': self.coincidence_tier_cache,
             'False': self.false_warnings,
+            'CoincidenceTierAlerts':self.coincidence_tier_alerts,
         }
 
     def insert_mgs(self, mgs):

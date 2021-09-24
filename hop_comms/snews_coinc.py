@@ -123,13 +123,9 @@ class CoincDecider:
         '''
         with self.coinc_cache.watch() as stream:
             # should it be: for mgs in stream ?
-            while self.storage.empty_coinc_cache():
+            if self.storage.empty_coinc_cache():
                 print('Nothing here, please wait...')
-                time.sleep(10)  # if it sleeps 10sec here, the next time
-                                # it checks the while condition there may
-                                # be 3-4 messages from 9 sec ago. In this case
-                                # we will trigger an alert 9 sec late.
-                                # Just thinking out loud :D we can discuss this.
+
             for doc in stream:
                 self.storage.keep_cache_clean()
                 print('Incoming message !!!')

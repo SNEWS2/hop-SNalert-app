@@ -15,7 +15,7 @@ from collections import namedtuple
 from dotenv import load_dotenv
 import snews_utils
 from hop_mgs_schema import Message_Schema
-
+from snews_db import Storage
 # Detector = namedtuple("Detector", ["name", "id", "location"])
 
 
@@ -94,6 +94,7 @@ class Publish_Alert:
         self.alert_topic = os.getenv("ALERT_TOPIC")
         self.times = snews_utils.TimeStuff(env_path)
         self.time_str = lambda: self.times.get_snews_time()
+        self.storage = Storage(drop_dbs=False)
 
     # decider should call this
     def publish(self, msg_type, data_enum):
@@ -104,6 +105,8 @@ class Publish_Alert:
         stream = Stream(persist=False)
         with stream.open(self.alert_topic, "w") as s:
             s.write(alert_schema.mgs)
+        alert_type = alert_schema.mgs['_id'].split('_')[0]
+        self.storage.insert_mgs(mgs)
         # print(f"\nPublished ALERT message to {self.alert_topic} !!!")
 
 

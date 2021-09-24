@@ -23,7 +23,7 @@ class Message_Schema:
         if topic_state == 'OBS':
             return f'{self.detector.id}_{topic_type}_{date_time}'
         elif topic_state == 'ALERT':
-            return f'SNEWS_ALERT_{topic_type}_{date_time}'
+            return f'{topic_type}_{date_time}'
 
     def get_obs_schema(self, msg_type, data_enum, sent_time):
         """ Create a message schema for given topic type.
@@ -93,13 +93,13 @@ class Message_Schema:
         messages = {
             "TimeTier": message_type('TimeTier', {
                 "_id": self.id_format("ALERT", "TimeTier"),
-                "detector_name": data_enum.detectors,
+                "detector_names": data_enum.detectors,
                 "sent_time": sent_time,
                 "neutrino_times": data_enum.nu_times,
                 "machine_times": data_enum.machine_times,
                 "timing_series": data_enum.t_series,
                 "locations": data_enum.locs,
-                "status": data_enum.status,
+
             }),
             "SigTier": message_type('SigTier', {
                 "_id": self.id_format("ALERT", "SigTier"),
@@ -109,17 +109,17 @@ class Message_Schema:
                 "machine_times": data_enum.machine_times,
                 "locations": data_enum.locs,
                 "p_values": data_enum.p_vals,
-                "status": data_enum.status,
+
             }),
             "CoincidenceTier": message_type('CoincidenceTier', {
                 "_id": self.id_format("ALERT", "CoincidenceTier"),
-                "detector_name": data_enum.detectors,
+                "detector_names": data_enum.detectors,
                 "sent_time": sent_time,
                 "neutrino_times": data_enum.nu_times,
                 "machine_times": data_enum.machine_times,
                 "locations": data_enum.locs,
                 "p_values": data_enum.p_vals,
-                "status": data_enum.status,
+
             }),
         }
         return messages[msg_type]

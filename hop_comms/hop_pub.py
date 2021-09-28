@@ -105,8 +105,8 @@ class Publish_Alert:
         stream = Stream(persist=False)
         with stream.open(self.alert_topic, "w") as s:
             s.write(alert_schema.mgs)
-        alert_type = alert_schema.mgs['_id'].split('_')[0]
-        self.storage.insert_mgs(mgs)
+        self.storage.insert_mgs(alert_schema.mgs)
+        print(alert_schema.mgs)
         # print(f"\nPublished ALERT message to {self.alert_topic} !!!")
 
 
@@ -124,4 +124,4 @@ class Publish_Tier_Obs:
         stream = Stream(persist=False)
         with stream.open(self.obs_broker, 'w') as s:
             s.write(obs_schema.mgs)
-            print(obs_schema.mgs)
+        print(obs_schema.mgs)

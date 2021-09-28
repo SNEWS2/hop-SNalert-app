@@ -92,8 +92,8 @@ class Message_Schema:
     def get_alert_schema(self, msg_type, sent_time, data_enum):
         message_type = namedtuple('message_type', ['topic_name', 'mgs'])
         messages = {
-            "TimeTierAlert": message_type('TimeTier', {
-                "_id": self.id_format("ALERT", "TimeTier"),
+            "TimeTierAlert": message_type('TimeTierAlert', {
+                "_id": self.id_format("ALERT", "TimeTierAlert"),
                 "detector_names": data_enum.detectors,
                 "sent_time": sent_time,
                 "neutrino_times": data_enum.nu_times,
@@ -102,8 +102,8 @@ class Message_Schema:
                 "locations": data_enum.locs,
 
             }),
-            "SigTierAlert": message_type('SigTier', {
-                "_id": self.id_format("ALERT", "SigTier"),
+            "SigTierAlert": message_type('SigTierAlert', {
+                "_id": self.id_format("ALERT", "SigTierAlert"),
                 "detector_name": data_enum.detectors,
                 "sent_time": sent_time,
                 "neutrino_times": data_enum.nu_times,
@@ -112,8 +112,8 @@ class Message_Schema:
                 "p_values": data_enum.p_vals,
 
             }),
-            "CoincidenceTierAlert": message_type('CoincidenceTier', {
-                "_id": self.id_format("ALERT", "CoincidenceTier"),
+            "CoincidenceTierAlert": message_type('CoincidenceTierAlert', {
+                "_id": self.id_format("ALERT", "CoincidenceTierAlert"),
                 "detector_names": data_enum.detectors,
                 "sent_time": sent_time,
                 "neutrino_times": data_enum.nu_times,

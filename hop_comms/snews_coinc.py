@@ -167,7 +167,5 @@ class CoincDecider:
                 self.set_initial_signal(mgs)
                 self.check_for_coinc(mgs)
                 self.waited_long_enough()
-
-
                 if not self.coinc_broken:
                     self.counter += 1

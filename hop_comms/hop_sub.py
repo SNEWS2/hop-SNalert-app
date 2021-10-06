@@ -13,16 +13,16 @@ https://docs.python.org/3/howto/logging.html
 """
 
 # Imports
-import snews_utils
+from . import snews_utils
 from hop import Stream
-import os, json
+import os, json, click
 from collections import namedtuple
-from snews_db import Storage
-
+from .snews_db import Storage
+from .snews_coinc import CoincDecider
 
 class HopSubscribe:
     def __init__(self, env_path=None):
-        snews_utils.set_env()
+        snews_utils.set_env(env_path)
         self.broker = os.getenv("HOP_BROKER")
         self.observation_topic = os.getenv("OBSERVATION_TOPIC")  # only snews can subscribe
         self.alert_topic = os.getenv("ALERT_TOPIC")
@@ -60,6 +60,7 @@ class HopSubscribe:
             json.dump(data, outfile, indent=4, sort_keys=True)
         # self.logger.info(str(message))
 
+    # shouldn't verbose always be True?
     def subscribe(self, which_topic='A', verbose=False):
         ''' Subscribe and listen to a given topic
             Arguments
@@ -69,14 +70,18 @@ class HopSubscribe:
                 alert or observation topics set by the env file
                 long string indicating the full topic link can also
                 be given
-
+            verbose : bool
+                Whether to display the subscribed message content
         '''
         if len(which_topic) == 1:
             # set topic enum, get name and broker
             topic = snews_utils.set_topic_state(which_topic)
             name = topic.topic_name
             broker = topic.topic_broker
-            print(f'Subscribing to {name} Topic\nBroker:{broker}')
+            topic_col = 'red' if which_topic.upper()=='A' else 'blue'
+            click.echo('You are subscribing to '+
+                click.style(f'{name}', bg=topic_col, bold=True) + '\nBroker:'+
+                click.style(f'{broker}', bg='blue'))
         else:
             name = which_topic.split('/')[-1]
             broker = which_topic
@@ -85,21 +90,22 @@ class HopSubscribe:
         stream = Stream(persist=True)
         with stream.open(broker, "r") as s:
             for message in s:
-                if which_topic.upper() == 'O':
-                    self.storage.insert_mgs(message)
-                if which_topic.upper() == 'A':
-                    snews_utils.display_gif()
+                if which_topic.upper() == 'O':  self.storage.insert_mgs(message)
+                if which_topic.upper() == 'A':  snews_utils.display_gif() # should also insert
                 else:
-                    print(f"{name} from {message['_id']}"
-                          f" at {message['sent_time']}")
+                    print(f"\n({name} from {message['detector_name']} at {message['sent_time']})")
                 if verbose:
-                    print('#'.center(50, '#'))
+                    print('#'.center(61, '#'))
                     for k, v in message.items():
-                        print(f'# {k:<20s}:{v:<25} #')
-                    print('#'.center(50, '#'))
+                        if v==None: v='None'
+                        if k == 'detector_status':
+                            col = 'red' if v=='OFF' else 'green'
+                            click.echo(f'# {k:<20s}:' + click.style(f'{str(v):<36}', fg='white', bg=col)+' #')
+                        else:
+                            click.echo(f'# {k:<20s}:{v:<36} #')
+                        # print(f'# {k:<20s}:{v:<36} #')
+                    print('#'.center(61, '#'))
                 # Don't need this mgs is already saved on the MongoDB
                 # What if the user wants to store the alert messages?
                 # Do all users have access to MongoDB? 
                 # self.save_message(message)
-
-                # print(message)

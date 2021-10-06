@@ -1,3 +1,5 @@
+"""
+"""
 from dotenv import load_dotenv
 from datetime import datetime
 from collections import namedtuple
@@ -19,7 +21,7 @@ def set_env(env_path=None):
         path for the environment file.
         Use default settings if not given
     """
-    env = env_path or './auxiliary/test-config.env'
+    env = env_path or 'hop_comms/auxiliary/test-config.env'
     load_dotenv(env)
 
 def make_dir(path):
@@ -46,23 +48,25 @@ class TimeStuff:
     def str_to_datetime(self,nu_time):
         return datetime.strptime(nu_time, '%H %M %S %f')
 
-def set_topic_state(which_topic):
+def set_topic_state(which_topic, env_path=None):
+    # check first to see if env already defined
+    if os.getenv("ALERT_TOPIC")==None: set_env(env_path)
     Topics = namedtuple('Topics', ['topic_name', 'topic_broker'])
     topics = {
-        'A': Topics('ALERT', 'kafka://kafka.scimma.org/snews.alert-test'),
-        'O': Topics('OBSERVATION', 'kafka://kafka.scimma.org/snews.experiments-test'),
-        'H': Topics('HEARTBEAT', 'kafka://kafka.scimma.org/snews.experiments-test')
+        'A': Topics('ALERT', os.getenv("ALERT_TOPIC")),
+        'O': Topics('OBSERVATION', os.getenv("OBSERVATION_TOPIC")),
+        'H': Topics('HEARTBEAT', os.getenv("OBSERVATION_TOPIC"))
     }
     return topics[which_topic.upper()]
 
 # retrieve the detector properties
-def retrieve_detectors(detectors_path="./auxiliary/detector_properties.json"):
+def retrieve_detectors(detectors_path="hop_comms/auxiliary/detector_properties.json"):
     ''' Retrieve the name-ID-location of the
         participating detectors.
     '''
     # search for the pre-saved detectors file, create if not exist
     if not os.path.isfile(detectors_path):
-        os.system(f'python auxiliary/make_detector_file.py')
+        os.system(f'python hop_comms/auxiliary/make_detector_file.py')
 
     with open(detectors_path) as json_file:
         detectors = json.load(json_file)
@@ -73,7 +77,7 @@ def retrieve_detectors(detectors_path="./auxiliary/detector_properties.json"):
         detectors[k] = Detector(v[0], v[1], v[2])
     return detectors
 
-def get_detector(detector, detectors_path="./auxiliary/detector_properties.json"):
+def get_detector(detector, detectors_path="hop_comms/auxiliary/detector_properties.json"):
     """ Return the selected detector properties
 
     """
@@ -146,18 +150,26 @@ def display_gif():
         giphy_snews = "https://raw.githubusercontent.com/SNEWS2/hop-SNalert-app/snews2_dev/hop_comms/auxiliary/snalert.gif"
         display(HTML(f'<img src={giphy_snews}>'))
 
-def data_enum_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None, 
-                  detector_status=None, false_mgs_id=None):
-    data = namedtuple('data',
-                      ['machine_time', 'nu_time', 'p_value', 'timing_series', 'detector_status', 'false_id'])
-    return data(machine_time, nu_time, p_value, timing_series, 
-                detector_status, false_mgs_id)
+def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None, 
+             detector_status=None, false_mgs_id=None, **kwargs):
+    """ default observation message data
+    """
+    keys = ['machine_time', 'neutrino_time', 'p_value', 'timing_series', 'detector_status', 'false_id']
+    values = [machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id]
+    # allow for keyword-args
+    for k, v in kwargs.items():
+        keys.append(k)
+        values.append(v)
+    zip_iterator = zip(keys, values)
+    data_dict = dict(zip_iterator)
+    return data_dict
 
-def data_enum_alert(p_vals=None, detectors=None, t_series=None, nu_times=None,
-                    ids=None, locs=None, status=None, machine_times=None):
-    data = namedtuple("data", ['p_vals', 'detectors', 't_series', 'nu_times', 'ids', 'locs', 'status', 'machine_times'])
-    return data(p_vals, detectors, t_series, nu_times,
-                ids, locs, status, machine_times)
+def data_alert(p_vals=None, detectors=None, t_series=None, nu_times=None,
+               ids=None, locs=None, status=None, machine_times=None):
+    keys = ['p_vals', 'detectors', 't_series', 'neutrino_times', 'ids', 'locs', 'status', 'machine_times']
+    values = [p_vals, detectors, t_series, nu_times, ids, locs, status, machine_times]
+    return dict(zip(keys,values))
+
 
 # Note from from Seb: :(
 ## Not working properly

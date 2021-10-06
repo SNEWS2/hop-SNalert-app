@@ -8,10 +8,11 @@ with open(os.path.join(this_dir, 'README.md'), 'rb') as f:
     long_description = f.read().decode().strip()
 
 # load version
-with open("snews/_version.py", "r") as f:
+with open("hop_comms/_version.py", "r") as f:
     version_file = f.read()
 version_match = re.search(r"^version = ['\"]([^'\"]*)['\"]", version_file, re.M)
 version = version_match.group(1)
+
 
 # requirements
 install_requires = [
@@ -22,6 +23,14 @@ install_requires = [
     "pymongo",
     "python-dotenv",
 ]
+
+def read_requirements():
+    # with open('hop_comms/requirements.txt') as req:
+    #     content = req.read()
+    #     requirements = content.split('\n')
+    # return install_requires.append(requirements)
+    return install_requires
+
 extras_require = {
     'dev': [
         'autopep8',
@@ -42,7 +51,7 @@ extras_require = {
 }
 
 setup(
-    name = 'snews',
+    name = 'hop_comms',
     version = version,
     description = 'An alert application for observing supernovas.',
     long_description = long_description,
@@ -53,15 +62,17 @@ setup(
     license = 'BSD 3-Clause',
 
     packages = find_packages(),
+    include_package_data=True,
 
     entry_points = {
         'console_scripts': [
-            'snews = snews.__main__:main',
+            'hop_comms = hop_comms.__main__:main',
         ],
     },
 
+
     python_requires = '>=3.6.*',
-    install_requires = install_requires,
+    install_requires = read_requirements(),
     extras_require = extras_require,
 
     classifiers = [

@@ -24,3 +24,8 @@ hop_comms/logging.log
 hop_comms/local-testing.ipynb
 hop_comms/.ipynb_checkpoints/
 hop_comms/local_tests.ipynb
+.ipynb_checkpoints/dev_test-checkpoint.ipynb
+dev_test.ipynb
+hop_comms/hop_mgs_schema_old.py
+setup_orig.py
+logging.log

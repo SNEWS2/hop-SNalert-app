@@ -1,17 +1,17 @@
 import pymongo
-import snews_utils
+from . import snews_utils
 import os
 
 
 #  https://pymongo.readthedocs.io/en/stable/api/pymongo/change_stream.html
 class Storage:
     def __init__(self, env=None, drop_dbs=True):
-        snews_utils.set_env()
+        snews_utils.set_env(env)
         self.mgs_expiration = int(os.getenv('MSG_EXPIRATION'))
         self.coinc_threshold = int(os.getenv('COINCIDENCE_THRESHOLD'))
         self.mongo_server = os.getenv('DATABASE_SERVER')
 
-        self.client = pymongo.MongoClient(self.mongo_server)
+        self.client = pymongo.MongoClient(self.mongo_server) # 
         self.db = self.client.snews_db
         self.all_mgs = self.db.all_mgs
         self.false_warnings = self.db.false_warnings

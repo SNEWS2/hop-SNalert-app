@@ -1,10 +1,11 @@
-import snews_utils
+
 from collections import namedtuple
-from snews_utils import TimeStuff
+from . import snews_utils
+from .snews_utils import TimeStuff
 
 
 class Message_Schema:
-    def __init__(self, env_path=None, detector_key='Detector0',alert = False):
+    def __init__(self, env_path=None, detector_key='TEST',alert = False):
         if alert:
             self.times = TimeStuff(env_path)
         else:
@@ -24,8 +25,13 @@ class Message_Schema:
             return f'{self.detector.id}_{topic_type}_{date_time}'
         elif topic_state == 'ALERT':
             return f'SNEWS_{topic_type}_{date_time}'
+        elif topic_state == 'FalseOBS':
+            return f'False_{topic_type}_{date_time}'
+        else:
+            import sys
+            sys.exit(f'{topic_state} is not valid!\nOptiions are ["OBS","ALERT","FalseOBS"]')
 
-    def get_obs_schema(self, msg_type, data_enum, sent_time):
+    def get_obs_schema(self, msg_type, data, sent_time):
         """ Create a message schema for given topic type.
             Internally called in hop_pub
             Arguments
@@ -35,7 +41,7 @@ class Message_Schema:
                 'TimeTier', 'SigTier', 'CoincidenceTier' for
                 observation messages and, 'HeartBeat' for 
                 heartbeat messages
-            data_enum : named tuple
+            data      : named tuple
                 snews_utils data tuple with predefined field.
             sent_time : str
                 time as a string
@@ -45,84 +51,60 @@ class Message_Schema:
                 dict, message with the correct scheme 
 
         """
-        message_type = namedtuple('message_type', ['topic_name', 'mgs'])
-        messages = {
-            "TimeTier": message_type('TimeTier', {
-                "_id": self.id_format("OBS", "TimeTier"),
+        base = {"_id": self.id_format("OBS", f'{msg_type}'),
                 "detector_name": self.detector_name,
                 "sent_time": sent_time,
-                "neutrino_time": data_enum.nu_time,
-                "machine_time": data_enum.machine_time,
+                "machine_time": data['machine_time'],
                 "location": self.detector_loc,
-                "status": data_enum.detector_status,
-                "timing_series": data_enum.timing_series
-            }),
-            "SigTier": message_type('SigTier', {
-                "_id": self.id_format("OBS", "SigTier"),
-                "detector_name": self.detector_name,
-                "sent_time": sent_time,
-                "neutrino_time": data_enum.nu_time,
-                "machine_time": data_enum.machine_time,
-                "location": self.detector_loc,
-                "p_value": data_enum.p_value,
-                "status": data_enum.detector_status,
-            }),
-            "CoincidenceTier": message_type('CoincidenceTier', {
-                "_id": self.id_format("OBS", "CoincidenceTier"),
-                "detector_name": self.detector_name,
-                "sent_time": sent_time,
-                "neutrino_time": data_enum.nu_time,
-                "machine_time": data_enum.machine_time,
-                "location": self.detector_loc,
-                "p_value": data_enum.p_value,
-                "status": data_enum.detector_status,
-            }),
-            "Heartbeat": message_type('Heartbeat', {
-                "_id": self.id_format("OBS", "Heartbeat"),
-                "detector_name": self.detector_name,
-                "sent_time": sent_time,
-                "machine_time": data_enum.machine_time,
-                "location": self.detector_loc,
-                "status": data_enum.detector_status,
-            }),
+                "detector_status": data['detector_status']}
 
-        }
-        return messages[msg_type]
+        
+        messages = {}
+        messages['Heartbeat'] = base.copy()
 
-    def get_alert_schema(self, msg_type, sent_time, data_enum):
-        message_type = namedtuple('message_type', ['topic_name', 'mgs'])
-        messages = {
-            "TimeTierAlert": message_type('TimeTierAlert', {
-                "_id": self.id_format("ALERT", "TimeTierAlert"),
-                "detector_names": data_enum.detectors,
+        messages['TimeTier'] = base.copy()
+        messages['TimeTier']['neutrino_time'] = data['neutrino_time']
+        messages['TimeTier']['timing_series'] = data['timing_series']
+
+        messages['SigTier'] = base.copy()
+        messages['SigTier']['neutrino_time'] = data['neutrino_time']
+        messages['SigTier']['p_value'] = data['p_value']
+
+        messages['CoincidenceTier'] = base.copy()
+        messages['CoincidenceTier']['neutrino_time'] = data['neutrino_time']
+        messages['CoincidenceTier']['p_value'] = data['p_value']
+
+        messages['FalseOBS'] = {'_id':self.id_format("OBS","FalseOBS"),
+                                'false_id':data['false_id'],
+                                'type': 'data["type"]',
+                                'sent_time':sent_time}
+
+        message = messages[msg_type]
+        # check if data contains unknown (extra) fields
+        known_keys= [[k for k in messages[tier].keys()] for tier in messages.keys()]
+        known_keys = [item for sublist in known_keys for item in sublist]
+        # extra_keys = [key for key in data.keys() if key not in message.keys()]
+        extra_keys = [key for key in data.keys() if key not in known_keys]
+        if len(extra_keys) > 0:
+            for key in extra_keys:
+                if key == 'false_id' and msg_type!='FalseOBS': continue
+                message['^'+key] = data[key]
+        return message
+
+    def get_alert_schema(self, msg_type, sent_time, data):
+        base = {"_id": self.id_format("ALERT", f'{msg_type}'),
+                "detector_names": data['detectors'],
                 "sent_time": sent_time,
-                "neutrino_times": data_enum.nu_times,
-                "machine_times": data_enum.machine_times,
-                "timing_series": data_enum.t_series,
-                "locations": data_enum.locs,
+                "neutrino_times": data['neutrino_times'],
+                "machine_times": data['machine_times'],
+                "timing_series": data['t_series'],
+                "locations": data['locs']}
 
-            }),
-            "SigTierAlert": message_type('SigTierAlert', {
-                "_id": self.id_format("ALERT", "SigTierAlert"),
-                "detector_name": data_enum.detectors,
-                "sent_time": sent_time,
-                "neutrino_times": data_enum.nu_times,
-                "machine_times": data_enum.machine_times,
-                "locations": data_enum.locs,
-                "p_values": data_enum.p_vals,
-
-            }),
-            "CoincidenceTierAlert": message_type('CoincidenceTierAlert', {
-                "_id": self.id_format("ALERT", "CoincidenceTierAlert"),
-                "detector_names": data_enum.detectors,
-                "sent_time": sent_time,
-                "neutrino_times": data_enum.nu_times,
-                "machine_times": data_enum.machine_times,
-                "locations": data_enum.locs,
-                "p_values": data_enum.p_vals,
-
-            }),
-        }
+        messages = {}
+        messages['CoincidenceTierAlert'] = base.copy()
+        messages['SigTierAlert'] = base.copy()
+        messages['TimeTierAlert'] = base.copy()
+        messages['TimeTierAlert']['timing_series'] = data['t_series']
         return messages[msg_type]
 
 ### comment from Melih:

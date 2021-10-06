@@ -1,9 +1,9 @@
-import snews_utils
-from snews_db import Storage
+from . import snews_utils
+from .snews_db import Storage
 import os
 # from datetime import datetime
 import time
-from hop_pub import Publish_Alert
+from .hop_pub import Publish_Alert
 
 
 # comment: we should keep in mind that lists [], and numpy arrays np.array([])
@@ -41,12 +41,11 @@ class CoincDecider:
 
         self.delta_t = None
 
+        self.ids = []
         self.delta_ts = []
         self.detectors = []
         self.nu_times = []
-        self.locs = []
         self.machine_times = []
-        self.status = []
         self.p_vals = []
 
         self.coinc_broken = False
@@ -56,7 +55,9 @@ class CoincDecider:
         self.detectors.append(mgs['detector_name'])
         self.machine_times.append(mgs['machine_time'])
         self.p_vals.append(mgs['p_value'])
-        self.status.append(mgs['status'])
+        self.ids.append(mgs['_id'])
+
+        self.ids.append(mgs['_id'])
         if self.counter == 0:
             self.delta_ts.append(0)
         elif self.counter != 0:
@@ -64,12 +65,11 @@ class CoincDecider:
 
     def reset_arr(self):
         if self.coinc_broken:
+            self.ids = []
             self.delta_ts = []
             self.detectors = []
             self.nu_times = []
-            self.locs = []
             self.machine_times = []
-            self.status = []
             self.p_vals = []
         else:
             pass
@@ -107,6 +107,15 @@ class CoincDecider:
         else:
             pass
 
+    def kill_false_element(self, index):
+        self.detectors.pop(index)
+        self.ids.pop(index)
+        self.nu_times.pop(index)
+        self.delta_ts.pop(index)
+        self.p_vals.pop(index)
+        self.machine_times.pop(index)
+
+
     def waited_long_enough(self):
         curr_cache_len = self.storage.coincidence_tier_cache.count()
         stagnant_cache = True
@@ -115,6 +124,7 @@ class CoincDecider:
         while stagnant_cache:
             t1 = time.time()
             delta_t = t1 - t0
+            self.in_cache_retract()
             if self.storage.coincidence_tier_cache.count() > curr_cache_len and delta_t < self.mgs_expiration:
                 break
             elif delta_t > self.mgs_expiration:
@@ -124,6 +134,22 @@ class CoincDecider:
                 print('Resetting cache')
                 self.reset_cache()
                 break
+
+    def in_cache_retract(self):
+        if self.storage.empty_false_warnings():
+            print('No false messages...yet')
+            pass
+        if len(self.ids)==0:
+            print('cache is empty')
+            pass
+        for mgs in self.storage.get_false_warnings():
+            if mgs['type'] == 'CoincidenceTier':
+                false_id = mgs['false_id']
+                i = 0
+                for id in self.ids:
+                    if false_id == id:
+                        self.kill_false_element(index=i)
+                    i += 1
 
     def reset_cache(self):
         if self.coinc_broken:
@@ -141,6 +167,7 @@ class CoincDecider:
         """
         if self.coinc_broken and len(self.detectors) > 1:
             alert_enum = snews_utils.data_enum_alert(detectors=self.detectors,
+                                                     ids=self.ids,
                                                      p_vals=self.p_vals,
                                                      nu_times=self.nu_times,
                                                      machine_times=self.machine_times)

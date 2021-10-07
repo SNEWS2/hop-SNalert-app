@@ -21,7 +21,7 @@ def set_env(env_path=None):
         path for the environment file.
         Use default settings if not given
     """
-    env = env_path or 'hop_comms/auxiliary/test-config.env'
+    env = env_path or './auxiliary/test-config.env'
     load_dotenv(env)
 
 def make_dir(path):

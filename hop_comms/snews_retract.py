@@ -1,4 +1,4 @@
-from snews_db import Storage
+from .snews_db import Storage
 import time
 
 class RetractionCoincidence:

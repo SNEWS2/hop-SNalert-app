@@ -6,7 +6,7 @@ This repo contains scripts that allow for experiments and the snews network to _
 
 ## `hop_pub`
 Contains the publication class. It has `Publish_Observation`, `Publish_Heartbeat` and `Publish_Alert` submodules. <br>
-See [this notebook](dev-testing.ipynb) for a demonstration of each method.<br>
+See [this notebook](../dev-testing.ipynb) for a demonstration of each method.<br>
 Observation and Heartbeat modules can be initialized with a detector name, in which case the object knows detectors ID and location. Detector properties can be edited, and new detectors can be added [here](./auxiliary/make_detector_file.py).
 
 ### `Publish_Observation` 

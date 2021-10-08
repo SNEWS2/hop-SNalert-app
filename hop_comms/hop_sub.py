@@ -94,18 +94,33 @@ class HopSubscribe:
                 if which_topic.upper() == 'A':  snews_utils.display_gif() # should also insert
                 else:
                     print(f"\n({name} from {message['detector_name']} at {message['sent_time']})")
-                if verbose:
-                    print('#'.center(61, '#'))
-                    for k, v in message.items():
-                        if v==None: v='None'
-                        if k == 'detector_status':
-                            col = 'red' if v=='OFF' else 'green'
-                            click.echo(f'# {k:<20s}:' + click.style(f'{str(v):<36}', fg='white', bg=col)+' #')
-                        else:
-                            click.echo(f'# {k:<20s}:{v:<36} #')
-                        # print(f'# {k:<20s}:{v:<36} #')
-                    print('#'.center(61, '#'))
+                if verbose: publish_format(which_topic, message)
                 # Don't need this mgs is already saved on the MongoDB
                 # What if the user wants to store the alert messages?
                 # Do all users have access to MongoDB? 
                 # self.save_message(message)
+
+def publish_format(which_topic, message):
+    if which_topic.upper() in ['O','H']:
+        for k, v in message.items():
+            if v==None: v='None'
+            if k == 'detector_status':
+                col = 'red' if v=='OFF' else 'green' if v=='ON' else 'blue'
+                click.echo(f'# {k:<20s}:' + click.style(f'{str(v):<36}', fg='white', bg=col)+' #')
+            else:
+                click.echo(f'# {k:<20s}:{v:<36} #')
+        click.echo('#'.center(61, '#'))
+    elif which_topic=='A':
+        click.echo(click.style('ALERT MESSAGE'.center(65, '_'), bg='bright_red'))
+        for k, v in message.items():
+            if type(v)==type(None): v='None'
+            if type(v) == str:
+                click.echo(f'{k:<20s}:{v:<45}')
+            elif type(v)==list:
+                items = '\t'.join(v)
+                if k=='detector_names':
+                    click.echo(f'{k:<20s}' + click.style(f':{items:<45}', bg='blue'))
+                else:
+                    click.echo(f'{k:<20s}:{items:<45}')
+        click.secho('_'.center(65, '_'), bg='bright_red')
+

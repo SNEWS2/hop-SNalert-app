@@ -1,6 +1,6 @@
 from . import snews_utils
 from .snews_db import Storage
-import os
+import os, click
 # from datetime import datetime
 import time
 from .hop_pub import Publish_Alert
@@ -90,9 +90,10 @@ class CoincDecider:
             self.old_detector = mgs['detector_name']
             self.delta_t = (self.curr_nu_time - self.initial_nu_time).total_seconds()
 
+            print(self.curr_nu_time, self.initial_nu_time)
             if self.delta_t <= self.coinc_threshold and self.curr_loc != self.old_loc:
                 self.append_arrs(mgs)
-                print('got something')
+                click.secho('got something'.upper(), fg='white', bg='red')
                 print(f'{self.delta_ts}')
             # should the same experiment sends two messages one after the other
             # the coincidence would break since curr_loc == old_loc
@@ -101,7 +102,7 @@ class CoincDecider:
                 print('Coincidence is broken, checking to see if an ALERT can be published...\n\n')
                 self.coinc_broken = True
                 self.pub_alert()
-                print('Ressting cache')
+                print('Resetting the cache')
                 self.reset_cache()
 
         else:
@@ -166,13 +167,13 @@ class CoincDecider:
             given coincidence window
         """
         if self.coinc_broken and len(self.detectors) > 1:
-            alert_enum = snews_utils.data_enum_alert(detectors=self.detectors,
-                                                     ids=self.ids,
-                                                     p_vals=self.p_vals,
-                                                     nu_times=self.nu_times,
-                                                     machine_times=self.machine_times)
-            self.alert.publish(msg_type=self.topic_type, data_enum=alert_enum)
-            print('Published an Alert!!!')
+            alert_data = snews_utils.data_alert(detectors=self.detectors,
+                                                ids=self.ids,
+                                                p_vals=self.p_vals,
+                                                nu_times=self.nu_times,
+                                                machine_times=self.machine_times)
+            self.alert.publish(msg_type=self.topic_type, data=alert_data)
+            click.secho('Published an Alert!!!'.upper(), bg='bright_green', fg='red')
         else:
             print('Nothing to send :(')
             pass
@@ -190,7 +191,7 @@ class CoincDecider:
                 self.storage.keep_cache_clean()
                 print('Incoming message !!!')
                 mgs = doc['fullDocument']
-                print(mgs)
+                # print(mgs)
                 self.set_initial_signal(mgs)
                 self.check_for_coinc(mgs)
                 self.waited_long_enough()

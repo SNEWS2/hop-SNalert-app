@@ -52,7 +52,8 @@ class TimeStuff:
         self.get_date = lambda fmt=self.date_fmt: datetime.utcnow().strftime(fmt)
 
     def str_to_datetime(self, nu_time):
-        return datetime.strptime(nu_time, '%H %M %S %f')
+        # return datetime.strptime(nu_time, '%H %M %S %f')
+        return datetime.strptime(nu_time, '%y/%m/%d %H:%M:%S')
 
 
 def set_topic_state(which_topic, env_path=None):

@@ -187,6 +187,7 @@ class CoincDecider:
             given coincidence window
         """
         if self.coinc_broken and len(self.detectors) > 1:
+            click.secho(f'{"-" * 57}', fg='bright_red')
             alert_data = snews_utils.data_alert(detectors=self.detectors,
                                                 ids=self.ids,
                                                 p_vals=self.p_vals,
@@ -194,6 +195,7 @@ class CoincDecider:
                                                 machine_times=self.machine_times)
             self.alert.publish(msg_type=self.topic_type, data=alert_data)
             click.secho('Published an Alert!!!'.upper(), bg='bright_green', fg='red')
+            click.secho(f'{"-" * 57}', fg='bright_red')
         else:
             print('Nothing to send :(')
             pass

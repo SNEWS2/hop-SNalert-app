@@ -61,6 +61,7 @@ def main(env):
     """
     snews_utils.set_env(env)
 
+
 @main.command()
 @click.option('--topic','-t', type=str, default='O', show_default='snews-observations', help='Selected kafka topic [O/A]')
 @click.option('--broker','-b', type=str, default='None', show_default='from env variables', help='Selected kafka topic')
@@ -117,8 +118,10 @@ def retract():
 
 
 @main.command()
-def run_coincidence():
-    ## Not working properly
+@click.option('--rate','-r', default=60, help='rate in sec to send heartbeat messages')
+def run_coincidence(rate):
+    """ 
+    """
     click.echo('Initial implementation. Likely to change')
     # # Initiate Coincidence Decider
     coinc = snews_coinc.CoincDecider()
@@ -145,14 +148,15 @@ def subscribe(topic, broker, env, verbose):
     sub.subscribe(which_topic=topic, verbose=verbose)
 
 @main.command()
-@click.option('--rate','-r', default=0.5, nargs=1, help='rate to send observation messages')
-@click.option('--alert_probability','-p', default=0.1, nargs=1, help='probability for an alert')
+@click.option('--rate','-r', default=1, nargs=1, help='rate to send observation messages in sec')
+@click.option('--alert_probability','-p', default=0.2, nargs=1, help='probability for an alert')
 def simulate(rate, alert_probability):
     """ Simulate Observation Messages
     """
     import numpy as np
     import time
-    click.secho(f'Simulating with rate {rate}', fg='blue', bold=True)
+    click.secho(f'Simulating observation messages every {rate} sec\n\
+        with a {alert_probability*100}% alert probability ', fg='blue', bg='white', bold=True)
     detectors = snews_utils.retrieve_detectors()
     try:
         while True:

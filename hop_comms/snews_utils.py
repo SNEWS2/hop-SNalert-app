@@ -74,7 +74,7 @@ def retrieve_detectors(detectors_path=os.path.dirname(__file__) + "/auxiliary/de
     '''
     # search for the pre-saved detectors file, create if not exist
     if not os.path.isfile(detectors_path):
-        os.system(f'python hop_comms/auxiliary/make_detector_file.py')
+        os.system(f'python {os.path.dirname(__file__)}/auxiliary/make_detector_file.py')
 
     with open(detectors_path) as json_file:
         detectors = json.load(json_file)

@@ -5,7 +5,7 @@ Script to create detector file.
 New detectors can be added here.
 """
 
-import json
+import json, os
 from collections import namedtuple
 
 Detector = namedtuple("Detector", ["name", "id", "location"])
@@ -33,7 +33,7 @@ detectors = {
         "PandaX-4T" : Detector("PandaX-4T", 20, "loc PandaX-4T"),
     }
 
-with open('detector_properties.json', 'w') as outfile:
-    json.dump(detectors, outfile)
+with open(os.path.dirname(__file__) + "/detector_properties.json", 'w') as outfile:
+    json.dump(detectors, outfile, indent=4, sort_keys=True)
 
 print('detector_properties.json file created!')

@@ -51,8 +51,9 @@ class Storage:
     def insert_mgs(self, mgs):
         mgs_type = mgs['_id'].split('_')[1]
         specific_coll = self.coll_list[mgs_type]
-        self.all_mgs.insert_one(mgs)
         specific_coll.insert_one(mgs)
+        self.all_mgs.insert_one(mgs)
+
 
     def get_all_messages(self, sort_order=pymongo.ASCENDING):
         return self.all_mgs.find().sort('sent_time', sort_order)

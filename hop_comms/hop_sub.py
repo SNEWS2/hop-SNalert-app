@@ -20,6 +20,7 @@ from collections import namedtuple
 from .snews_db import Storage
 from .snews_coinc import CoincDecider
 
+
 class HopSubscribe:
     def __init__(self, env_path=None):
         snews_utils.set_env(env_path)
@@ -35,8 +36,8 @@ class HopSubscribe:
         self.hr = self.times.get_hour()
         self.date = self.times.get_date()
         self.snews_time = lambda: self.times.get_snews_time()
-        self.storage = Storage(env_path)
-        
+        self.storage = Storage(env_path, drop_dbs=True)
+
     # don't need this
     def save_message(self, message):
         """ Save messages to a json file
@@ -78,10 +79,10 @@ class HopSubscribe:
             topic = snews_utils.set_topic_state(which_topic)
             name = topic.topic_name
             broker = topic.topic_broker
-            topic_col = 'red' if which_topic.upper()=='A' else 'blue'
-            click.echo('You are subscribing to '+
-                click.style(f'{name}', bg=topic_col, bold=True) + '\nBroker:'+
-                click.style(f'{broker}', bg='blue'))
+            topic_col = 'red' if which_topic.upper() == 'A' else 'blue'
+            click.echo('You are subscribing to ' +
+                       click.style(f'{name}', bg=topic_col, bold=True) + '\nBroker:' +
+                       click.style(f'{broker}', bg='green'))
         else:
             name = which_topic.split('/')[-1]
             broker = which_topic
@@ -91,36 +92,36 @@ class HopSubscribe:
         with stream.open(broker, "r") as s:
             for message in s:
                 if which_topic.upper() == 'O':  self.storage.insert_mgs(message)
-                if which_topic.upper() == 'A':  snews_utils.display_gif() # should also insert
-                else:
-                    print(f"\n({name} from {message['detector_name']} at {message['sent_time']})")
+                if which_topic.upper() == 'A':  snews_utils.display_gif()  # should also insert
+
+                # print(f"\n({name} from {message['detector_name']} at {message['sent_time']})")
                 if verbose: publish_format(which_topic, message)
                 # Don't need this mgs is already saved on the MongoDB
                 # What if the user wants to store the alert messages?
                 # Do all users have access to MongoDB? 
                 # self.save_message(message)
 
+
 def publish_format(which_topic, message):
-    if which_topic.upper() in ['O','H']:
+    if which_topic.upper() in ['O', 'H']:
         for k, v in message.items():
-            if v==None: v='None'
+            if v == None: v = 'None'
             if k == 'detector_status':
-                col = 'red' if v=='OFF' else 'green' if v=='ON' else 'blue'
-                click.echo(f'# {k:<20s}:' + click.style(f'{str(v):<36}', fg='white', bg=col)+' #')
+                col = 'red' if v == 'OFF' else 'green' if v == 'ON' else 'blue'
+                click.echo(f'# {k:<20s}:' + click.style(f'{str(v):<36}', fg='white', bg=col) + ' #')
             else:
                 click.echo(f'# {k:<20s}:{v:<36} #')
         click.echo('#'.center(61, '#'))
-    elif which_topic=='A':
+    elif which_topic == 'A':
         click.echo(click.style('ALERT MESSAGE'.center(65, '_'), bg='bright_red'))
         for k, v in message.items():
-            if type(v)==type(None): v='None'
+            if type(v) == type(None): v = 'None'
             if type(v) == str:
                 click.echo(f'{k:<20s}:{v:<45}')
-            elif type(v)==list:
+            elif type(v) == list:
                 items = '\t'.join(v)
-                if k=='detector_names':
+                if k == 'detector_names':
                     click.echo(f'{k:<20s}' + click.style(f':{items:<45}', bg='blue'))
                 else:
                     click.echo(f'{k:<20s}:{items:<45}')
         click.secho('_'.center(65, '_'), bg='bright_red')
-

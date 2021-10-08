@@ -50,13 +50,13 @@ class CoincDecider:
 
         self.coinc_broken = False
 
+        self.cache_reset = False
+
     def append_arrs(self, mgs):
         self.nu_times.append(mgs['neutrino_time'])
         self.detectors.append(mgs['detector_name'])
         self.machine_times.append(mgs['machine_time'])
         self.p_vals.append(mgs['p_value'])
-        self.ids.append(mgs['_id'])
-
         self.ids.append(mgs['_id'])
         if self.counter == 0:
             self.delta_ts.append(0)
@@ -76,35 +76,14 @@ class CoincDecider:
 
     def set_initial_signal(self, mgs):
         if self.counter == 0:
-            self.initial_nu_time = self.times.str_to_datetime(mgs['neutrino_time'])
+            print('Setting initial values')
+            self.initial_nu_time = self.times.str_to_hr(mgs['neutrino_time'])
             self.old_loc = mgs['location']
             self.old_detector = mgs['detector_name']
             self.append_arrs(mgs)
-        else:
-            pass
-
-    def check_for_coinc(self, mgs):
-        if self.counter != 0:
-            self.curr_nu_time = self.times.str_to_datetime(mgs['neutrino_time'])
-            self.curr_loc = mgs['location']
-            self.old_detector = mgs['detector_name']
-            self.delta_t = (self.curr_nu_time - self.initial_nu_time).total_seconds()
-
-            print(self.curr_nu_time, self.initial_nu_time)
-            if self.delta_t <= self.coinc_threshold and self.curr_loc != self.old_loc:
-                self.append_arrs(mgs)
-                click.secho('got something'.upper(), fg='white', bg='red')
-                print(f'{self.delta_ts}')
-            # should the same experiment sends two messages one after the other
-            # the coincidence would break since curr_loc == old_loc
-            # do we want this?
-            elif self.delta_t > self.coinc_threshold or self.curr_loc == self.old_loc:
-                print('Coincidence is broken, checking to see if an ALERT can be published...\n\n')
-                self.coinc_broken = True
-                self.pub_alert()
-                print('Resetting the cache')
-                self.reset_cache()
-
+            # self.delta_t = 0
+            self.coinc_broken = False
+            self.cache_reset = False
         else:
             pass
 
@@ -116,32 +95,82 @@ class CoincDecider:
         self.p_vals.pop(index)
         self.machine_times.pop(index)
 
+    def reset_cache(self):
+        if self.coinc_broken:
+            self.counter = 0
+            self.reset_arr()
+            self.storage.purge_cache(coll='CoincidenceTier')
+            self.coinc_broken = False
+            self.delta_t = None
+            self.cache_reset = True
+        else:
+            pass
+
+    def check_for_coinc(self, mgs):
+        if self.cache_reset:
+            pass
+
+        if self.counter != 0:
+            self.curr_nu_time = self.times.str_to_hr(mgs['neutrino_time'])
+            self.curr_loc = mgs['location']
+            self.old_detector = mgs['detector_name']
+            self.delta_t = (self.curr_nu_time - self.initial_nu_time).total_seconds()
+
+            if self.delta_t <= self.coinc_threshold and self.curr_loc != self.old_loc:
+                self.append_arrs(mgs)
+                click.secho('got something'.upper(), fg='white', bg='red')
+                print(f'{self.delta_ts}')
+                # self.counter += 1
+            # should the same experiment sends two messages one after the other
+            # the coincidence would break since curr_loc == old_loc
+            # do we want this?
+            elif self.delta_t > self.coinc_threshold or self.curr_loc == self.old_loc:
+                if self.delta_t > self.coinc_threshold:
+                    print('Outside SN window')
+                print('Coincidence is broken, checking to see if an ALERT can be published...\n\n')
+                self.coinc_broken = True
+                self.pub_alert()
+                print('Resetting the cache')
+                self.reset_cache()
+                self.set_initial_signal(mgs)
+                self.storage.coincidence_tier_cache.insert_one(mgs)
+                # Start recursion
+                click.secho('Starting new stream..'.upper(), bold=True, fg='bright_white', underline=True)
+                self.counter += 1
+                self.run_coincidence()
+
+
+        else:
+            pass
 
     def waited_long_enough(self):
         curr_cache_len = self.storage.coincidence_tier_cache.count()
         stagnant_cache = True
         t0 = time.time()
-
+        click.secho('waiting..'.upper(), fg='cyan', bold=True, italic=True)
         while stagnant_cache:
             t1 = time.time()
             delta_t = t1 - t0
             self.in_cache_retract()
             if self.storage.coincidence_tier_cache.count() > curr_cache_len and delta_t < self.mgs_expiration:
+                self.counter += 1
                 break
             elif delta_t > self.mgs_expiration:
-                print('waited too long !!')
+                print('Waited too long !!')
                 self.coinc_broken = True
                 self.pub_alert()
                 print('Resetting cache')
                 self.reset_cache()
-                break
+                # Run recursion
+                click.secho('Starting new stream..'.upper(), bold=True, fg='bright_white', underline=True)
+                self.run_coincidence()
 
     def in_cache_retract(self):
         if self.storage.empty_false_warnings():
-            print('No false messages...yet')
+            # print('No false messages...yet')
             pass
-        if len(self.ids)==0:
-            print('cache is empty')
+        if len(self.ids) == 0:
+            # print('cache is empty')
             pass
         for mgs in self.storage.get_false_warnings():
             if mgs['type'] == 'CoincidenceTier':
@@ -151,15 +180,6 @@ class CoincDecider:
                     if false_id == id:
                         self.kill_false_element(index=i)
                     i += 1
-
-    def reset_cache(self):
-        if self.coinc_broken:
-            self.counter = 0
-            self.reset_arr()
-            self.storage.purge_cache(coll=self.topic_type)
-            self.coinc_broken = False
-        else:
-            pass
 
     def pub_alert(self):
         """ When the coincidence is broken publish alert
@@ -185,15 +205,15 @@ class CoincDecider:
         with self.coinc_cache.watch() as stream:
             # should it be: for mgs in stream ?
             if self.storage.empty_coinc_cache():
+                click.secho(f'{"-" * 57}', fg='bright_blue')
                 print('Nothing here, please wait...')
 
             for doc in stream:
-                self.storage.keep_cache_clean()
-                print('Incoming message !!!')
+                click.secho(f'{"-" * 57}', fg='bright_blue')
+                click.secho('Incoming message !!!'.upper(), bold=True, fg='red')
                 mgs = doc['fullDocument']
-                # print(mgs)
+                click.secho(f'{mgs["_id"]}'.upper(), italic=True, fg='bright_green')
                 self.set_initial_signal(mgs)
+                print(f'Detectors: {self.detectors}')
                 self.check_for_coinc(mgs)
                 self.waited_long_enough()
-                if not self.coinc_broken:
-                    self.counter += 1

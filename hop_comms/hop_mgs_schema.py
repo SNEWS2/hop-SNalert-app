@@ -94,6 +94,7 @@ class Message_Schema:
     def get_alert_schema(self, msg_type, sent_time, data):
         base = {"_id": self.id_format("ALERT", f'{msg_type}'),
                 "detector_names": data['detectors'],
+                "ids":data['ids'],
                 "sent_time": sent_time,
                 "neutrino_times": data['neutrino_times'],
                 "machine_times": data['machine_times'],

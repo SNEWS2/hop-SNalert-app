@@ -5,13 +5,16 @@ from datetime import datetime
 from collections import namedtuple
 import os, json
 from pathlib import Path
+import sys
 
 
 def check_mongo_connection():
     pass
 
+
 def check_hop_connection():
     pass
+
 
 def set_env(env_path=None):
     """ Set environment
@@ -21,8 +24,11 @@ def set_env(env_path=None):
         path for the environment file.
         Use default settings if not given
     """
-    env = env_path or './auxiliary/test-config.env'
+    dirname = os.path.dirname(__file__)
+    default_env_path = os.path.dirname(__file__) + '/auxiliary/test-config.env'
+    env = env_path or default_env_path
     load_dotenv(env)
+
 
 def make_dir(path):
     if Path(path).is_dir():
@@ -45,12 +51,13 @@ class TimeStuff:
         self.get_hour = lambda fmt=self.hour_fmt: datetime.utcnow().strftime(fmt)
         self.get_date = lambda fmt=self.date_fmt: datetime.utcnow().strftime(fmt)
 
-    def str_to_datetime(self,nu_time):
+    def str_to_datetime(self, nu_time):
         return datetime.strptime(nu_time, '%H %M %S %f')
+
 
 def set_topic_state(which_topic, env_path=None):
     # check first to see if env already defined
-    if os.getenv("ALERT_TOPIC")==None: set_env(env_path)
+    if os.getenv("ALERT_TOPIC") == None: set_env(env_path)
     Topics = namedtuple('Topics', ['topic_name', 'topic_broker'])
     topics = {
         'A': Topics('ALERT', os.getenv("ALERT_TOPIC")),
@@ -59,8 +66,9 @@ def set_topic_state(which_topic, env_path=None):
     }
     return topics[which_topic.upper()]
 
+
 # retrieve the detector properties
-def retrieve_detectors(detectors_path="hop_comms/auxiliary/detector_properties.json"):
+def retrieve_detectors(detectors_path=os.path.dirname(__file__) + "/auxiliary/detector_properties.json"):
     ''' Retrieve the name-ID-location of the
         participating detectors.
     '''
@@ -77,7 +85,8 @@ def retrieve_detectors(detectors_path="hop_comms/auxiliary/detector_properties.j
         detectors[k] = Detector(v[0], v[1], v[2])
     return detectors
 
-def get_detector(detector, detectors_path="hop_comms/auxiliary/detector_properties.json"):
+
+def get_detector(detector, detectors_path=os.path.dirname(__file__) + "/auxiliary/detector_properties.json"):
     """ Return the selected detector properties
 
     """
@@ -91,6 +100,7 @@ def get_detector(detector, detectors_path="hop_comms/auxiliary/detector_properti
         except KeyError:
             print(f'{detector} is not a valid detector!')
             return detectors['TEST']
+
 
 def summarize(detector, topic_type_, env_path=None):
     """ Summarize the current configuration
@@ -115,6 +125,7 @@ def summarize(detector, topic_type_, env_path=None):
         f'Observation Topic:\n==> {observation_topic}\n'
         f'Heartbeat Topic:\n==> {heartbeat_topic}\n\n')
 
+
 def isnotebook():
     """ Tell if the script is running on a notebook
     """
@@ -128,6 +139,7 @@ def isnotebook():
             return False  # Other type (?)
     except NameError:
         return False  # Probably standard Python interpreter
+
 
 def get_logger(scriptname, logfile_name):
     import logging
@@ -144,13 +156,15 @@ def get_logger(scriptname, logfile_name):
     logger.addHandler(file_handler)
     return logger
 
+
 def display_gif():
     if isnotebook():
         from IPython.display import HTML, display
         giphy_snews = "https://raw.githubusercontent.com/SNEWS2/hop-SNalert-app/snews2_dev/hop_comms/auxiliary/snalert.gif"
         display(HTML(f'<img src={giphy_snews}>'))
 
-def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None, 
+
+def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
              detector_status=None, false_mgs_id=None, **kwargs):
     """ default observation message data
     """
@@ -164,12 +178,12 @@ def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
     data_dict = dict(zip_iterator)
     return data_dict
 
+
 def data_alert(p_vals=None, detectors=None, t_series=None, nu_times=None,
                ids=None, locs=None, status=None, machine_times=None):
     keys = ['p_vals', 'detectors', 't_series', 'neutrino_times', 'ids', 'locs', 'status', 'machine_times']
     values = [p_vals, detectors, t_series, nu_times, ids, locs, status, machine_times]
-    return dict(zip(keys,values))
-
+    return dict(zip(keys, values))
 
 # Note from from Seb: :(
 ## Not working properly

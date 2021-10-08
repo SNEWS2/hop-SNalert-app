@@ -61,9 +61,9 @@ setup(
     author='Skylar(Yiyang) Xu, Patrick Godwin, Bryce Cousins',
     author_email='yx48@rice.edu/skyxuyy@gmail.com, patrick.godwin@psu.edu, bfc5288@psu.edu',
     license='BSD 3-Clause',
-
+    setup_requires=['pbr'],
+    pbr=True,
     packages=find_packages(),
-    package_data={'': ['./hop_comms/auxiliary']},
     include_package_data=True,
 
     entry_points={

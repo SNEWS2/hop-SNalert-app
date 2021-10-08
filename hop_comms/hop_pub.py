@@ -8,7 +8,7 @@ Authors:
 Melih Kara
 Sebastian Torres-Lara
 """
-import hop, snews, sys, time, os, json, click
+import hop, sys, time, os, json, click
 from hop import Stream
 from datetime import datetime
 from collections import namedtuple

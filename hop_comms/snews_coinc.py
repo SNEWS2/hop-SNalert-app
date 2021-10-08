@@ -214,6 +214,6 @@ class CoincDecider:
                 mgs = doc['fullDocument']
                 click.secho(f'{mgs["_id"]}'.upper(), italic=True, fg='bright_green')
                 self.set_initial_signal(mgs)
-                print(f'Detectors: {self.detectors}')
                 self.check_for_coinc(mgs)
+                print(f'Detectors: {self.detectors}')
                 self.waited_long_enough()

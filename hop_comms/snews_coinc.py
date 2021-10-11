@@ -15,10 +15,12 @@ from .hop_pub import Publish_Alert
 class CoincDecider:
     """
         CoincDecider class for supernova alerts (Coincidence Tier)
-        param: env_path
+        param: env_path, user can give the path a specific SNEWS env file, defaults to None ./auxiliary/test-config.env)
     """
 
     def __init__(self, env_path=None):
+        """Constructor method
+        """
         snews_utils.set_env(env_path)
 
         self.storage = Storage(drop_dbs=False)
@@ -53,6 +55,10 @@ class CoincDecider:
         self.cache_reset = False
 
     def append_arrs(self, mgs):
+        """Appends coincidence arrays when there is a coincident signal
+        :param mgs: SNEWS message
+        :mgs type: dict
+        """
         self.nu_times.append(mgs['neutrino_time'])
         self.detectors.append(mgs['detector_name'])
         self.machine_times.append(mgs['machine_time'])
@@ -64,6 +70,7 @@ class CoincDecider:
             self.delta_ts.append(self.delta_t)
 
     def reset_arr(self):
+        """Resets coincidence arrays if coincidence is broken"""
         if self.coinc_broken:
             self.ids = []
             self.delta_ts = []
@@ -75,6 +82,10 @@ class CoincDecider:
             pass
 
     def set_initial_signal(self, mgs):
+        """Sets up the initial signal
+        :param mgs: SNEWS message
+        :mgs type: dict
+        """
         if self.counter == 0:
             print('Setting initial values')
             self.initial_nu_time = self.times.str_to_hr(mgs['neutrino_time'])
@@ -88,6 +99,10 @@ class CoincDecider:
             pass
 
     def kill_false_element(self, index):
+        """Sets up the initial signal
+        :param mgs: SNEWS message
+        :mgs type: dict
+        """
         self.detectors.pop(index)
         self.ids.pop(index)
         self.nu_times.pop(index)
@@ -96,6 +111,8 @@ class CoincDecider:
         self.machine_times.pop(index)
 
     def reset_cache(self):
+        """Resets mongo cache and all coincidence arrays if coincidence is broken
+        """
         if self.coinc_broken:
             self.counter = 0
             self.reset_arr()
@@ -107,6 +124,11 @@ class CoincDecider:
             pass
 
     def check_for_coinc(self, mgs):
+        """Checks new message in the stream, if message is within SN time window (10sec) it is added to the coincidence list,
+        if not coincidence is broken. Then the publish method is called. Finally a new stream and coincicede list is made
+        :param mgs: SNEWS message
+        :mgs type: dict
+        """
         if self.cache_reset:
             pass
 
@@ -144,6 +166,9 @@ class CoincDecider:
             pass
 
     def waited_long_enough(self):
+        """Waits for a new message, if a new message does not come in before 120sec then coincidence is broken.
+        Publishing method is called and then the stream and cache are reset
+        """
         curr_cache_len = self.storage.coincidence_tier_cache.count()
         stagnant_cache = True
         t0 = time.time()
@@ -162,10 +187,13 @@ class CoincDecider:
                 print('Resetting cache')
                 self.reset_cache()
                 # Run recursion
-                click.secho('Starting new stream..'.upper(), bold=True, fg='bright_white', underline=True)
+                click.secho('Starting new stream..\n\n'.upper(), bold=True, fg='bright_white', underline=True)
                 self.run_coincidence()
 
     def in_cache_retract(self):
+        """loops through false warnings collection looks for coincidence tier false warnings, if a warning is found,
+        it then loops through coincidence cache, if the false message is then all its corresponding features are deleted
+        from the coincidence arrays."""
         if self.storage.empty_false_warnings():
             # print('No false messages...yet')
             pass
@@ -178,6 +206,7 @@ class CoincDecider:
                 i = 0
                 for id in self.ids:
                     if false_id == id:
+                        print(f'False mgs found {id}\nPurging coincidence list')
                         self.kill_false_element(index=i)
                     i += 1
 
@@ -187,7 +216,7 @@ class CoincDecider:
             given coincidence window
         """
         if self.coinc_broken and len(self.detectors) > 1:
-            click.secho(f'{"-" * 57}', fg='bright_red')
+            click.secho(f'{"=" * 57}', fg='bright_red')
             alert_data = snews_utils.data_alert(detectors=self.detectors,
                                                 ids=self.ids,
                                                 p_vals=self.p_vals,
@@ -195,7 +224,7 @@ class CoincDecider:
                                                 machine_times=self.machine_times)
             self.alert.publish(msg_type=self.topic_type, data=alert_data)
             click.secho('Published an Alert!!!'.upper(), bg='bright_green', fg='red')
-            click.secho(f'{"-" * 57}', fg='bright_red')
+            click.secho(f'{"=" * 57}', fg='bright_red')
         else:
             print('Nothing to send :(')
             pass

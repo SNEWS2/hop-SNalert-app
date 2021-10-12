@@ -9,17 +9,14 @@ from .hop_pub import Publish_Alert
 class CoincDecider:
     """ CoincDecider class for Supernova alerts (Coincidence Tier)
         
-        Parameters
-        ----------
-        env_path : str, optional
-            user can give the path a specific SNEWS env file, 
-            defaults to None ./auxiliary/test-config.env)
+    Parameters
+    ----------
+    env_path : str, optional
+        user can give the path a specific SNEWS env file, 
+        defaults to None ./auxiliary/test-config.env)
     
     """
     def __init__(self, env_path = None):
-        """Constructor method
-
-        """
         snews_utils.set_env(env_path)
 
         self.storage = Storage(drop_dbs=False)
@@ -54,9 +51,12 @@ class CoincDecider:
         self.cache_reset = False
 
     def append_arrs(self, mgs):
-        """Appends coincidence arrays when there is a coincident signal
-        :param mgs: SNEWS message
-        :mgs type: dict
+        """ Appends coincidence arrays when there is a coincident signal
+
+        Parameters
+        ----------
+        mgs : `dict`
+            dictionary of the SNEWS message
 
         """
         self.nu_times.append(mgs['neutrino_time'])
@@ -70,7 +70,7 @@ class CoincDecider:
             self.delta_ts.append(self.delta_t)
 
     def reset_arr(self):
-        """Resets coincidence arrays if coincidence is broken
+        """ Resets coincidence arrays if coincidence is broken
 
         """
         if self.coinc_broken:
@@ -84,9 +84,12 @@ class CoincDecider:
             pass
 
     def set_initial_signal(self, mgs):
-        """Sets up the initial signal
-        :param mgs: SNEWS message
-        :mgs type: dict
+        """ Sets up the initial signal
+
+        Parameters
+        ----------
+        mgs : `dict`
+            dictionary of the SNEWS message
 
         """
         if self.counter == 0:
@@ -102,9 +105,12 @@ class CoincDecider:
             pass
 
     def kill_false_element(self, index):
-        """Sets up the initial signal
-        :param mgs: SNEWS message
-        :mgs type: dict
+        """ Remove the information at a given index
+
+        Parameters
+        ----------
+        index : `int`
+            The index in which the information is removed
 
         """
         self.detectors.pop(index)
@@ -115,7 +121,7 @@ class CoincDecider:
         self.machine_times.pop(index)
 
     def reset_cache(self):
-        """Resets mongo cache and all coincidence arrays if coincidence is broken
+        """ Resets mongo cache and all coincidence arrays if coincidence is broken
 
         """
         if self.coinc_broken:
@@ -129,10 +135,17 @@ class CoincDecider:
             pass
 
     def check_for_coinc(self, mgs):
-        """Checks new message in the stream, if message is within SN time window (10sec) it is added to the coincidence list,
-        if not coincidence is broken. Then the publish method is called. Finally a new stream and coincicede list is made
-        :param mgs: SNEWS message
-        :mgs type: dict
+        """ 
+        Checks new message in the stream, 
+        if message is within SN time window (10sec) 
+        it is added to the coincidence list, if not 
+        coincidence is broken. Then the publish method is called. 
+        Finally a new stream and coincicede list is made
+
+        Parameters
+        ----------
+        mgs : `dict`
+            dictionary of the SNEWS message
 
         """
         if self.cache_reset:
@@ -172,7 +185,9 @@ class CoincDecider:
             pass
 
     def waited_long_enough(self):
-        """Waits for a new message, if a new message does not come in before 120sec then coincidence is broken.
+        """
+        Waits for a new message, if a new message does not come
+        in before 120sec then coincidence is broken.
         Publishing method is called and then the stream and cache are reset
 
         """
@@ -198,9 +213,12 @@ class CoincDecider:
                 self.run_coincidence()
 
     def in_cache_retract(self):
-        """ loops through false warnings collection looks for coincidence tier false warnings, if a warning is found,
-            it then loops through coincidence cache, if the false message is then all its corresponding features are deleted
-            from the coincidence arrays.
+        """ 
+        loops through false warnings collection looks for 
+        coincidence tier false warnings, if a warning is found,
+        it then loops through coincidence cache, if the false message
+        is then all its corresponding features are deleted
+        from the coincidence arrays.
 
         """
         if self.storage.empty_false_warnings():

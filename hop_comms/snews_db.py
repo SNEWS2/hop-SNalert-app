@@ -4,18 +4,20 @@ import os
 
 
 class Storage:
-    """This class sets up the SNEWS database using Mongo DB
-    :param env: Path to env file, defaults to './auxlilary/test-config.env'
-    :type env: str
-    :param drop_db: drops all items in the DB every time Storage is initialized, defaults to False
-    :drop_db type: bool
-    :param use_local: Tells Storage to set up a local DB, defaults to False.
-    :use_local type: bool
+    """
+    This class sets up the SNEWS database using Mongo DB
+
+    Parameters
+    ----------
+    env : `str`, optional 
+        Path to env file, defaults to './auxlilary/test-config.env'
+    drop_db : `bool`, optional
+        drops all items in the DB every time Storage is initialized, defaults to False
+    use_local : `bool`, optional 
+        Tells Storage to set up a local DB, defaults to False.
 
     """
-
     def __init__(self, env=None, drop_db=True, use_local=False):
-        """Class constructor"""
         snews_utils.set_env(env)
         self.mgs_expiration = int(os.getenv('MSG_EXPIRATION'))
         self.coinc_threshold = int(os.getenv('COINCIDENCE_THRESHOLD'))
@@ -59,9 +61,12 @@ class Storage:
         }
 
     def insert_mgs(self, mgs):
-        """This method inserts a SNEWS message to its corresponding collection
-        :param mgs: SNEWS message
-        :mgs type: dict
+        """ This method inserts a SNEWS message to its corresponding collection
+        
+        Parameters
+        ----------
+        mgs : `dict`
+            dictionary of the SNEWS message
 
         """
         mgs_type = mgs['_id'].split('_')[1]
@@ -71,8 +76,16 @@ class Storage:
 
     def get_all_messages(self, sort_order=pymongo.ASCENDING):
         """ Returns a list of all messages in the 'all-messages' collection
-            :return: A list containing all items inside 'All-Messages'
-            :rtype: list
+
+        Parameters
+        ----------
+        sort_order : `object`, optional
+            default to `pymong.ASCENDING`
+
+        Returns
+        -------
+        result : `list`
+            A list containing all items inside 'All-Messages'
 
         """
         return self.all_mgs.find().sort('sent_time', sort_order)
@@ -80,24 +93,39 @@ class Storage:
 
     def get_coincidence_tier_cache(self, sort_order=pymongo.ASCENDING):
         """ Returns a list of all messages in the 'cache' collection
-            :return: A list containing all items inside 'Coincidence Tier Cache'
-            :rtype: list
-        
+
+        Parameters
+        ----------
+        sort_order : `object`, optional
+        default to `pymong.ASCENDING`
+
+        Returns
+        -------
+        result : `list`
+            A list containing all items inside 'Coincidence Tier Cache'
+                    
         """
         return self.coincidence_tier_cache.find().sort('sent_time', sort_order)
 
 
     def get_false_warnings(self, sort_order=pymongo.ASCENDING):
         """ Returns a list of all messages in the 'cache' collection
-            :return: A list containing all items inside 'Coincidence Tier Cahce'
-            :rtype: list
 
+        Parameters
+        ----------
+        sort_order : `object`, optional
+        default to `pymong.ASCENDING`
+
+        Returns
+        -------
+        result : `list`
+            A list containing all items inside 'Coincidence Tier Cahce'
+            
         """
         return self.false_warnings.find().sort('sent_time', sort_order)
 
     def empty_false_warnings(self):
         """ Returns True of if false warnings is empty
-            :return: True if false warnings is empty, False if not
 
         """
         if self.false_warnings.count() == 0:
@@ -107,7 +135,6 @@ class Storage:
 
     def empty_coinc_cache(self):
         """ Returns True of if coincidence cache is empty
-            :return: True if cache is empty, False if not
 
         """
         if self.coincidence_tier_cache.count() <= 1:
@@ -117,8 +144,11 @@ class Storage:
 
     def purge_cache(self, coll):
         """ Erases all items in a collection
-            :param coll: name of collection
-            :coll type: str
+
+        Parameters
+        ----------
+        coll : `str` 
+            name of collection
 
         """
         self.coll_list[coll].delete_many({})

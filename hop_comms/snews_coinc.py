@@ -6,19 +6,17 @@ import time
 from .hop_pub import Publish_Alert
 
 
-# comment: we should keep in mind that lists [], and numpy arrays np.array([])
-# behave differently in calculations e.g. np.array([1,2,3])*2 = np.array([2,4,6])
-# whereas [1,2,3]*2 = [1,2,3,1,2,3]
-# it is more efficient to append to lists but we should be careful when performing
-# some calculations with the p-values or delta ts.
-
 class CoincDecider:
-    """
-        CoincDecider class for supernova alerts (Coincidence Tier)
-        param: env_path, user can give the path a specific SNEWS env file, defaults to None ./auxiliary/test-config.env)
+    """ CoincDecider class for Supernova alerts (Coincidence Tier)
+        
+        Parameters
+        ----------
+        env_path : str, optional
+            user can give the path a specific SNEWS env file, 
+            defaults to None ./auxiliary/test-config.env)
     
     """
-    def __init__(self, env_path=None):
+    def __init__(self, env_path = None):
         """Constructor method
 
         """
@@ -244,7 +242,7 @@ class CoincDecider:
     def run_coincidence(self):
         ''' Main body of the class. Reads the 
             mongodb as a stream to look for coincidences.
-            
+
         '''
         with self.coinc_cache.watch() as stream:
             # should it be: for mgs in stream ?

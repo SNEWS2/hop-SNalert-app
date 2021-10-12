@@ -22,7 +22,7 @@ def set_env(env_path=None):
 
     Parameters
     ----------
-    env_path : str (optional)
+    env_path : `str`, (optional)
         path for the environment file.
         Use default settings if not given
 
@@ -34,6 +34,7 @@ def set_env(env_path=None):
 
 
 def make_dir(path):
+    """ make a directory in a given path """
     if Path(path).is_dir():
         pass
     else:
@@ -44,7 +45,6 @@ class TimeStuff:
     ''' SNEWS format datetime objects
 
     '''
-
     def __init__(self, env_path=None):
         set_env(env_path)
         self.snews_t_format = os.getenv("TIME_STRING_FORMAT")
@@ -55,15 +55,29 @@ class TimeStuff:
         self.get_hour = lambda fmt=self.hour_fmt: datetime.utcnow().strftime(fmt)
         self.get_date = lambda fmt=self.date_fmt: datetime.utcnow().strftime(fmt)
 
-    def str_to_datetime(self, nu_time):
-        # return datetime.strptime(nu_time, '%H:%M:%S:%f')
-        return datetime.strptime(nu_time, '%y/%m/%d %H:%M:%S')
+    def str_to_datetime(self, nu_time, fmt='%y/%m/%d %H:%M:%S'):
+        """ string to datetime object """
+        return datetime.strptime(nu_time, fmt)
 
-    def str_to_hr(self, nu_time):
-        return datetime.strptime(nu_time, '%H:%M:%S:%f')
+    def str_to_hr(self, nu_time, fmt='%H:%M:%S:%f'):
+        """ string to datetime hour object """
+        return datetime.strptime(nu_time, fmt)
+
 
 def set_topic_state(which_topic, env_path=None):
-    # check first to see if env already defined
+    """ Set the topic path based on which_topic
+
+    Parameters
+    ----------
+    which_topic : `str`
+        single-letter string indicating the topic [O/H/A]
+        If an environment was defined, it uses the topics
+        specified in that environment. If not, it looks
+        for the env_path parameter
+    env_path : `str`
+        The path to the environment configuration file
+
+    """
     if os.getenv("ALERT_TOPIC") == None: set_env(env_path)
     Topics = namedtuple('Topics', ['topic_name', 'topic_broker'])
     topics = {
@@ -73,14 +87,12 @@ def set_topic_state(which_topic, env_path=None):
     }
     return topics[which_topic.upper()]
 
-
-# retrieve the detector properties
 def retrieve_detectors(detectors_path=os.path.dirname(__file__) + "/auxiliary/detector_properties.json"):
     ''' Retrieve the name-ID-location of the participating detectors.
 
         Parameters
         ----------
-        detectors_path : str, optional
+        detectors_path : `str`, optional
             path to detector proporties. File needs to be
             in JSON format
         
@@ -102,12 +114,19 @@ def retrieve_detectors(detectors_path=os.path.dirname(__file__) + "/auxiliary/de
     return detectors
 
 
-def get_detector(detector, detectors_path=os.path.dirname(__file__) + "/auxiliary/detector_properties.json"):
+def get_detector(detector, detectors_path=os.path.dirname(__file__) + 
+    "/auxiliary/detector_properties.json"):
     """ Return the selected detector properties
+
+    Parameters
+    ----------
+    detector : `str`
+        The name of the detector. Should be one of the predetermined detectors.
+        If the name is not in that list, returns TEST detector.
 
     """
     Detector = namedtuple("Detector", ["name", "id", "location"])
-    if isinstance(detector, Detector): return detector  # not needed?
+    if isinstance(detector, Detector): return detector # not needed?
     # search for the detector name in `detectors`
     detectors = retrieve_detectors(detectors_path)
     if isinstance(detector, str):
@@ -119,7 +138,19 @@ def get_detector(detector, detectors_path=os.path.dirname(__file__) + "/auxiliar
 
 
 def summarize(detector, topic_type_, env_path=None):
-    """ Summarize the current configuration
+    """ Summarize the current configuration (DEPRECATED)
+
+    Parameters
+    ----------
+    detector : `str`
+        name of the detector
+    topic_type : `str`
+        The topic that is subscribed
+
+    Returns
+    -------
+
+    .. note:: Deprecated
 
     """
     import hop, snews, sys
@@ -160,6 +191,11 @@ def isnotebook():
 
 
 def get_logger(scriptname, logfile_name):
+    """ Logger
+
+    .. note:: Deprecated
+
+    """
     import logging
     # Gets or creates a logger
     logger = logging.getLogger(scriptname)
@@ -176,6 +212,10 @@ def get_logger(scriptname, logfile_name):
 
 
 def display_gif():
+    """ Some fun method to display an alert gif
+        If running on notebook
+
+    """
     if isnotebook():
         from IPython.display import HTML, display
         giphy_snews = "https://raw.githubusercontent.com/SNEWS2/hop-SNalert-app/snews2_dev/hop_comms/auxiliary/snalert.gif"
@@ -184,8 +224,31 @@ def display_gif():
 
 def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
              detector_status=None, false_mgs_id=None, **kwargs):
-    """ default observation message data
-    
+    """ Default observation message data
+        
+        Parameters
+        ----------
+        machine_time : `datetime`
+            The machine time at the time of execution of command
+        nu_time : `datetime`
+            The neutrino arrival time
+        p_value : `float`
+            If determined, the p value of the observation
+        timing_series : `array-like`
+            Time series of the detected signal
+        detector_status : `str`
+            ON/OFF depending on the detedtor status
+        false_mgs_id : `str`
+            The id of the message that is falsely published
+        **kwargs 
+            Any other key-value pair desired to be published. Notice,
+            these additional arguments will be prepended with ^.
+
+        Returns
+        -------
+            data_dict : `dict`
+                dictionary of the complete observation data
+
     """
     keys = ['machine_time', 'neutrino_time', 'p_value', 'timing_series', 'detector_status', 'false_id']
     values = [machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id]
@@ -200,6 +263,33 @@ def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
 
 def data_alert(p_vals=None, detectors=None, t_series=None, nu_times=None,
                ids=None, locs=None, status=None, machine_times=None):
+    """ Default alert message data
+        
+        Parameters
+        ----------
+        p_vals : `list`
+            list with p-values of the observations involved in the alert
+        detectors : `list`
+            list of detectors involved in the alert
+        t_series : `list`
+            list of timeseries (if applicable)
+        nu_time : `list`
+            list of neutrino arrival times
+        ids : `list`
+            list of ids of the detectors involved in the alert
+        locs : `list`
+            list of locations of the experiments involved in the alert
+        status : `list`
+            Depracted?              
+        machine_times : `list`
+            The machine times of the experiments involved in the alert
+
+        Returns        
+        -------
+            `dict`
+                dictionary of the complete alert data
+
+    """
     keys = ['p_vals', 'detectors', 't_series', 'neutrino_times', 'ids', 'locs', 'status', 'machine_times']
     values = [p_vals, detectors, t_series, nu_times, ids, locs, status, machine_times]
     return dict(zip(keys, values))

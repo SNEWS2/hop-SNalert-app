@@ -22,6 +22,16 @@ from .snews_db import Storage
 class Publish_Heartbeat:
     """ Class to publish heartbeat messages continuously
 
+    Parameters
+    ----------
+    rate : `int`
+        The rate at which the hearbeat messages needs to be published
+    env_path : `str`
+        path for the environment file.
+        Use default settings if not given
+    detector : `str`, optional
+        The name of the detector. Default is "TEST"
+
     """
     def __init__(self, rate=30, env_path=None, detector='TEST'):
         self.rate = rate  # seconds
@@ -30,10 +40,13 @@ class Publish_Heartbeat:
         self.detector = detector
 
     def publish(self):
+        """ Publishing method (Uses APScheduler)"""
         self.background_schedule(self.rate)
 
     def retrieve_status(self):
-        """ Script to retrieve detector status
+        """ Place Holder for the detector status
+            Needs to be updated to allow for user input in the future.
+            Currently randomly returns ON or OFF strings.
 
         """
         import numpy as np
@@ -41,11 +54,9 @@ class Publish_Heartbeat:
 
     def publisher(self):
         """ Publish heartbeat message
-            Publish default dict
+            Publish default dict at the given time
 
         """
-        # hb_keys = ['detector_id','sent_time','status']
-        # heartbeat_message = {k:v for k,v in self.message_dict if k in hb_keys}
         schema = Message_Schema(detector_key=self.detector)
         sent_time = self.times.get_snews_time()
         machine_time = self.times.get_snews_time()
@@ -71,6 +82,11 @@ class Publish_Heartbeat:
         """ Publish Heartbeat messages in background
             On a given schedule
 
+            Parameters
+            ----------
+            schedule : `int`
+                The time interval in seconds to publish heartbeat
+
             Notes
             -----
             Needs more work. Killing the process is not easy.
@@ -92,11 +108,12 @@ class Publish_Heartbeat:
             scheduler.shutdown()
 
 
-# Publish Alerts based on coincidence.
-# Only relevant for the server
 class Publish_Alert:
-    """ Class to publish SNEWS SuperNova Alerts
+    """ Class to publish SNEWS SuperNova Alerts based on coincidence
     
+    Notes
+    -----
+    Only relevant for the server
     """
 
     def __init__(self, env_path=None):
@@ -109,6 +126,20 @@ class Publish_Alert:
 
     # decider should call this
     def publish(self, msg_type, data):
+        """ Publish alert message
+            This function should only be called by the
+            CoincDecider class when a coincidence between
+            different observations trigger an alert
+
+        Parameters
+        ----------
+        msg_type : `str`
+            Type (Tier) of the message. Has to be one of 
+            the 'CoincidenceTierAlert', 'SigTierAlert', 'TimeTierAlert'
+        data : `dict`
+            Data dictionary received from snews_utils.data_alert()
+
+        """
         schema = Message_Schema(alert=True)
         sent_time = self.times.get_snews_time()
         alert_schema = schema.get_alert_schema(msg_type=msg_type, sent_time=sent_time, data=data)
@@ -119,16 +150,39 @@ class Publish_Alert:
         self.storage.insert_mgs(alert_schema)
         for k, v in alert_schema.items():
             print(f'{k:<20s}:{v}')
-        # print(f"\nPublished ALERT message to {self.alert_topic} !!!")
+ 
 
 
 class Publish_Tier_Obs:
+    """ Publish Supernova Observation messages to
+        different tiers.
+    
+    Parameters
+    ---------- 
+    env_path : `str`
+        path for the environment file.
+        Use default settings if not given
+    
+    """
     def __init__(self, env_path=None):
         snews_utils.set_env(env_path)
         self.times = snews_utils.TimeStuff()
         self.obs_broker = os.getenv("OBSERVATION_TOPIC")
 
     def publish(self, detector, msg_type, data):
+        """ Publish message to stream
+
+        Parameters
+        ----------
+        detector : `str`
+            The name of the detector
+        msg_type : `str`
+            Type (Tier) of the message. Has to be one of 
+            the 'CoincidenceTier', 'SigTier', 'TimeTier'
+        data : `dict`
+            Data dictionary received from snews_utils.data_obs()
+
+        """
         schema = Message_Schema(detector_key=detector)
         sent_time = self.times.get_snews_time()
         obs_schema = schema.get_obs_schema(msg_type, data, sent_time)

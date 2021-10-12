@@ -19,6 +19,10 @@ from . import snews_db
 
 
 def get_commit_message(bypass, topic):
+    """ Parse the commited message, take input if not bypassed
+        Set the message structure based on input and topic.
+
+    """
     header = "\n# Modify the message as desired\n\n\n#"+30*"-"+"\n"
     curr_time = snews_utils.TimeStuff().get_snews_time()
 
@@ -71,6 +75,7 @@ def main(env):
 @click.option('--env', default=None, show_default='test-config.env', help='environment file containing the configurations')
 def publish(topic, broker, experiment, tier, bypass, env):
     """ Publish a message using hop_pub
+
     Notes
     -----
     If neither broker nor env filepath is given, first checks if the topic

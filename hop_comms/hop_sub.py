@@ -11,8 +11,6 @@ Notes
 https://docs.python.org/3/howto/logging.html
 
 """
-
-# Imports
 from . import snews_utils
 from hop import Stream
 import os, json, click
@@ -22,6 +20,15 @@ from .snews_coinc import CoincDecider
 
 
 class HopSubscribe:
+    """ Class to subscribe different message streams
+
+    Parameters
+    ----------
+    env_path : `str`
+        path for the environment file.
+        Use default settings if not given
+
+    """
     def __init__(self, env_path=None):
         snews_utils.set_env(env_path)
         self.broker = os.getenv("HOP_BROKER")
@@ -41,6 +48,8 @@ class HopSubscribe:
     # don't need this
     def save_message(self, message):
         """ Save messages to a json file
+
+        .. note:: Deprecated
 
         """
         path = f'SNEWS_MSGs/{self.times.get_date()}/'
@@ -65,15 +74,16 @@ class HopSubscribe:
     # shouldn't verbose always be True?
     def subscribe(self, which_topic='A', verbose=False):
         ''' Subscribe and listen to a given topic
-            Arguments
-            ---------
-            which_topic : str
-                Topic to listen. If 'A' or 'O' listens the
-                alert or observation topics set by the env file
-                long string indicating the full topic link can also
-                be given
-            verbose : bool
-                Whether to display the subscribed message content
+
+        Parameters
+        ----------
+        which_topic : `str`
+            Topic to listen. If 'A' or 'O' listens the
+            alert or observation topics set by the env file
+            long string indicating the full topic link can also
+            be given
+        verbose : `bool`
+            Whether to display the subscribed message content
                 
         '''
         if len(which_topic) == 1:
@@ -105,6 +115,11 @@ class HopSubscribe:
 
 
 def publish_format(which_topic, message):
+    """ Function to format output messages
+        It assigns different front and back-ground colors
+        Based on the detector status, and the type of message
+
+    """
     if which_topic.upper() in ['O', 'H']:
         for k, v in message.items():
             if v == None: v = 'None'

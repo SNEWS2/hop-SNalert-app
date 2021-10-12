@@ -14,8 +14,10 @@ While can be called from terminal using a CLI, the package also allows jupyter n
 2. [Command Line Interface-(CLI)](#command-line-interface)
     1. [Subscribe](#subscribe)
     2. [Publish](#publish)
-    3. [Coincidence Decider](#coincidence-decider)
-    4. [Simulate Observation](#simulation)
+    3. [Publish Heartbeat](#publish-heartbeat)
+    4. [Coincidence Decider](#coincidence-decider)
+    5. [Simulate Observation](#simulation)
+    6. [Retraction](#retract)
 
 
 ## Python-Api
@@ -65,17 +67,68 @@ the `snews_utils.data_obs` provides the message template set by `hop_comms.hop_m
 
 ## Command Line Interface
 
+Once build the program can also be called from the terminal
+```bash
+hop_comms --help
+```
+Displays the valid command and options. 
+
 ### Subscribe
+To simply subscribe to an observation topic that is either already set by the environment variables (i.e. `echo $OBSERVATION_TOPIC` is not `None`), 
+```bash
+hop_comms subscribe O
+```
+or to an explicit topic name e.g. "kafka://kafka.scimma.org/snews.experiments-test".
+```bash
+hop_comms subscribe -b "kafka://kafka.scimma.org/snews.experiments-test"
+```
+or an environment configuration file can also be given on the fly
+```bash
+hop_comms subscribe -env "path/to/environment/config/file"
+```
+
+One can also subscribe to alert messages using `A` argument instead of `O` in the first example. <br>
+_See also_ `hop_comms subscribe --help`
+
 
 ### Publish
 
+To publish messages directly from the terminal, one can simply call
+```bash
+hop_comms publish
+```
+In which case the application uses the `'TEST'` detector, and publishes a default dictionary with all values are set to `None` at the time of execution. <br>
+
+The `sent_time` is always set to time of execution. One can provide `--no-bypass` key in which case the user is prompted with a text editor to make adjustments in the dictionary. <br>
+
+**Note:** publishing an observation message from a pre-saved file is not yet implemented. <br>
+
+For other options see
+```bash
+hop_comms publish --help
+```
+
+### Publish Heartbeat
+```bash
+hop_comms publish_heartbeat
+```
+
 ### Coincidence Decider
+```bash
+hop_comms run-coincidence
+```
 
 ### Simulation
 
-### Decider
+```bash
+hop_comms simulate
+```
+Takes options `-r/--rate` for simulation rate, `-p/--alert_probability` to decide if a simulated observation message will be published or not.
 
-
+### Retract
+```bash
+hop_comms retract
+```
 
 Notes
 -----

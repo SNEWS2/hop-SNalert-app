@@ -5,6 +5,19 @@ from .snews_utils import TimeStuff
 
 
 class Message_Schema:
+    """ The Message scheme for the alert and observations
+
+    Parameters
+    ----------
+    env_path : `str`, optional
+        The path containing the environment configuration file
+        If None, uses the default file in '/auxiliary/test-config.env'
+    detector_key : `str`, optional
+        The name of the detector. If None, uses "TEST"
+    alert : `bool`, optional
+        True if the message is ALERT message. Default is False.
+
+    """
     def __init__(self, env_path=None, detector_key='TEST',alert = False):
         if alert:
             self.times = TimeStuff(env_path)
@@ -19,6 +32,20 @@ class Message_Schema:
             time format should always be same for all detectors.
             The heartbeats and observation messages have the 
             same id format.
+
+        Parameters
+        ----------
+        topic_state : `str`
+            Can either be 'OBS', 'ALERT' or 'FalseOBS'
+        topic_type : `str`
+            type of the message to be published. Can be;
+            'TimeTier', 'SigTier', 'CoincidenceTier' for
+            observation messages and, 'HeartBeat' for 
+            heartbeat messages
+
+        Returns
+            :`str`
+                The formatted id as a string
             
         """
         date_time = self.times.get_snews_time(fmt="%y/%m/%d_%H:%M:%S")
@@ -35,21 +62,23 @@ class Message_Schema:
     def get_obs_schema(self, msg_type, data, sent_time):
         """ Create a message schema for given topic type.
             Internally called in hop_pub
-            Arguments
-            ---------
-            msg_type : str
+
+            Parameters
+            ----------
+            msg_type : `str`
                 type of the message to be published. Can be;
                 'TimeTier', 'SigTier', 'CoincidenceTier' for
                 observation messages and, 'HeartBeat' for 
                 heartbeat messages
-            data      : named tuple
+            data      : `named tuple`
                 snews_utils data tuple with predefined field.
-            sent_time : str
+            sent_time : `str`
                 time as a string
             
             Returns
             -------
-                dict, message with the correct scheme 
+               :`dict`
+                message with the correct scheme 
 
         """
         base = {"_id": self.id_format("OBS", f'{msg_type}'),
@@ -93,6 +122,27 @@ class Message_Schema:
         return message
 
     def get_alert_schema(self, msg_type, sent_time, data):
+        """ Create a message schema for given topic type.
+            Internally called in hop_pub
+        
+            Parameters
+            ----------
+            msg_type : `str`
+                type of the message to be published. Can be;
+                'TimeTier', 'SigTier', 'CoincidenceTier' for
+                observation messages and, 'HeartBeat' for 
+                heartbeat messages
+            data : `named tuple`
+                snews_utils data tuple with predefined field.
+            sent_time : `str`
+                time as a string
+            
+            Returns
+            -------
+                :`dict`
+                    message with the correct scheme 
+
+        """
         base = {"_id": self.id_format("ALERT", f'{msg_type}'),
                 "detector_names": data['detectors'],
                 "ids":data['ids'],

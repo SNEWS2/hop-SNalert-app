@@ -21,8 +21,8 @@ from .snews_db import Storage
 
 class Publish_Heartbeat:
     """ Class to publish heartbeat messages continuously
-    """
 
+    """
     def __init__(self, rate=30, env_path=None, detector='TEST'):
         self.rate = rate  # seconds
         self.times = snews_utils.TimeStuff(env_path)
@@ -34,6 +34,7 @@ class Publish_Heartbeat:
 
     def retrieve_status(self):
         """ Script to retrieve detector status
+
         """
         import numpy as np
         return np.random.choice(['ON', 'OFF'])
@@ -41,6 +42,7 @@ class Publish_Heartbeat:
     def publisher(self):
         """ Publish heartbeat message
             Publish default dict
+
         """
         # hb_keys = ['detector_id','sent_time','status']
         # heartbeat_message = {k:v for k,v in self.message_dict if k in hb_keys}
@@ -72,6 +74,7 @@ class Publish_Heartbeat:
             Notes
             -----
             Needs more work. Killing the process is not easy.
+
         """
         from apscheduler.schedulers.background import BackgroundScheduler
         import os
@@ -93,6 +96,7 @@ class Publish_Heartbeat:
 # Only relevant for the server
 class Publish_Alert:
     """ Class to publish SNEWS SuperNova Alerts
+    
     """
 
     def __init__(self, env_path=None):

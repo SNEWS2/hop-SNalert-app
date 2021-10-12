@@ -11,6 +11,7 @@ class Storage:
     :drop_db type: bool
     :param use_local: Tells Storage to set up a local DB, defaults to False.
     :use_local type: bool
+
     """
 
     def __init__(self, env=None, drop_db=True, use_local=False):
@@ -61,6 +62,7 @@ class Storage:
         """This method inserts a SNEWS message to its corresponding collection
         :param mgs: SNEWS message
         :mgs type: dict
+
         """
         mgs_type = mgs['_id'].split('_')[1]
         specific_coll = self.coll_list[mgs_type]
@@ -68,44 +70,56 @@ class Storage:
         self.all_mgs.insert_one(mgs)
 
     def get_all_messages(self, sort_order=pymongo.ASCENDING):
-        """Returns a list of all messages in the 'all-messages' collection
-        :return: A list containing all items inside 'All-Messages'
-        :rtype: list"""
+        """ Returns a list of all messages in the 'all-messages' collection
+            :return: A list containing all items inside 'All-Messages'
+            :rtype: list
+
+        """
         return self.all_mgs.find().sort('sent_time', sort_order)
 
 
     def get_coincidence_tier_cache(self, sort_order=pymongo.ASCENDING):
-        """Returns a list of all messages in the 'cache' collection
-        :return: A list containing all items inside 'Coincidence Tier Cache'
-        :rtype: list"""
+        """ Returns a list of all messages in the 'cache' collection
+            :return: A list containing all items inside 'Coincidence Tier Cache'
+            :rtype: list
+        
+        """
         return self.coincidence_tier_cache.find().sort('sent_time', sort_order)
 
 
     def get_false_warnings(self, sort_order=pymongo.ASCENDING):
-        """Returns a list of all messages in the 'cache' collection
-          :return: A list containing all items inside 'Coincidence Tier Cahce'
-          :rtype: list"""
+        """ Returns a list of all messages in the 'cache' collection
+            :return: A list containing all items inside 'Coincidence Tier Cahce'
+            :rtype: list
+
+        """
         return self.false_warnings.find().sort('sent_time', sort_order)
 
     def empty_false_warnings(self):
-        """Returns True of if false warnings is empty
-        :return: True if false warnings is empty, False if not"""
+        """ Returns True of if false warnings is empty
+            :return: True if false warnings is empty, False if not
+
+        """
         if self.false_warnings.count() == 0:
             return True
         else:
             return False
 
     def empty_coinc_cache(self):
-        """Returns True of if coincidence cache is empty
-        :return: True if cache is empty, False if not"""
+        """ Returns True of if coincidence cache is empty
+            :return: True if cache is empty, False if not
+
+        """
         if self.coincidence_tier_cache.count() <= 1:
             return True
         else:
             return False
 
     def purge_cache(self, coll):
-        """Erases all items in a collection
-        :param coll: name of collection
-        :coll type: str"""
+        """ Erases all items in a collection
+            :param coll: name of collection
+            :coll type: str
+
+        """
         self.coll_list[coll].delete_many({})
 

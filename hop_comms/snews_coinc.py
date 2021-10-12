@@ -16,10 +16,11 @@ class CoincDecider:
     """
         CoincDecider class for supernova alerts (Coincidence Tier)
         param: env_path, user can give the path a specific SNEWS env file, defaults to None ./auxiliary/test-config.env)
+    
     """
-
     def __init__(self, env_path=None):
         """Constructor method
+
         """
         snews_utils.set_env(env_path)
 
@@ -58,6 +59,7 @@ class CoincDecider:
         """Appends coincidence arrays when there is a coincident signal
         :param mgs: SNEWS message
         :mgs type: dict
+
         """
         self.nu_times.append(mgs['neutrino_time'])
         self.detectors.append(mgs['detector_name'])
@@ -70,7 +72,9 @@ class CoincDecider:
             self.delta_ts.append(self.delta_t)
 
     def reset_arr(self):
-        """Resets coincidence arrays if coincidence is broken"""
+        """Resets coincidence arrays if coincidence is broken
+
+        """
         if self.coinc_broken:
             self.ids = []
             self.delta_ts = []
@@ -85,6 +89,7 @@ class CoincDecider:
         """Sets up the initial signal
         :param mgs: SNEWS message
         :mgs type: dict
+
         """
         if self.counter == 0:
             print('Setting initial values')
@@ -102,6 +107,7 @@ class CoincDecider:
         """Sets up the initial signal
         :param mgs: SNEWS message
         :mgs type: dict
+
         """
         self.detectors.pop(index)
         self.ids.pop(index)
@@ -112,6 +118,7 @@ class CoincDecider:
 
     def reset_cache(self):
         """Resets mongo cache and all coincidence arrays if coincidence is broken
+
         """
         if self.coinc_broken:
             self.counter = 0
@@ -128,6 +135,7 @@ class CoincDecider:
         if not coincidence is broken. Then the publish method is called. Finally a new stream and coincicede list is made
         :param mgs: SNEWS message
         :mgs type: dict
+
         """
         if self.cache_reset:
             pass
@@ -168,6 +176,7 @@ class CoincDecider:
     def waited_long_enough(self):
         """Waits for a new message, if a new message does not come in before 120sec then coincidence is broken.
         Publishing method is called and then the stream and cache are reset
+
         """
         curr_cache_len = self.storage.coincidence_tier_cache.count()
         stagnant_cache = True
@@ -191,9 +200,11 @@ class CoincDecider:
                 self.run_coincidence()
 
     def in_cache_retract(self):
-        """loops through false warnings collection looks for coincidence tier false warnings, if a warning is found,
-        it then loops through coincidence cache, if the false message is then all its corresponding features are deleted
-        from the coincidence arrays."""
+        """ loops through false warnings collection looks for coincidence tier false warnings, if a warning is found,
+            it then loops through coincidence cache, if the false message is then all its corresponding features are deleted
+            from the coincidence arrays.
+
+        """
         if self.storage.empty_false_warnings():
             # print('No false messages...yet')
             pass
@@ -214,6 +225,7 @@ class CoincDecider:
         """ When the coincidence is broken publish alert
             if there were more than 1 detectors in the 
             given coincidence window
+
         """
         if self.coinc_broken and len(self.detectors) > 1:
             click.secho(f'{"=" * 57}', fg='bright_red')
@@ -232,6 +244,7 @@ class CoincDecider:
     def run_coincidence(self):
         ''' Main body of the class. Reads the 
             mongodb as a stream to look for coincidences.
+            
         '''
         with self.coinc_cache.watch() as stream:
             # should it be: for mgs in stream ?

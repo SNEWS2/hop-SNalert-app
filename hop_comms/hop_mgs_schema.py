@@ -19,6 +19,7 @@ class Message_Schema:
             time format should always be same for all detectors.
             The heartbeats and observation messages have the 
             same id format.
+            
         """
         date_time = self.times.get_snews_time(fmt="%y/%m/%d_%H:%M:%S")
         if topic_state == 'OBS':

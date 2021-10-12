@@ -24,7 +24,7 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 
 project = u'snews'
 copyright = u'2020, Skylar(Yiyang) Xu'
-author = u'Skylar(Yiyang) Xu'
+author = u'Skylar(Yiyang) Xu, Torres-Lara Sebastian, Kara Melih'
 
 # The short X.Y version
 version = u''
@@ -51,6 +51,8 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.autosectionlabel',
     'sphinxcontrib.programoutput',
+    'sphinx.ext.napoleon',
+    'myst_parser',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -59,8 +61,9 @@ templates_path = ['_templates']
 # The suffix(es) of source filenames.
 # You can specify multiple suffix as a list of string:
 #
-# source_suffix = ['.rst', '.md']
-source_suffix = '.rst'
+source_suffix = ['.rst', '.md']
+# source_suffix = {'.rst':'restructeredtext',
+#                  '.md' : 'markdown'}
 
 # The master toctree document.
 master_doc = 'index'

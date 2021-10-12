@@ -1,4 +1,5 @@
 """
+Example initial dosctring
 """
 from dotenv import load_dotenv
 from datetime import datetime
@@ -17,12 +18,14 @@ def check_hop_connection():
 
 
 def set_env(env_path=None):
-    """ Set environment
-    Arguments
-    ---------
+    """ Set environment parameters
+
+    Parameters
+    ----------
     env_path : str (optional)
         path for the environment file.
         Use default settings if not given
+
     """
     dirname = os.path.dirname(__file__)
     default_env_path = os.path.dirname(__file__) + '/auxiliary/test-config.env'
@@ -39,6 +42,7 @@ def make_dir(path):
 
 class TimeStuff:
     ''' SNEWS format datetime objects
+
     '''
 
     def __init__(self, env_path=None):
@@ -72,10 +76,19 @@ def set_topic_state(which_topic, env_path=None):
 
 # retrieve the detector properties
 def retrieve_detectors(detectors_path=os.path.dirname(__file__) + "/auxiliary/detector_properties.json"):
-    ''' Retrieve the name-ID-location of the
-        participating detectors.
+    ''' Retrieve the name-ID-location of the participating detectors.
+
+        Parameters
+        ----------
+        detectors_path : str, optional
+            path to detector proporties. File needs to be
+            in JSON format
+        
+        Returns
+        -------
+        None
+
     '''
-    # search for the pre-saved detectors file, create if not exist
     if not os.path.isfile(detectors_path):
         os.system(f'python {os.path.dirname(__file__)}/auxiliary/make_detector_file.py')
 
@@ -107,6 +120,7 @@ def get_detector(detector, detectors_path=os.path.dirname(__file__) + "/auxiliar
 
 def summarize(detector, topic_type_, env_path=None):
     """ Summarize the current configuration
+
     """
     import hop, snews, sys
     set_env()
@@ -131,6 +145,7 @@ def summarize(detector, topic_type_, env_path=None):
 
 def isnotebook():
     """ Tell if the script is running on a notebook
+
     """
     try:
         shell = get_ipython().__class__.__name__
@@ -170,6 +185,7 @@ def display_gif():
 def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
              detector_status=None, false_mgs_id=None, **kwargs):
     """ default observation message data
+    
     """
     keys = ['machine_time', 'neutrino_time', 'p_value', 'timing_series', 'detector_status', 'false_id']
     values = [machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id]

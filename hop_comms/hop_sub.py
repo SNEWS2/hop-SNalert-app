@@ -41,6 +41,7 @@ class HopSubscribe:
     # don't need this
     def save_message(self, message):
         """ Save messages to a json file
+
         """
         path = f'SNEWS_MSGs/{self.times.get_date()}/'
         snews_utils.make_dir(path)
@@ -73,6 +74,7 @@ class HopSubscribe:
                 be given
             verbose : bool
                 Whether to display the subscribed message content
+                
         '''
         if len(which_topic) == 1:
             # set topic enum, get name and broker

@@ -5,12 +5,28 @@ import click
 
 
 class RetractionCoincidence:
+    """
+    This class is incharge of looking for false observations and retracting alerts
+    """
     def __init__(self):
-        self.storage = Storage(drop_dbs=False)
+        """
+        Constructor method
+        """
+        self.storage = Storage(drop_db=False)
         self.false_coll = self.storage.false_warnings
         self.db_coll = self.storage.coll_list
 
     def retract_all_false_items(self, alert, counter):
+        """
+        Parses alert dict,pops the items belonging to the false observation, and updates it.
+
+        Parameters
+        ----------
+        alert: 'dict'
+            SNEWS alert dictionary
+        counter: 'int'
+            index of false observation
+        """
         alert.update(
             {'detector_names': alert['detector_names'].pop(counter)},
             {'ids': alert['ids'].pop(counter)},
@@ -32,6 +48,7 @@ class RetractionCoincidence:
                 obs_type = false_id.split('_')[1]
                 self.alerts = self.db_coll[f'{obs_type}Alert']
                 if self.alerts.count() == 0:
+                    click.secho(f'{"-" * 57}', fg='bright_blue')
                     print('No alerts have been published..\nCould be in cache.')
                 for alert in self.alerts.find().sort('sent_time'):
                     ids = alert['ids']

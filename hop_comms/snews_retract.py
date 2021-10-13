@@ -2,19 +2,22 @@ from .snews_db import Storage
 import time
 import logging
 import click
+from .hop_pub import Publish_Alert
 
 
 class RetractionCoincidence:
     """
     This class is incharge of looking for false observations and retracting alerts
     """
-    def __init__(self):
+
+    def __init__(self, env_path=None):
         """
         Constructor method
         """
         self.storage = Storage(drop_db=False)
         self.false_coll = self.storage.false_warnings
         self.db_coll = self.storage.coll_list
+        self.pub = Publish_Alert(env_path=env_path)
 
     def retract_all_false_items(self, alert, counter):
         """
@@ -28,13 +31,17 @@ class RetractionCoincidence:
             index of false observation
         """
         alert.update(
+            {'_id': f"RETRACTED_{alert['_id']}"},
             {'detector_names': alert['detector_names'].pop(counter)},
             {'ids': alert['ids'].pop(counter)},
             {'neutrino_times': alert['neutrino_times'].pop(counter)},
             {'machine_time': alert['machine_times'].pop(counter)},
             {'locations': alert['locations'.pop(counter)]},
-            {'RETRACTED': 1},
+
         )
+
+    def publish_retractiong(self, alert):
+        self.pub.publish_retraction(retracted_mgs=alert)
 
     def check_for_false(self):
         with self.false_coll.watch() as stream:
@@ -57,5 +64,6 @@ class RetractionCoincidence:
                         if mgs_id == false:
                             print('found it !!')
                             self.retract_all_false_item(alert, counter)
+                            self.publish_retractiong(alert)
 
                         counter += 1

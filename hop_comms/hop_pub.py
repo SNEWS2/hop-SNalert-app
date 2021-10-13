@@ -16,6 +16,8 @@ from dotenv import load_dotenv
 from . import snews_utils
 from .hop_mgs_schema import Message_Schema
 from .snews_db import Storage
+
+
 # Detector = namedtuple("Detector", ["name", "id", "location"])
 
 
@@ -33,6 +35,7 @@ class Publish_Heartbeat:
         The name of the detector. Default is "TEST"
 
     """
+
     def __init__(self, rate=30, env_path=None, detector='TEST'):
         self.rate = rate  # seconds
         self.times = snews_utils.TimeStuff(env_path)
@@ -70,7 +73,7 @@ class Publish_Heartbeat:
             print(f"\nPublished the Heartbeat message to {self.heartbeat_topic}:")
             for k, v in heartbeat_message.items():
                 if k == 'detector_status':
-                    col = 'red' if v=='OFF' else 'green'
+                    col = 'red' if v == 'OFF' else 'green'
                     click.echo(f'{k:<20s}:' + click.style(str(v), fg='white', bg=col))
                 else:
                     click.echo(f'{k:<20s}:{v}')
@@ -150,7 +153,19 @@ class Publish_Alert:
         self.storage.insert_mgs(alert_schema)
         for k, v in alert_schema.items():
             print(f'{k:<20s}:{v}')
- 
+
+    def publish_retraction(self, retracted_mgs):
+        """
+        Takes retracted alert and publishes it.
+
+        Parameters
+        ----------
+        retracted_mgs: 'dict'
+            Retracted alert message
+        """
+        stream = Stream(persist=False)
+        with stream.open(self.alert_topic, "w") as s:
+            s.write(retracted_mgs)
 
 
 class Publish_Tier_Obs:
@@ -164,6 +179,7 @@ class Publish_Tier_Obs:
         Use default settings if not given
     
     """
+
     def __init__(self, env_path=None):
         snews_utils.set_env(env_path)
         self.times = snews_utils.TimeStuff()
@@ -190,6 +206,6 @@ class Publish_Tier_Obs:
         stream = Stream(persist=False)
         with stream.open(self.obs_broker, 'w') as s:
             s.write(obs_schema)
-        click.secho(f'{"-"*57}', fg='bright_blue')
+        click.secho(f'{"-" * 57}', fg='bright_blue')
         for k, v in obs_schema.items():
             print(f'{k:<20s}:{v}')

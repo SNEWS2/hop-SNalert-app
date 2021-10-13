@@ -31,8 +31,8 @@ class Storage:
         self.db = self.client.snews_db
         self.all_mgs = self.db.all_mgs
         self.false_warnings = self.db.false_warnings
-        # self.sig_tier_cache = self.db.sig_tier_cache
-        # self.time_tier_cache = self.db.time_tier_cache
+        self.sig_tier_cache = self.db.sig_tier_cache
+        self.time_tier_cache = self.db.time_tier_cache
         self.coincidence_tier_cache = self.db.coincidence_tier_cache
         self.coincidence_tier_alerts = self.db.coincidence_tier_alerts
 
@@ -42,12 +42,16 @@ class Storage:
             self.coincidence_tier_cache.delete_many({})
             self.coincidence_tier_alerts.delete_many({})
             self.false_warnings.delete_many({})
+            self.time_tier_cache.delete_many({})
+            self.sig_tier_cache.delete_many({})
             # drop the old index
             self.all_mgs.drop_indexes()
             self.test_cache.drop_indexes()
             self.coincidence_tier_cache.drop_indexes()
             self.false_warnings.drop_indexes()
             self.coincidence_tier_alerts.drop_indexes()
+            self.time_tier_cache.drop_indexes()
+            self.sig_tier_cache.drop_indexes()
         # set index
         self.all_mgs.create_index('sent_time')
         self.coincidence_tier_cache.create_index('sent_time', expireAfterSeconds=self.mgs_expiration)
@@ -80,7 +84,7 @@ class Storage:
         Parameters
         ----------
         sort_order : `object`, optional
-            default to `pymong.ASCENDING`
+            default to `pymongo.ASCENDING`
 
         Returns
         -------

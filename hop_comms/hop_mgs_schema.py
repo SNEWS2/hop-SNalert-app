@@ -149,7 +149,6 @@ class Message_Schema:
                 "sent_time": sent_time,
                 "neutrino_times": data['neutrino_times'],
                 "machine_times": data['machine_times'],
-                "timing_series": data['t_series'],
                 "locations": data['locs']}
 
         messages = {}

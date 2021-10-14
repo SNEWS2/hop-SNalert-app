@@ -45,6 +45,7 @@ class TimeStuff:
     ''' SNEWS format datetime objects
 
     '''
+
     def __init__(self, env_path=None):
         set_env(env_path)
         self.snews_t_format = os.getenv("TIME_STRING_FORMAT")
@@ -87,6 +88,7 @@ def set_topic_state(which_topic, env_path=None):
     }
     return topics[which_topic.upper()]
 
+
 def retrieve_detectors(detectors_path=os.path.dirname(__file__) + "/auxiliary/detector_properties.json"):
     ''' Retrieve the name-ID-location of the participating detectors.
 
@@ -114,8 +116,8 @@ def retrieve_detectors(detectors_path=os.path.dirname(__file__) + "/auxiliary/de
     return detectors
 
 
-def get_detector(detector, detectors_path=os.path.dirname(__file__) + 
-    "/auxiliary/detector_properties.json"):
+def get_detector(detector, detectors_path=os.path.dirname(__file__) +
+                                          "/auxiliary/detector_properties.json"):
     """ Return the selected detector properties
 
     Parameters
@@ -126,7 +128,7 @@ def get_detector(detector, detectors_path=os.path.dirname(__file__) +
 
     """
     Detector = namedtuple("Detector", ["name", "id", "location"])
-    if isinstance(detector, Detector): return detector # not needed?
+    if isinstance(detector, Detector): return detector  # not needed?
     # search for the detector name in `detectors`
     detectors = retrieve_detectors(detectors_path)
     if isinstance(detector, str):

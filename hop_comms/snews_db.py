@@ -17,6 +17,7 @@ class Storage:
         Tells Storage to set up a local DB, defaults to False.
 
     """
+
     def __init__(self, env=None, drop_db=True, use_local=False):
         snews_utils.set_env(env)
         self.mgs_expiration = int(os.getenv('MSG_EXPIRATION'))
@@ -35,8 +36,8 @@ class Storage:
         self.time_tier_cache = self.db.time_tier_cache
         self.coincidence_tier_cache = self.db.coincidence_tier_cache
         self.coincidence_tier_alerts = self.db.coincidence_tier_alerts
-        self.time_tier_alerts = self.db.time_tier_cache
-        self.sig_tier_alerts = self.db.sig_tier_alert
+        self.time_tier_alerts = self.db.time_tier_alerts
+        self.sig_tier_alerts = self.db.sig_tier_alerts
 
         if drop_db:
             # kill all old colls
@@ -50,7 +51,6 @@ class Storage:
             self.sig_tier_alerts.delete_many({})
             # drop the old index
             self.all_mgs.drop_indexes()
-            self.test_cache.drop_indexes()
             self.coincidence_tier_cache.drop_indexes()
             self.false_warnings.drop_indexes()
             self.coincidence_tier_alerts.drop_indexes()
@@ -59,15 +59,23 @@ class Storage:
             self.time_tier_alerts.drop_indexes()
             self.sig_tier_alerts.drop_indexes()
             # set index
-        self.all_mgs.create_index('sent_time')
-        self.coincidence_tier_cache.create_index('sent_time', expireAfterSeconds=self.mgs_expiration)
-        self.false_warnings.create_index('sent_time')
-        self.coincidence_tier_alerts.create_index('sent_time')
+            self.all_mgs.create_index('sent_time')
+            self.coincidence_tier_cache.create_index('sent_time', expireAfterSeconds=self.mgs_expiration)
+            self.sig_tier_cache.create_index('sent_time', expireAfterSeconds=self.mgs_expiration)
+            self.time_tier_cache.create_index('sent_time', expireAfterSeconds=self.mgs_expiration)
+            self.false_warnings.create_index('sent_time')
+            self.coincidence_tier_alerts.create_index('sent_time')
+            self.sig_tier_alerts.create_index('sent_time')
+            self.time_tier_alerts.create_index('sent_time')
 
         self.coll_list = {
             'CoincidenceTier': self.coincidence_tier_cache,
-            'False': self.false_warnings,
+            'SigTier':self.sig_tier_cache,
+            'TimeTier':self.time_tier_cache,
+            'FalseOBS': self.false_warnings,
             'CoincidenceTierAlert': self.coincidence_tier_alerts,
+            'SigTierAlert': self.sig_tier_alerts,
+            'TimeTierAlert': self.time_tier_alerts,
         }
 
     def insert_mgs(self, mgs):
@@ -100,7 +108,6 @@ class Storage:
         """
         return self.all_mgs.find().sort('sent_time', sort_order)
 
-
     def get_coincidence_tier_cache(self, sort_order=pymongo.ASCENDING):
         """ Returns a list of all messages in the 'cache' collection
 
@@ -116,7 +123,6 @@ class Storage:
                     
         """
         return self.coincidence_tier_cache.find().sort('sent_time', sort_order)
-
 
     def get_false_warnings(self, sort_order=pymongo.ASCENDING):
         """ Returns a list of all messages in the 'cache' collection
@@ -162,4 +168,3 @@ class Storage:
 
         """
         self.coll_list[coll].delete_many({})
-

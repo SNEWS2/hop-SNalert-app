@@ -133,6 +133,8 @@ def publish_format(which_topic, message):
         click.echo(click.style('ALERT MESSAGE'.center(65, '_'), bg='bright_red'))
         for k, v in message.items():
             if type(v) == type(None): v = 'None'
+            if type(v) == int:
+                click.echo(f'{k:<20s}:{v:<45}')
             if type(v) == str:
                 click.echo(f'{k:<20s}:{v:<45}')
             elif type(v) == list:

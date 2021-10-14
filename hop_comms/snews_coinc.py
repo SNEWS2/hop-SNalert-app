@@ -230,13 +230,14 @@ class CoincDecider:
             # print('cache is empty')
             pass
         for mgs in self.storage.get_false_warnings():
-            if mgs['type'] == 'CoincidenceTier':
+            if mgs['false_id'].split('_')[1] == 'CoincidenceTier':
                 false_id = mgs['false_id']
                 i = 0
                 for id in self.ids:
                     if false_id == id:
-                        print(f'False mgs found {id}\nPurging coincidence list')
+                        print(f'False mgs found {id}\nPurging it from coincidence list')
                         self.kill_false_element(index=i)
+                        print(f'\nNew list of coincident detectors:\n{self.detectors}')
                     i += 1
 
     def pub_alert(self):

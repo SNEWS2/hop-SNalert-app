@@ -1,8 +1,7 @@
-
 from collections import namedtuple
 from . import snews_utils
 from .snews_utils import TimeStuff
-
+import sys
 
 class Message_Schema:
     """ The Message scheme for the alert and observations
@@ -18,7 +17,8 @@ class Message_Schema:
         True if the message is ALERT message. Default is False.
 
     """
-    def __init__(self, env_path=None, detector_key='TEST',alert = False):
+
+    def __init__(self, env_path=None, detector_key='TEST', alert=False):
         if alert:
             self.times = TimeStuff(env_path)
         else:
@@ -36,12 +36,13 @@ class Message_Schema:
         Parameters
         ----------
         topic_state : `str`
-            Can either be 'OBS', 'ALERT' or 'FalseOBS'
+            Can either be 'OBS', or  'ALERT'
         topic_type : `str`
             type of the message to be published. Can be;
             'TimeTier', 'SigTier', 'CoincidenceTier' for
             observation messages and, 'HeartBeat' for 
-            heartbeat messages
+            heartbeat messages, and 'FalseOBS' for false
+            observations.
 
         Returns
             :`str`
@@ -53,10 +54,7 @@ class Message_Schema:
             return f'{self.detector.id}_{topic_type}_{date_time}'
         elif topic_state == 'ALERT':
             return f'SNEWS_{topic_type}_{date_time}'
-        elif topic_state == 'FalseOBS':
-            return f'False_{topic_type}_{date_time}'
         else:
-            import sys
             sys.exit(f'{topic_state} is not valid!\nOptiions are ["OBS","ALERT","FalseOBS"]')
 
     def get_obs_schema(self, msg_type, data, sent_time):
@@ -88,7 +86,6 @@ class Message_Schema:
                 "location": self.detector_loc,
                 "detector_status": data['detector_status']}
 
-        
         messages = {}
         messages['Heartbeat'] = base.copy()
 
@@ -104,21 +101,20 @@ class Message_Schema:
         messages['CoincidenceTier']['neutrino_time'] = data['neutrino_time']
         messages['CoincidenceTier']['p_value'] = data['p_value']
 
-        messages['FalseOBS'] = {'_id':self.id_format("OBS","FalseOBS"),
-                                'false_id':data['false_id'],
-                                'type': 'data["type"]',
-                                'sent_time':sent_time}
+        messages['FalseOBS'] = {'_id': self.id_format("OBS", "FalseOBS"),
+                                'false_id': data['false_id'],
+                                'sent_time': sent_time}
 
         message = messages[msg_type]
         # check if data contains unknown (extra) fields
-        known_keys= [[k for k in messages[tier].keys()] for tier in messages.keys()]
+        known_keys = [[k for k in messages[tier].keys()] for tier in messages.keys()]
         known_keys = [item for sublist in known_keys for item in sublist]
         # extra_keys = [key for key in data.keys() if key not in message.keys()]
         extra_keys = [key for key in data.keys() if key not in known_keys]
         if len(extra_keys) > 0:
             for key in extra_keys:
-                if key == 'false_id' and msg_type!='FalseOBS': continue
-                message['^'+key] = data[key]
+                if key == 'false_id' and msg_type != 'FalseOBS': continue
+                message['^' + key] = data[key]
         return message
 
     def get_alert_schema(self, msg_type, sent_time, data):
@@ -145,11 +141,12 @@ class Message_Schema:
         """
         base = {"_id": self.id_format("ALERT", f'{msg_type}'),
                 "detector_names": data['detectors'],
-                "ids":data['ids'],
+                "ids": data['ids'],
                 "sent_time": sent_time,
                 "neutrino_times": data['neutrino_times'],
                 "machine_times": data['machine_times'],
-                "locations": data['locs']}
+                # "locations": data['locs']
+                }
 
         messages = {}
         messages['CoincidenceTierAlert'] = base.copy()
@@ -164,4 +161,3 @@ class Message_Schema:
 ### Since both these functions are backhand, we can easily merge them
 ###-----------
 ### Moreover, why do the ALERT messages have detector ids or status?
-

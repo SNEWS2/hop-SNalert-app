@@ -43,7 +43,7 @@ class HopSubscribe:
         self.hr = self.times.get_hour()
         self.date = self.times.get_date()
         self.snews_time = lambda: self.times.get_snews_time()
-        self.storage = Storage(env_path, drop_dbs=True)
+        self.storage = Storage(env_path, drop_db=True)
 
     # don't need this
     def save_message(self, message):

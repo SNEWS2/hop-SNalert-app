@@ -5,7 +5,8 @@ import click
 from .hop_pub import Publish_Alert
 
 
-class RetractionCoincidence:
+#  TODO Still need to test it 13/10/21
+class Retraction:
     """
     This class is incharge of looking for false observations and retracting alerts
     """
@@ -21,7 +22,8 @@ class RetractionCoincidence:
 
     def retract_all_false_items(self, alert, counter):
         """
-        Parses alert dict,pops the items belonging to the false observation, and updates it.
+        Parses alert dict,pops the items belonging to the false observation,
+        determines if the alert is still valid and updates it.
 
         Parameters
         ----------
@@ -30,6 +32,9 @@ class RetractionCoincidence:
         counter: 'int'
             index of false observation
         """
+        validity = 0
+        if len(alert['detector_names'].pop(counter)) > 1:
+            validity = 1
         alert.update(
             {'_id': f"RETRACTED_{alert['_id']}"},
             {'detector_names': alert['detector_names'].pop(counter)},
@@ -37,13 +42,29 @@ class RetractionCoincidence:
             {'neutrino_times': alert['neutrino_times'].pop(counter)},
             {'machine_time': alert['machine_times'].pop(counter)},
             {'locations': alert['locations'.pop(counter)]},
+            {'VALID_ALERT??': validity}
 
         )
 
-    def publish_retractiong(self, alert):
+    def publish_retract(self, alert):
+        """
+        Publishes the retracted alert
+
+        Parameters
+        ----------
+        alert: 'dict'
+            SNEWS alert dictionary
+        """
         self.pub.publish_retraction(retracted_mgs=alert)
 
     def check_for_false(self):
+        """
+        Main body, this method sets up stream using the fasle message collection.
+        For each false message the method will the loop through all alerts that have been published.
+        For each alert it will then loop through its ids list.
+        If a false message is found, all items belonging to that false message will be deleted.
+        Afterwards the alert's validity will be evaluated.
+        """
         with self.false_coll.watch() as stream:
             if self.storage.empty_false_warnings():
                 click.secho(f'{"-" * 57}', fg='bright_blue')
@@ -64,6 +85,6 @@ class RetractionCoincidence:
                         if mgs_id == false:
                             print('found it !!')
                             self.retract_all_false_item(alert, counter)
-                            self.publish_retractiong(alert)
+                            self.publish_retract(alert)
 
                         counter += 1

@@ -6,6 +6,7 @@ import time
 from .hop_pub import Publish_Alert
 
 
+# TODO Need to test in-cache retraction
 class CoincDecider:
     """ CoincDecider class for Supernova alerts (Coincidence Tier)
         
@@ -16,10 +17,11 @@ class CoincDecider:
         defaults to None ./auxiliary/test-config.env)
     
     """
-    def __init__(self, env_path = None):
+
+    def __init__(self, env_path=None):
         snews_utils.set_env(env_path)
 
-        self.storage = Storage(drop_dbs=False)
+        self.storage = Storage(drop_db=False)
         self.topic_type = "CoincidenceTierAlert"
         self.coinc_threshold = float(os.getenv('COINCIDENCE_THRESHOLD'))
         self.mgs_expiration = float(os.getenv('MSG_EXPIRATION'))

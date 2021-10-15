@@ -7,6 +7,7 @@ from .snews_utils import TimeStuff
 
 
 #  TODO Still need to test it 13/10/21
+# TODO
 class Retraction:
     """
     This class is incharge of looking for false observations and retracting alerts

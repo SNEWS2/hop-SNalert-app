@@ -196,7 +196,7 @@ class CoincDecider:
         curr_cache_len = self.storage.coincidence_tier_cache.count()
         stagnant_cache = True
         t0 = time.time()
-        click.secho('waiting..'.upper(), fg='cyan', bold=True, italic=True)
+        click.secho('waiting..'.upper(), fg='cyan', bold=True, )
         while stagnant_cache:
             t1 = time.time()
             delta_t = t1 - t0
@@ -205,13 +205,13 @@ class CoincDecider:
                 self.counter += 1
                 break
             elif delta_t > self.mgs_expiration:
-                print('Waited too long !!')
+                click.secho('\nWaited too long !!'.upper(), fg='cyan', bold=True)
                 self.coinc_broken = True
                 self.pub_alert()
-                print('Resetting cache')
+                print('\nResetting cache')
                 self.reset_cache()
                 # Run recursion
-                click.secho('Starting new stream..\n\n'.upper(), bold=True, fg='bright_white', underline=True)
+                click.secho('\nStarting new stream..\n\n'.upper(), bold=True, fg='bright_white', underline=True)
                 self.run_coincidence()
 
     def in_cache_retract(self):
@@ -235,7 +235,7 @@ class CoincDecider:
                 i = 0
                 for id in self.ids:
                     if false_id == id:
-                        print(f'False mgs found {id}\nPurging it from coincidence list')
+                        print(f'\nFalse mgs found {id}\nPurging it from coincidence list')
                         self.kill_false_element(index=i)
                         print(f'\nNew list of coincident detectors:\n{self.detectors}')
                     i += 1
@@ -275,7 +275,7 @@ class CoincDecider:
                 click.secho(f'{"-" * 57}', fg='bright_blue')
                 click.secho('Incoming message !!!'.upper(), bold=True, fg='red')
                 mgs = doc['fullDocument']
-                click.secho(f'{mgs["_id"]}'.upper(), italic=True, fg='bright_green')
+                click.secho(f'{mgs["_id"]}'.upper(), fg='bright_green')
                 self.set_initial_signal(mgs)
                 self.check_for_coinc(mgs)
                 print(f'Detectors: {self.detectors}')

@@ -225,7 +225,7 @@ def display_gif():
 
 
 def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
-             detector_status=None, false_mgs_id=None, **kwargs):
+             detector_status=None, false_mgs_id=None, look_for_latest=0, N_look_for_latest=0, **kwargs):
     """ Default observation message data
         
         Parameters
@@ -242,6 +242,11 @@ def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
             ON/OFF depending on the detedtor status
         false_mgs_id : `str`
             The id of the message that is falsely published
+        look_for_latest: 'int'
+            Tells retraction methods to look for latest message sent by a detector.
+        N_look_for_latest: 'int'
+            Tells retraction methods to look for N  latest message sent by a detector.
+
         **kwargs 
             Any other key-value pair desired to be published. Notice,
             these additional arguments will be prepended with ^.
@@ -252,8 +257,10 @@ def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
                 dictionary of the complete observation data
 
     """
-    keys = ['machine_time', 'neutrino_time', 'p_value', 'timing_series', 'detector_status', 'false_id']
-    values = [machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id]
+    keys = ['machine_time', 'neutrino_time', 'p_value', 'timing_series', 'detector_status', 'false_id',
+            'look_for_latest', 'N_look_for_latest']
+    values = [machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id, look_for_latest,
+              N_look_for_latest]
     # allow for keyword-args
     for k, v in kwargs.items():
         keys.append(k)

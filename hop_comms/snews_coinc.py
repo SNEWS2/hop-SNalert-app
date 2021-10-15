@@ -25,6 +25,7 @@ class CoincDecider:
         self.topic_type = "CoincidenceTierAlert"
         self.coinc_threshold = float(os.getenv('COINCIDENCE_THRESHOLD'))
         self.mgs_expiration = float(os.getenv('MSG_EXPIRATION'))
+        # self.mgs_expiration = 3600
         self.coinc_cache = self.storage.coincidence_tier_cache
         self.alert = Publish_Alert()
         self.times = snews_utils.TimeStuff(env_path)
@@ -226,11 +227,35 @@ class CoincDecider:
         if self.storage.empty_false_warnings():
             # print('No false messages...yet')
             pass
+
         if len(self.ids) == 0:
             # print('cache is empty')
             pass
+
         for mgs in self.storage.get_false_warnings():
-            if mgs['false_id'].split('_')[1] == 'CoincidenceTier':
+            if mgs['look_for_latest'] == 1:
+                i = len(self.ids) - 1
+                drop_detector = mgs['detector_name']
+                for detector_name in reversed(self.detectors):
+                    if detector_name == drop_detector:
+                        self.kill_false_element(index=i)
+                        print(f'\nDropping latest message from {drop_detector}\n')
+                        print(f'\nNew list of coincident detectors:\n{self.detectors}\n')
+                    i -= 1
+
+            if mgs['N_look_for_latest'] != 0:
+                i = len(self.ids) - 1
+                drop_detector = mgs['detector_name']
+                delete_n_many = mgs['N_look_for_latest']
+                for detector_name in reversed(self.detectors):
+                    if delete_n_many > 0 and detector_name == drop_detector:
+                        delete_n_many -= 1
+                        self.kill_false_element(index=i)
+                        print(f'\nDropping latest message from {drop_detector}\n')
+                        print(f'\nNew list of coincident detectors:\n{self.detectors}\n')
+                    i -= 1
+
+            if mgs['false_id'] != None and mgs['false_id'].split('_')[1] == 'CoincidenceTier':
                 false_id = mgs['false_id']
                 i = 0
                 for id in self.ids:
@@ -274,9 +299,9 @@ class CoincDecider:
             for doc in stream:
                 click.secho(f'{"-" * 57}', fg='bright_blue')
                 click.secho('Incoming message !!!'.upper(), bold=True, fg='red')
-                mgs = doc['fullDocument']
-                click.secho(f'{mgs["_id"]}'.upper(), fg='bright_green')
-                self.set_initial_signal(mgs)
-                self.check_for_coinc(mgs)
+                SNEWS_message = doc['fullDocument']
+                click.secho(f'{SNEWS_message["_id"]}'.upper(), fg='bright_green')
+                self.set_initial_signal(SNEWS_message)
+                self.check_for_coinc(SNEWS_message)
                 print(f'Detectors: {self.detectors}')
                 self.waited_long_enough()

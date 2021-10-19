@@ -28,7 +28,7 @@ class CoincDecider:
         self.mgs_expiration = float(os.getenv('MSG_EXPIRATION'))
         # self.mgs_expiration = 3600
         self.coinc_cache = self.storage.coincidence_tier_cache
-        self.alert = Publish_Alert()
+        self.alert = Publish_Alert(use_local=True)
         self.times = snews_utils.TimeStuff(env_path)
 
         self.counter = 0

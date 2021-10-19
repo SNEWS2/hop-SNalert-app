@@ -49,13 +49,13 @@ class Message_Schema:
                 The formatted id as a string
             
         """
-        date_time = self.times.get_snews_time(fmt="%y/%m/%d_%H:%M:%S")
+        date_time = self.times.get_snews_time(fmt="%y/%m/%d_%H:%M:%S:%f")
         if topic_state == 'OBS':
             return f'{self.detector.id}_{topic_type}_{date_time}'
         elif topic_state == 'ALERT':
             return f'SNEWS_{topic_type}_{date_time}'
         else:
-            sys.exit(f'{topic_state} is not valid!\nOptiions are ["OBS","ALERT","FalseOBS"]')
+            sys.exit(f'{topic_state} is not valid!\nOptions are ["OBS","ALERT","FalseOBS"]')
 
     def get_obs_schema(self, msg_type, data, sent_time):
         """ Create a message schema for given topic type.

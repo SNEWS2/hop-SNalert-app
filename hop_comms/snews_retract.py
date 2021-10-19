@@ -6,21 +6,22 @@ from .hop_pub import Publish_Alert
 from .snews_utils import TimeStuff
 
 
-#  TODO Still need to test it 13/10/21
-# TODO
+
+# TODO Need implement retract latest
 class Retraction:
     """
     This class is incharge of looking for false observations and retracting alerts
+
     """
 
-    def __init__(self, env_path=None):
+    def __init__(self, env_path=None, use_local=False):
         """
         Constructor method
         """
-        self.storage = Storage(drop_db=False)
+        self.storage = Storage(drop_db=False, use_local=use_local)
         self.false_coll = self.storage.false_warnings
         self.db_coll = self.storage.coll_list
-        self.pub = Publish_Alert(env_path=env_path)
+        self.pub = Publish_Alert(env_path=env_path,use_local=use_local)
         self.times = TimeStuff(env_path=env_path)
 
     def update_alert_item(self, alert_item, ind):
@@ -35,6 +36,7 @@ class Retraction:
         Returns
         -------
         alert item without the false observation's features
+
         """
         alert_item.pop(ind)
         return alert_item
@@ -51,6 +53,7 @@ class Retraction:
             SNEWS alert dictionary
         ind: 'int'
             index of false observation
+
         """
 
         alert.update(
@@ -78,6 +81,7 @@ class Retraction:
         ----------
         alert: 'dict'
             SNEWS alert dictionary
+
         """
         self.pub.publish_retraction(retracted_mgs=alert)
 
@@ -88,6 +92,7 @@ class Retraction:
         For each alert it will then loop through its ids list.
         If a false message is found, all items belonging to that false message will be deleted.
         Afterwards the alert's validity will be evaluated.
+
         """
         with self.false_coll.watch() as stream:
             if self.storage.empty_false_warnings():

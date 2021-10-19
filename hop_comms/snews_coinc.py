@@ -6,7 +6,8 @@ import time
 from .hop_pub import Publish_Alert
 
 
-# TODO Need to test in-cache retraction
+# TODO Need to turn detector names into a unique arr
+# TODO Implement silver/gold
 class CoincDecider:
     """ CoincDecider class for Supernova alerts (Coincidence Tier)
         
@@ -18,10 +19,10 @@ class CoincDecider:
     
     """
 
-    def __init__(self, env_path=None):
+    def __init__(self, env_path=None, use_local=False):
         snews_utils.set_env(env_path)
 
-        self.storage = Storage(drop_db=False)
+        self.storage = Storage(drop_db=False, use_local=use_local)
         self.topic_type = "CoincidenceTierAlert"
         self.coinc_threshold = float(os.getenv('COINCIDENCE_THRESHOLD'))
         self.mgs_expiration = float(os.getenv('MSG_EXPIRATION'))
@@ -150,6 +151,7 @@ class CoincDecider:
         mgs : `dict`
             dictionary of the SNEWS message
 
+
         """
         if self.cache_reset:
             pass
@@ -160,7 +162,7 @@ class CoincDecider:
             self.old_detector = mgs['detector_name']
             self.delta_t = (self.curr_nu_time - self.initial_nu_time).total_seconds()
 
-            if self.delta_t <= self.coinc_threshold and self.curr_loc != self.old_loc:
+            if self.delta_t <= self.coinc_threshold:
                 self.append_arrs(mgs)
                 click.secho('got something'.upper(), fg='white', bg='red')
                 print(f'{self.delta_ts}')
@@ -168,7 +170,7 @@ class CoincDecider:
             # should the same experiment sends two messages one after the other
             # the coincidence would break since curr_loc == old_loc
             # do we want this?
-            elif self.delta_t > self.coinc_threshold or self.curr_loc == self.old_loc:
+            elif self.delta_t > self.coinc_threshold:
                 if self.delta_t > self.coinc_threshold:
                     print('Outside SN window')
                 print('Coincidence is broken, checking to see if an ALERT can be published...\n\n')

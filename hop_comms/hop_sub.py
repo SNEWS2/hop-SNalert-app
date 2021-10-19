@@ -29,7 +29,7 @@ class HopSubscribe:
         Use default settings if not given
 
     """
-    def __init__(self, env_path=None):
+    def __init__(self, env_path=None, use_local=False, drop_db = False):
         snews_utils.set_env(env_path)
         self.broker = os.getenv("HOP_BROKER")
         self.observation_topic = os.getenv("OBSERVATION_TOPIC")  # only snews can subscribe
@@ -43,7 +43,7 @@ class HopSubscribe:
         self.hr = self.times.get_hour()
         self.date = self.times.get_date()
         self.snews_time = lambda: self.times.get_snews_time()
-        self.storage = Storage(env_path, drop_db=True)
+        self.storage = Storage(env_path, use_local=use_local ,drop_db=drop_db)
 
     # don't need this
     def save_message(self, message):

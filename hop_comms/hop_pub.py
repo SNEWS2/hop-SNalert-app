@@ -119,13 +119,13 @@ class Publish_Alert:
     Only relevant for the server
     """
 
-    def __init__(self, env_path=None):
+    def __init__(self, env_path=None, use_local=False):
         snews_utils.set_env(env_path)
         self.broker = os.getenv("HOP_BROKER")
         self.alert_topic = os.getenv("ALERT_TOPIC")
         self.times = snews_utils.TimeStuff(env_path)
         self.time_str = lambda: self.times.get_snews_time()
-        self.storage = Storage(drop_db=False)
+        self.storage = Storage(drop_db=False, use_local=use_local)
 
     # decider should call this
     def publish(self, msg_type, data):

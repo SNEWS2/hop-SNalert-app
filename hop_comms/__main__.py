@@ -17,7 +17,7 @@ from . import hop_mgs_schema
 from . import snews_coinc
 from . import snews_db
 
-
+# Kara: Testing PyCharm - Git interface
 def get_commit_message(bypass, topic):
     """ Parse the commited message, take input if not bypassed
         Set the message structure based on input and topic.

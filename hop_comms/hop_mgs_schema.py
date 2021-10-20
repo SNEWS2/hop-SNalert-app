@@ -102,17 +102,18 @@ class Message_Schema:
         messages['CoincidenceTier']['p_value'] = data['p_value']
 
         look_for = 0
-        N_look_for = 0
+        n_look_for = 0
         if data['look_for_latest'] == 1:
             look_for = 1
         if data['N_look_for_latest'] > 0 :
-            N_look_for = data['N_look_for_latest']
+            n_look_for = data['N_look_for_latest']
 
         messages['FalseOBS'] = {'_id': self.id_format("OBS", "FalseOBS"),
                                 'detector_name': self.detector_name,
                                 'false_id': data['false_id'],
+                                'which_tier': data['which_tier'],
                                 'look_for_latest': look_for,
-                                'N_look_for_latest': N_look_for,
+                                'N_look_for_latest': n_look_for,
                                 'sent_time': sent_time}
 
         message = messages[msg_type]

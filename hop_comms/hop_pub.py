@@ -194,7 +194,7 @@ class Publish_Tier_Obs:
             The name of the detector
         msg_type : `str`
             Type (Tier) of the message. Has to be one of 
-            the 'CoincidenceTier', 'SigTier', 'TimeTier'
+            the 'CoincidenceTier', 'SigTier', 'TimeTier', 'FalseOBS'
         data : `dict`
             Data dictionary received from snews_utils.data_obs()
 

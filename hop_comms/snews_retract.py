@@ -6,7 +6,6 @@ from .hop_pub import Publish_Alert
 from .snews_utils import TimeStuff
 
 
-
 # TODO Need implement retract latest
 class Retraction:
     """
@@ -21,7 +20,7 @@ class Retraction:
         self.storage = Storage(drop_db=False, use_local=use_local)
         self.false_coll = self.storage.false_warnings
         self.db_coll = self.storage.coll_list
-        self.pub = Publish_Alert(env_path=env_path,use_local=use_local)
+        self.pub = Publish_Alert(env_path=env_path, use_local=use_local)
         self.times = TimeStuff(env_path=env_path)
 
     def update_alert_item(self, alert_item, ind):
@@ -41,7 +40,7 @@ class Retraction:
         alert_item.pop(ind)
         return alert_item
 
-    def id_retraction(self, false_id):
+    def id_retraction(self, false_id, alert_collection):
         """
         This method checks for a specific false message id, finds it in a mongo OBS collection 
         , deletes it from the collection, and then publishes the new alert 
@@ -56,7 +55,7 @@ class Retraction:
             pass
 
         obs_type = false_id.split('_')[1]
-        alert_collection = self.db_coll[f'{obs_type}Alert']
+
         for alert in alert_collection.find().sort('sent_time'):
             ids = alert['ids']
             index = 0
@@ -70,10 +69,12 @@ class Retraction:
 
                 index += 1
 
-    def latest_retraction(self,retract_latest, N_retract_latest, obs_type):
+    def latest_retraction(self, retract_latest, N_retract_latest, false_type, alert_coll):
         """
         This methods will retract the latest messages from 
         """
+        if false_type == 'ALL':
+            pass
         if retract_latest == None and N_retract_latest == None:
             pass
         pass
@@ -138,14 +139,17 @@ class Retraction:
             for doc in stream:
                 click.secho(f'{"-" * 57}', fg='bright_blue')
                 false_mgs = doc['fullDocument']
-                obs_type = false_mgs['type']
+                obs_type = false_mgs['false_type'] or false_mgs['_id'].split('_')[1]
+                alert_collection = self.db_coll[f'{obs_type}Alert']
 
                 if alert_collection.count() == 0:
                     click.secho(f'{"-" * 57}', fg='bright_blue')
                     print('No alert_collection have been published..\nCould be in cache.')
-
-                self.id_retraction(false_id['false_id'])
-
-
-
-        
+                else:
+                    self.id_retraction(false_id=false_mgs['false_id'], alert_collection=alert_collection)
+                    self.latest_retraction(retract_latest=false_mgs['retract_latest'],
+                                       N_retract_latest=false_mgs['N_retract_latest'],
+                                       false_type=obs_type,
+                                       alert_coll=alert_collection)
+                    query = {'_id': false_mgs['_id']}
+                    self.false_coll.delete_one(query)

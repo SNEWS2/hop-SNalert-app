@@ -1,10 +1,10 @@
 from . import snews_utils
 from .snews_db import Storage
 import os, click
-# from datetime import datetime
+from datetime import datetime
 import time
 from .hop_pub import Publish_Alert
-
+import numpy as np
 
 # TODO Need to turn detector names into a unique arr
 # TODO Implement silver/gold
@@ -25,8 +25,8 @@ class CoincDecider:
         self.storage = Storage(drop_db=False, use_local=use_local)
         self.topic_type = "CoincidenceTierAlert"
         self.coinc_threshold = float(os.getenv('COINCIDENCE_THRESHOLD'))
-        self.mgs_expiration = float(os.getenv('MSG_EXPIRATION'))
-        # self.mgs_expiration = 3600
+        # self.mgs_expiration = float(os.getenv('MSG_EXPIRATION'))
+        self.mgs_expiration = 300
         self.coinc_cache = self.storage.coincidence_tier_cache
         self.alert = Publish_Alert(use_local=True)
         self.times = snews_utils.TimeStuff(env_path)
@@ -49,6 +49,7 @@ class CoincDecider:
         self.nu_times = []
         self.machine_times = []
         self.p_vals = []
+
 
         self.coinc_broken = False
 
@@ -235,7 +236,7 @@ class CoincDecider:
             pass
 
         for mgs in self.storage.get_false_warnings():
-            if mgs['look_for_latest'] == 1:
+            if mgs['look_for_latest'] == 1 and (mgs['which_tier']=='CoincidenceTier' or mgs['which_tier']=='ALL'):
                 i = len(self.ids) - 1
                 drop_detector = mgs['detector_name']
                 for detector_name in reversed(self.detectors):
@@ -244,28 +245,38 @@ class CoincDecider:
                         print(f'\nDropping latest message from {drop_detector}\n')
                         print(f'\nNew list of coincident detectors:\n{self.detectors}\n')
                     i -= 1
+                query = {'_id':mgs['_id']}
+                self.storage.false_warnings.delete_one(query)
 
-            if mgs['N_look_for_latest'] != 0:
+            # Delete N many false messages
+            if mgs['N_look_for_latest'] != 0 and (mgs['which_tier']=='CoincidenceTier' or mgs['which_tier']=='ALL'):
                 i = len(self.ids) - 1
                 drop_detector = mgs['detector_name']
                 delete_n_many = mgs['N_look_for_latest']
+                if mgs['N_look_for_latest'] == 'ALL':
+                    delete_n_many = self.detectors.count(drop_detector)
                 for detector_name in reversed(self.detectors):
                     if delete_n_many > 0 and detector_name == drop_detector:
                         delete_n_many -= 1
                         self.kill_false_element(index=i)
                         print(f'\nDropping latest message from {drop_detector}\n')
-                        print(f'\nNew list of coincident detectors:\n{self.detectors}\n')
+                        # print(f'\nNew list of coincident detectors:\n{np.unique(self.detectors)}\n')
                     i -= 1
+                query = {'_id': mgs['_id']}
+                self.storage.false_warnings.delete_one(query)
 
             if mgs['false_id'] != None and mgs['false_id'].split('_')[1] == 'CoincidenceTier':
                 false_id = mgs['false_id']
                 i = 0
                 for id in self.ids:
                     if false_id == id:
-                        print(f'\nFalse mgs found {id}\nPurging it from coincidence list')
                         self.kill_false_element(index=i)
-                        print(f'\nNew list of coincident detectors:\n{self.detectors}')
+                        print(f'\nFalse mgs found {id}\nPurging it from coincidence list')
+                        break
+                        # print(f'\nNew list of coincident detectors:\n{self.detectors}')
                     i += 1
+                query = {'_id': mgs['_id']}
+                self.storage.false_warnings.delete_one(query)
 
     def pub_alert(self):
         """ When the coincidence is broken publish alert
@@ -273,9 +284,10 @@ class CoincDecider:
             given coincidence window
 
         """
-        if self.coinc_broken and len(self.detectors) > 1:
+        unique_detectors = np.unique(self.detectors)
+        if self.coinc_broken and len(unique_detectors) > 1:
             click.secho(f'{"=" * 57}', fg='bright_red')
-            alert_data = snews_utils.data_alert(detectors=self.detectors,
+            alert_data = snews_utils.data_alert(detectors=unique_detectors,
                                                 ids=self.ids,
                                                 p_vals=self.p_vals,
                                                 nu_times=self.nu_times,
@@ -299,9 +311,9 @@ class CoincDecider:
                 print('Nothing here, please wait...')
 
             for doc in stream:
+                SNEWS_message = doc['fullDocument']
                 click.secho(f'{"-" * 57}', fg='bright_blue')
                 click.secho('Incoming message !!!'.upper(), bold=True, fg='red')
-                SNEWS_message = doc['fullDocument']
                 click.secho(f'{SNEWS_message["_id"]}'.upper(), fg='bright_green')
                 self.set_initial_signal(SNEWS_message)
                 self.check_for_coinc(SNEWS_message)

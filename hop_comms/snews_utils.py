@@ -225,7 +225,7 @@ def display_gif():
 
 
 def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
-             detector_status=None, false_mgs_id=None, look_for_latest=0, N_look_for_latest=0, **kwargs):
+             detector_status=None, false_mgs_id=None, look_for_latest=0, false_type=None, N_look_for_latest=0, **kwargs):
     """ Default observation message data
         
         Parameters
@@ -239,9 +239,11 @@ def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
         timing_series : `array-like`
             Time series of the detected signal
         detector_status : `str`
-            ON/OFF depending on the detedtor status
+            ON/OFF depending on the detector status
         false_mgs_id : `str`
             The id of the message that is falsely published
+        false_type : 'str'
+            OBS type of false message ['CoincidenceTier', 'SigTier', 'TimeTier, 'ALL']
         look_for_latest: 'int'
             Tells retraction methods to look for latest message sent by a detector.
         N_look_for_latest: 'int'
@@ -258,9 +260,9 @@ def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
 
     """
     keys = ['machine_time', 'neutrino_time', 'p_value', 'timing_series', 'detector_status', 'false_id',
-            'look_for_latest', 'N_look_for_latest']
+            'look_for_latest', 'N_look_for_latest','which_tier']
     values = [machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id, look_for_latest,
-              N_look_for_latest]
+              N_look_for_latest,which_tier]
     # allow for keyword-args
     for k, v in kwargs.items():
         keys.append(k)

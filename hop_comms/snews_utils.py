@@ -225,7 +225,8 @@ def display_gif():
 
 
 def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
-             detector_status=None, false_mgs_id=None, look_for_latest=0, false_type=None, N_look_for_latest=0, **kwargs):
+             detector_status=None, false_mgs_id=None, which_tier=None, look_for_latest=0, false_type=None,
+             N_look_for_latest=0, **kwargs):
     """ Default observation message data
         
         Parameters
@@ -242,13 +243,11 @@ def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
             ON/OFF depending on the detector status
         false_mgs_id : `str`
             The id of the message that is falsely published
-        false_type : 'str'
+        which_tier : 'str'
             OBS type of false message ['CoincidenceTier', 'SigTier', 'TimeTier, 'ALL']
-        look_for_latest: 'int'
-            Tells retraction methods to look for latest message sent by a detector.
-        N_look_for_latest: 'int'
-            Tells retraction methods to look for N  latest message sent by a detector.
-
+        N_look_for_latest: 'int' or 'str'
+            Tells retraction methods to look for N  latest message sent by a detector. can also pass 'ALL'
+            to retract all messages in a OBS tier.
         **kwargs 
             Any other key-value pair desired to be published. Notice,
             these additional arguments will be prepended with ^.
@@ -260,9 +259,9 @@ def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
 
     """
     keys = ['machine_time', 'neutrino_time', 'p_value', 'timing_series', 'detector_status', 'false_id',
-            'look_for_latest', 'N_look_for_latest','which_tier']
-    values = [machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id, look_for_latest,
-              N_look_for_latest,which_tier]
+            'N_look_for_latest', 'which_tier']
+    values = [machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id,
+              N_look_for_latest, which_tier]
     # allow for keyword-args
     for k, v in kwargs.items():
         keys.append(k)

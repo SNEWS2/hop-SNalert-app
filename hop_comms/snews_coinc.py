@@ -6,6 +6,7 @@ import time
 from .hop_pub import Publish_Alert
 import numpy as np
 
+
 # TODO Need to turn detector names into a unique arr
 # TODO Implement silver/gold
 class CoincDecider:
@@ -49,7 +50,6 @@ class CoincDecider:
         self.nu_times = []
         self.machine_times = []
         self.p_vals = []
-
 
         self.coinc_broken = False
 
@@ -208,6 +208,17 @@ class CoincDecider:
             if self.storage.coincidence_tier_cache.count() > curr_cache_len and delta_t < self.mgs_expiration:
                 self.counter += 1
                 break
+            # for every minute
+            # if np.round(delta_t) > 10 and np.round(delta_t)% 60 == 0:
+            #     click.secho(
+            #         f'Here is the current coincident list\n',
+            #         fg='magenta', bold=True, )
+            #     click.secho(
+            #         f'Total Number of detectors: {np.unique(self.detectors)} \n',
+            #         fg='magenta', bold=True, )
+            #     click.secho(
+            #         f'Total number of coincident events: {len(self.ids)}\n',
+            #         fg='magenta', bold=True, )
             elif delta_t > self.mgs_expiration:
                 click.secho('\nWaited too long !!'.upper(), fg='cyan', bold=True)
                 self.coinc_broken = True
@@ -215,8 +226,9 @@ class CoincDecider:
                 print('\nResetting cache')
                 self.reset_cache()
                 # Run recursion
-                click.secho('\nStarting new stream..\n\n'.upper(), bold=True, fg='bright_white', underline=True)
+                click.secho('\n\nStarting new stream..\n\n'.upper(), bold=True, fg='bright_white', underline=True)
                 self.run_coincidence()
+
 
     def in_cache_retract(self):
         """ 
@@ -236,34 +248,23 @@ class CoincDecider:
             pass
 
         for mgs in self.storage.get_false_warnings():
-            if mgs['look_for_latest'] == 1 and (mgs['which_tier']=='CoincidenceTier' or mgs['which_tier']=='ALL'):
-                i = len(self.ids) - 1
-                drop_detector = mgs['detector_name']
-                for detector_name in reversed(self.detectors):
-                    if detector_name == drop_detector:
-                        self.kill_false_element(index=i)
-                        print(f'\nDropping latest message from {drop_detector}\n')
-                        print(f'\nNew list of coincident detectors:\n{self.detectors}\n')
-                    i -= 1
-                query = {'_id':mgs['_id']}
-                self.storage.false_warnings.delete_one(query)
-
             # Delete N many false messages
-            if mgs['N_look_for_latest'] != 0 and (mgs['which_tier']=='CoincidenceTier' or mgs['which_tier']=='ALL'):
+            if mgs['N_look_for_latest'] != 0 and (mgs['which_tier'] == 'CoincidenceTier' or mgs['which_tier'] == 'ALL'):
                 i = len(self.ids) - 1
                 drop_detector = mgs['detector_name']
                 delete_n_many = mgs['N_look_for_latest']
                 if mgs['N_look_for_latest'] == 'ALL':
                     delete_n_many = self.detectors.count(drop_detector)
+                print(
+                    f'\nDropping latest message(s) from {drop_detector}\nRetracting: {delete_n_many} messages')
                 for detector_name in reversed(self.detectors):
                     if delete_n_many > 0 and detector_name == drop_detector:
                         delete_n_many -= 1
                         self.kill_false_element(index=i)
-                        print(f'\nDropping latest message from {drop_detector}\n')
-                        # print(f'\nNew list of coincident detectors:\n{np.unique(self.detectors)}\n')
                     i -= 1
                 query = {'_id': mgs['_id']}
                 self.storage.false_warnings.delete_one(query)
+                print(f'\nTotal Number of coincident events left: {len(self.ids)}')
 
             if mgs['false_id'] != None and mgs['false_id'].split('_')[1] == 'CoincidenceTier':
                 false_id = mgs['false_id']
@@ -271,7 +272,7 @@ class CoincDecider:
                 for id in self.ids:
                     if false_id == id:
                         self.kill_false_element(index=i)
-                        print(f'\nFalse mgs found {id}\nPurging it from coincidence list')
+                        print(f'\nFalse mgs found {id}\nPurging it from coincidence list\n')
                         break
                         # print(f'\nNew list of coincident detectors:\n{self.detectors}')
                     i += 1

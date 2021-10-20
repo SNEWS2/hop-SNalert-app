@@ -51,10 +51,11 @@ class Retraction:
             message id of false OBS
 
         """
-        if false_id == None:
-            pass
+        if false_id != None:
+            obs_type = false_id.split('_')[1]
 
-        obs_type = false_id.split('_')[1]
+        else:
+            pass
 
         for alert in alert_collection.find().sort('sent_time'):
             ids = alert['ids']
@@ -69,11 +70,11 @@ class Retraction:
 
                 index += 1
 
-    def latest_retraction(self, retract_latest, N_retract_latest, false_type, alert_coll):
+    def single_latest_retraction(self, retract_latest, N_retract_latest, which_tier, alert_coll):
         """
         This methods will retract the latest messages from 
         """
-        if false_type == 'ALL':
+        if which_tier == 'ALL':
             pass
         if retract_latest == None and N_retract_latest == None:
             pass
@@ -148,8 +149,8 @@ class Retraction:
                 else:
                     self.id_retraction(false_id=false_mgs['false_id'], alert_collection=alert_collection)
                     self.latest_retraction(retract_latest=false_mgs['retract_latest'],
-                                       N_retract_latest=false_mgs['N_retract_latest'],
-                                       false_type=obs_type,
-                                       alert_coll=alert_collection)
+                                           N_retract_latest=false_mgs['N_retract_latest'],
+                                           which_tier=obs_type,
+                                           alert_coll=alert_collection)
                     query = {'_id': false_mgs['_id']}
                     self.false_coll.delete_one(query)

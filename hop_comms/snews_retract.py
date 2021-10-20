@@ -4,6 +4,7 @@ import logging
 import click
 from .hop_pub import Publish_Alert
 from .snews_utils import TimeStuff
+from .snews_utils import get_detector
 
 
 # TODO Need implement retract latest
@@ -40,7 +41,7 @@ class Retraction:
         alert_item.pop(ind)
         return alert_item
 
-    def id_retraction(self, false_id, alert_collection):
+    def id_retraction(self, false_id):
         """
         This method checks for a specific false message id, finds it in a mongo OBS collection 
         , deletes it from the collection, and then publishes the new alert 
@@ -51,10 +52,16 @@ class Retraction:
             message id of false OBS
 
         """
+
         if false_id != None:
             obs_type = false_id.split('_')[1]
-
+            alert_collection = self.db_coll[f'{obs_type}Alert']
         else:
+            return 'No id given'
+
+        if alert_collection.count() == 0:
+            click.secho(f'{"-" * 57}', fg='bright_blue')
+            print('No alert_collection have been published..\nCould be in cache.')
             pass
 
         for alert in alert_collection.find().sort('sent_time'):
@@ -70,17 +77,42 @@ class Retraction:
 
                 index += 1
 
-    def single_latest_retraction(self, retract_latest, N_retract_latest, which_tier, alert_coll):
+    def latest_retraction(self, N_retract_latest, which_tier, which_detector):
         """
         This methods will retract the latest messages from 
         """
-        if which_tier == 'ALL':
-            pass
-        if retract_latest == None and N_retract_latest == None:
-            pass
-        pass
 
-    def retract_all_false_items(self, alert, ind):
+        if which_tier == 'ALL':
+            alert_collection = ['CoincidenceTier', 'SigTier', 'TimeTier']
+            for alert in which_tier:
+                self.latest_retraction(N_retract_latest=N_retract_latest, which_tier=alert_collection[alert],
+                                       which_detector=which_detector)
+
+        if N_retract_latest == None:
+            pass
+
+        else:
+            alert_collection = self.db_coll[f'{which_tier}Alert']
+            drop_detector_id = get_detector(detector=which_detector).id
+            for alert in get_alert_collection(which_tier=which_tier):
+                ids = alert['ids']
+                ind = len(ids) - 1
+                n_drop = N_retract_latest
+                if n_drop == 'ALL':
+                    n_drop = len(ids) - 1
+                query = {'_id': alert['_id']}
+                for id in reversed(ids):
+                    detector_id = id.split('_')[0]
+                    if detector_id == drop_detector_id:
+                        n_drop -= 1
+                        updated_alert = self.retract_all_false_items(alert=alert, ind=ind, n_drop=n_drop)
+                        alert_collection.update_one(filter=query, update={"$set": updated_alert})
+                    if n_drop == 0:
+                        break
+                    ind -= 1
+                self.publish_retract(alert)
+
+    def retract_all_false_items(self, alert, ind, n_drop):
         """
         Parses alert dict,pops the items belonging to the false observation,
         determines if the alert is still valid and updates it.
@@ -103,6 +135,7 @@ class Retraction:
                 'machine_times': self.update_alert_item(alert['machine_times'], ind),
                 # 'locations': self.update_alert_item(alert['locations'], ind),
                 'time_of_retraction': self.times.get_snews_time(),
+                'Events_retracted': n_drop,
             }
         )
         validity = 0
@@ -141,16 +174,10 @@ class Retraction:
                 click.secho(f'{"-" * 57}', fg='bright_blue')
                 false_mgs = doc['fullDocument']
                 which_tier = false_mgs['which_tier'] or false_mgs['_id'].split('_')[1]
-                alert_collection = self.db_coll[f'{which_tier}Alert']
 
-                if alert_collection.count() == 0:
-                    click.secho(f'{"-" * 57}', fg='bright_blue')
-                    print('No alert_collection have been published..\nCould be in cache.')
-                else:
-                    self.id_retraction(false_id=false_mgs['false_id'], alert_collection=alert_collection)
-                    self.latest_retraction(retract_latest=false_mgs['retract_latest'],
-                                           N_retract_latest=false_mgs['N_retract_latest'],
-                                           which_tier=which_tier,
-                                           alert_coll=alert_collection)
-                    query = {'_id': false_mgs['_id']}
-                    self.false_coll.delete_one(query)
+                self.id_retraction(false_id=false_mgs['false_id'])
+                self.latest_retraction(which_detector=false_mgs['detector_name'],
+                                       N_retract_latest=false_mgs['N_retract_latest'],
+                                       which_tier=which_tier)
+                query = {'_id': false_mgs['_id']}
+                self.false_coll.delete_one(query)

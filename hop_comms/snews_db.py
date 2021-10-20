@@ -168,3 +168,21 @@ class Storage:
 
         """
         self.coll_list[coll].delete_many({})
+
+    def get_alert_collection(self, which_tier):
+        """Gives a Mongo cursor for a specifc alert collection
+
+        Parameters
+        ----------
+        which_tier : 'str'
+            Name of OBS tier
+
+        Returns
+        -------
+        collection cursor: 'mongo cursor object'
+            An ordered list of all documents inside the collection.
+
+        """
+        sort_order = pymongo.ASCENDING
+        return self.coll_list[f'{which_tier}Alert'].find().sort('sent_time', sort_order)
+

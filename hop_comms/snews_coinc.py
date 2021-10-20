@@ -208,17 +208,17 @@ class CoincDecider:
             if self.storage.coincidence_tier_cache.count() > curr_cache_len and delta_t < self.mgs_expiration:
                 self.counter += 1
                 break
-            # for every minute
-            # if np.round(delta_t) > 10 and np.round(delta_t)% 60 == 0:
-            #     click.secho(
-            #         f'Here is the current coincident list\n',
-            #         fg='magenta', bold=True, )
-            #     click.secho(
-            #         f'Total Number of detectors: {np.unique(self.detectors)} \n',
-            #         fg='magenta', bold=True, )
-            #     click.secho(
-            #         f'Total number of coincident events: {len(self.ids)}\n',
-            #         fg='magenta', bold=True, )
+            # for every 2 minutes
+            if np.round(delta_t) > 10 and delta_t % 120.0 == 0.0:
+                click.secho(
+                    f'Here is the current coincident list\n',
+                    fg='magenta', bold=True, )
+                click.secho(
+                    f'Total Number of detectors: {np.unique(self.detectors)} \n',
+                    fg='magenta', bold=True, )
+                click.secho(
+                    f'Total number of coincident events: {len(self.ids)}\n',
+                    fg='magenta', bold=True, )
             elif delta_t > self.mgs_expiration:
                 click.secho('\nWaited too long !!'.upper(), fg='cyan', bold=True)
                 self.coinc_broken = True

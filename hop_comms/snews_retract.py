@@ -140,8 +140,8 @@ class Retraction:
             for doc in stream:
                 click.secho(f'{"-" * 57}', fg='bright_blue')
                 false_mgs = doc['fullDocument']
-                obs_type = false_mgs['false_type'] or false_mgs['_id'].split('_')[1]
-                alert_collection = self.db_coll[f'{obs_type}Alert']
+                which_tier = false_mgs['which_tier'] or false_mgs['_id'].split('_')[1]
+                alert_collection = self.db_coll[f'{which_tier}Alert']
 
                 if alert_collection.count() == 0:
                     click.secho(f'{"-" * 57}', fg='bright_blue')
@@ -150,7 +150,7 @@ class Retraction:
                     self.id_retraction(false_id=false_mgs['false_id'], alert_collection=alert_collection)
                     self.latest_retraction(retract_latest=false_mgs['retract_latest'],
                                            N_retract_latest=false_mgs['N_retract_latest'],
-                                           which_tier=obs_type,
+                                           which_tier=which_tier,
                                            alert_coll=alert_collection)
                     query = {'_id': false_mgs['_id']}
                     self.false_coll.delete_one(query)

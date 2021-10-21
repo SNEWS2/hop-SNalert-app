@@ -5,6 +5,7 @@ import click
 from .hop_pub import Publish_Alert
 from .snews_utils import TimeStuff
 from .snews_utils import get_detector
+import numpy as np
 
 
 # TODO Need implement retract latest
@@ -84,17 +85,18 @@ class Retraction:
 
         if which_tier == 'ALL':
             alert_collection = ['CoincidenceTier', 'SigTier', 'TimeTier']
-            for alert in which_tier:
+            for alert in alert_collection:
                 self.latest_retraction(N_retract_latest=N_retract_latest, which_tier=alert_collection[alert],
                                        which_detector=which_detector)
 
         if N_retract_latest == None:
             pass
-
+        if self.db_coll[f'{which_tier}Alert'].count() == 0:
+            return 'None alerts..'
         else:
             alert_collection = self.db_coll[f'{which_tier}Alert']
             drop_detector_id = get_detector(detector=which_detector).id
-            for alert in get_alert_collection(which_tier=which_tier):
+            for alert in self.storage.get_alert_collection(which_tier=which_tier):
                 ids = alert['ids']
                 ind = len(ids) - 1
                 n_drop = N_retract_latest
@@ -139,7 +141,7 @@ class Retraction:
             }
         )
         validity = 0
-        if len(alert['detector_names']) > 1:
+        if len(np.unique(alert['detector_names'])) > 1:
             validity = 1
         alert.update({'VALID_ALERT??': validity})
 

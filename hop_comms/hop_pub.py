@@ -207,7 +207,7 @@ class Publish_Tier_Obs:
         with stream.open(self.obs_broker, 'w') as s:
             s.write(obs_schema)
         click.secho(f'{"-" * 57}', fg='bright_blue')
-        if mgs_type == 'FalseOBS':
+        if msg_type == 'FalseOBS':
             click.secho("It's okay, we all make mistakes".upper,fg='pink')
         for k, v in obs_schema.items():
             print(f'{k:<20s}:{v}')

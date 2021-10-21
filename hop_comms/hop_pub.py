@@ -208,6 +208,6 @@ class Publish_Tier_Obs:
             s.write(obs_schema)
         click.secho(f'{"-" * 57}', fg='bright_blue')
         if msg_type == 'FalseOBS':
-            click.secho("It's okay, we all make mistakes".upper,fg='pink')
+            click.secho("It's okay, we all make mistakes".upper(),fg='magenta')
         for k, v in obs_schema.items():
             print(f'{k:<20s}:{v}')

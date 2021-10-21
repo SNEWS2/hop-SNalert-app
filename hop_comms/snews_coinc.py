@@ -249,10 +249,10 @@ class CoincDecider:
 
         for mgs in self.storage.get_false_warnings():
             # Delete N many false messages
-            if mgs['N_look_for_latest'] != 0 and (mgs['which_tier'] == 'CoincidenceTier' or mgs['which_tier'] == 'ALL'):
+            if mgs['N_retract_latest'] != 0 and (mgs['which_tier'] == 'CoincidenceTier' or mgs['which_tier'] == 'ALL'):
                 i = len(self.ids) - 1
                 drop_detector = mgs['detector_name']
-                delete_n_many = mgs['N_look_for_latest']
+                delete_n_many = mgs['N_retract_latest']
                 if mgs['N_look_for_latest'] == 'ALL':
                     delete_n_many = self.detectors.count(drop_detector)
                 print(

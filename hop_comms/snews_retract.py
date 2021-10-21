@@ -85,16 +85,17 @@ class Retraction:
 
         if which_tier == 'ALL':
             alert_collection = ['CoincidenceTier', 'SigTier', 'TimeTier']
-            for alert in alert_collection:
-                self.latest_retraction(N_retract_latest=N_retract_latest, which_tier=alert_collection[alert],
+            for alert_type in alert_collection:
+                # print(alert)
+                self.latest_retraction(N_retract_latest=N_retract_latest, which_tier=alert_type,
                                        which_detector=which_detector)
 
         if N_retract_latest == None:
             pass
-        if self.db_coll[f'{which_tier}Alert'].count() == 0:
+        if which_tier != 'ALL' and self.db_coll[f'{which_tier}Alert'].count() == 0:
             return 'None alerts..'
         else:
-            alert_collection = self.db_coll[f'{which_tier}Alert']
+            # alert_collection = self.db_coll[f'{which_tier}Alert']
             drop_detector_id = get_detector(detector=which_detector).id
             for alert in self.storage.get_alert_collection(which_tier=which_tier):
                 ids = alert['ids']
@@ -137,13 +138,15 @@ class Retraction:
                 'machine_times': self.update_alert_item(alert['machine_times'], ind),
                 # 'locations': self.update_alert_item(alert['locations'], ind),
                 'time_of_retraction': self.times.get_snews_time(),
-                'Events_retracted': n_drop,
+
             }
         )
         validity = 0
+        print(alert['detector_names'])
         if len(np.unique(alert['detector_names'])) > 1:
             validity = 1
         alert.update({'VALID_ALERT??': validity})
+        alert.update({'Events_retracted': n_drop})
 
         return alert
 

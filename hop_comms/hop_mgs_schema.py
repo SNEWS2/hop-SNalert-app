@@ -108,7 +108,7 @@ class Message_Schema:
                                 'detector_name': self.detector_name,
                                 'false_id': data['false_id'],
                                 'which_tier': data['which_tier'],
-                                'N_look_for_latest': data['N_look_for_latest'],
+                                'N_retract_latest': data['N_retract_latest'],
                                 'sent_time': sent_time}
 
         message = messages[msg_type]

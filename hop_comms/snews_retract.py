@@ -24,6 +24,7 @@ class Retraction:
         self.db_coll = self.storage.coll_list
         self.pub = Publish_Alert(env_path=env_path, use_local=use_local)
         self.times = TimeStuff(env_path=env_path)
+        self.post_pub_retraction = False
 
     def update_alert_item(self, alert_item, ind):
         """
@@ -75,6 +76,7 @@ class Retraction:
                     updated_alert = self.retract_all_false_items(alert, index)
                     alert_collection.update_one(filter=query, update={"$set": updated_alert})
                     self.publish_retract(alert)
+                    self.post_pub_retraction = True
 
                 index += 1
 
@@ -86,16 +88,18 @@ class Retraction:
         if which_tier == 'ALL':
             alert_collection = ['CoincidenceTier', 'SigTier', 'TimeTier']
             for alert_type in alert_collection:
-                # print(alert)
+                print(alert_type)
                 self.latest_retraction(N_retract_latest=N_retract_latest, which_tier=alert_type,
                                        which_detector=which_detector)
 
         if N_retract_latest == None:
             pass
+        print(which_tier)
         if which_tier != 'ALL' and self.db_coll[f'{which_tier}Alert'].count() == 0:
-            return 'None alerts..'
-        else:
-            # alert_collection = self.db_coll[f'{which_tier}Alert']
+            click.secho(f'No alerts to retract for {which_tier}'.upper(), fg='red')
+            pass
+        elif which_tier != 'ALL' and self.db_coll[f'{which_tier}Alert'].count() >= 1:
+            click.secho(f'Parsing through {which_tier} Alerts'.upper(), fg='red')
             drop_detector_id = get_detector(detector=which_detector).id
             for alert in self.storage.get_alert_collection(which_tier=which_tier):
                 ids = alert['ids']
@@ -114,6 +118,7 @@ class Retraction:
                         break
                     ind -= 1
                 self.publish_retract(alert)
+                self.post_pub_retraction = True
 
     def retract_all_false_items(self, alert, ind, n_drop):
         """
@@ -161,6 +166,19 @@ class Retraction:
 
         """
         self.pub.publish_retraction(retracted_mgs=alert)
+    def delete_old_false_warning(self, false_mgs):
+        """
+        Deletes false warning after it's used for retraction.
+
+        Parameters
+        ----------
+        false_mgs: 'dict'
+            false warning message
+        """
+        if self.post_pub_retraction:
+            print('deleting false message')
+            query = {'_id': false_mgs['_id']}
+            self.false_coll.delete_one(query)
 
     def check_for_false(self):
         """
@@ -177,6 +195,8 @@ class Retraction:
                 print('No false warnings')
             for doc in stream:
                 click.secho(f'{"-" * 57}', fg='bright_blue')
+                click.secho(f'Received a false warning... checking alerts'.upper(), fg='bright_blue')
+                print(doc)
                 false_mgs = doc['fullDocument']
                 which_tier = false_mgs['which_tier'] or false_mgs['_id'].split('_')[1]
 
@@ -184,5 +204,5 @@ class Retraction:
                 self.latest_retraction(which_detector=false_mgs['detector_name'],
                                        N_retract_latest=false_mgs['N_retract_latest'],
                                        which_tier=which_tier)
-                query = {'_id': false_mgs['_id']}
-                self.false_coll.delete_one(query)
+                self.delete_old_false_warning(false_mgs)
+

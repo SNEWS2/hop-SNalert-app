@@ -260,8 +260,8 @@ def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
     """
     keys = ['machine_time', 'neutrino_time', 'p_value', 'timing_series', 'detector_status', 'false_id',
             'N_retract_latest', 'which_tier']
-    values = [machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id,
-              N_retract_latest, which_tier]
+    values = [machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id, N_retract_latest,
+              which_tier]
     # allow for keyword-args
     for k, v in kwargs.items():
         keys.append(k)

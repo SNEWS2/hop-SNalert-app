@@ -228,6 +228,8 @@ class CoincDecider:
                 # Run recursion
                 click.secho('\n\nStarting new stream..\n\n'.upper(), bold=True, fg='bright_white', underline=True)
                 self.run_coincidence()
+            if self.storage.coincidence_tier_cache.count() == 0:
+                self.run_coincidence()
 
 
     def in_cache_retract(self):
@@ -253,7 +255,7 @@ class CoincDecider:
                 i = len(self.ids) - 1
                 drop_detector = mgs['detector_name']
                 delete_n_many = mgs['N_retract_latest']
-                if mgs['N_look_for_latest'] == 'ALL':
+                if mgs['N_retract_latest'] == 'ALL':
                     delete_n_many = self.detectors.count(drop_detector)
                 print(
                     f'\nDropping latest message(s) from {drop_detector}\nRetracting: {delete_n_many} messages')
@@ -285,7 +287,7 @@ class CoincDecider:
             given coincidence window
 
         """
-        unique_detectors = np.unique(self.detectors)
+        unique_detectors = np.unique(self.detectors).tolist()
         if self.coinc_broken and len(unique_detectors) > 1:
             click.secho(f'{"=" * 57}', fg='bright_red')
             alert_data = snews_utils.data_alert(detectors=unique_detectors,
@@ -312,11 +314,11 @@ class CoincDecider:
                 print('Nothing here, please wait...')
 
             for doc in stream:
-                SNEWS_message = doc['fullDocument']
+                snews_message = doc['fullDocument']
                 click.secho(f'{"-" * 57}', fg='bright_blue')
                 click.secho('Incoming message !!!'.upper(), bold=True, fg='red')
-                click.secho(f'{SNEWS_message["_id"]}'.upper(), fg='bright_green')
-                self.set_initial_signal(SNEWS_message)
-                self.check_for_coinc(SNEWS_message)
+                click.secho(f'{snews_message["_id"]}'.upper(), fg='bright_green')
+                self.set_initial_signal(snews_message)
+                self.check_for_coinc(snews_message)
                 print(f'Detectors: {self.detectors}')
                 self.waited_long_enough()

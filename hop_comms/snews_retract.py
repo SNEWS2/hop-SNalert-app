@@ -88,16 +88,16 @@ class Retraction:
         if which_tier == 'ALL':
             alert_collection = ['CoincidenceTier', 'SigTier', 'TimeTier']
             for alert_type in alert_collection:
-                print(alert_type)
                 self.latest_retraction(N_retract_latest=N_retract_latest, which_tier=alert_type,
                                        which_detector=which_detector)
 
         if N_retract_latest == None:
             pass
-        print(which_tier)
+
         if which_tier != 'ALL' and self.db_coll[f'{which_tier}Alert'].count() == 0:
             click.secho(f'No alerts to retract for {which_tier}'.upper(), fg='red')
             pass
+
         elif which_tier != 'ALL' and self.db_coll[f'{which_tier}Alert'].count() >= 1:
             click.secho(f'Parsing through {which_tier} Alerts'.upper(), fg='red')
             drop_detector_id = get_detector(detector=which_detector).id
@@ -147,7 +147,6 @@ class Retraction:
             }
         )
         validity = 0
-        print(alert['detector_names'])
         if len(np.unique(alert['detector_names'])) > 1:
             validity = 1
         alert.update({'VALID_ALERT??': validity})
@@ -179,6 +178,15 @@ class Retraction:
             print('deleting false message')
             query = {'_id': false_mgs['_id']}
             self.false_coll.delete_one(query)
+            if self.false_coll.count() == 0:
+                self.check_for_false()
+
+    def maintain_stream(self):
+        curr_false_message_count = self.storage.false_warnings.count()
+
+        while curr_false_message_count == self.storage.false_warnings.count():
+            pass
+
 
     def check_for_false(self):
         """
@@ -194,12 +202,10 @@ class Retraction:
                 click.secho(f'{"-" * 57}', fg='bright_blue')
                 print('No false warnings')
             for doc in stream:
-                click.secho(f'{"-" * 57}', fg='bright_blue')
-                click.secho(f'Received a false warning... checking alerts'.upper(), fg='bright_blue')
-                print(doc)
                 false_mgs = doc['fullDocument']
                 which_tier = false_mgs['which_tier'] or false_mgs['_id'].split('_')[1]
-
+                click.secho(f'{"-" * 57}', fg='bright_blue')
+                click.secho(f'Received a false warning... checking alerts'.upper(), fg='bright_blue')
                 self.id_retraction(false_id=false_mgs['false_id'])
                 self.latest_retraction(which_detector=false_mgs['detector_name'],
                                        N_retract_latest=false_mgs['N_retract_latest'],

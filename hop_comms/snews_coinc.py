@@ -325,11 +325,12 @@ class CoincDecider:
                 print('Nothing here, please wait...')
 
             for doc in stream:
+                if self.storage.empty_coinc_cache():
+                    self.run_coincidence()
                 snews_message = doc['fullDocument']
                 click.secho(f'{"-" * 57}', fg='bright_blue')
                 click.secho('Incoming message !!!'.upper(), bold=True, fg='red')
                 click.secho(f'{snews_message["_id"]}'.upper(), fg='bright_green')
                 self.set_initial_signal(snews_message)
                 self.check_for_coinc(snews_message)
-                print(f'Detectors: {self.detectors}')
                 self.waited_long_enough()

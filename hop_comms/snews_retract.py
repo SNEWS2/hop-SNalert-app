@@ -71,7 +71,7 @@ class Retraction:
             ids = alert['ids']
             events = alert['detector_events']
             index = 0
-            print(events)
+
             for mgs_id in ids:
                 if mgs_id == false_id:
                     print(f'found it in alert {alert["_id"]}!!')
@@ -172,7 +172,6 @@ class Retraction:
         validity = 0
         if alert['detector_events'][detector_name] == 0:
             alert['detector_events'].pop(detector_name, None)
-            print(alert['detector_events'])
             alert.update({'detector_events': alert['detector_events']})
 
         if len(alert['detector_events'].keys()) > 1:
@@ -192,7 +191,6 @@ class Retraction:
             SNEWS alert dictionary
 
         """
-        print(alert)
         self.pub.publish_retraction(retracted_mgs=alert)
 
     def delete_old_false_warning(self):
@@ -208,7 +206,10 @@ class Retraction:
             print('Deleting old false message')
             query = {'_id': self.old_false_mgs['_id']}
             self.false_coll.delete_one(query)
-
+    def protect_stream(self, old_cache_count):
+        print(self.false_coll.count())
+        if old_cache_count > self.false_coll.count():
+            self.run_retraction()
     def run_retraction(self):
         """
         Main body, this method sets up stream using the fasle message collection.
@@ -223,6 +224,8 @@ class Retraction:
                 click.secho(f'{"-" * 57}', fg='bright_blue')
                 print('No false warnings')
             for doc in stream:
+                if self.storage.empty_false_warnings():
+                    self.run_retraction()
                 false_mgs = doc['fullDocument']
                 which_tier = false_mgs['which_tier'] or false_mgs['_id'].split('_')[1]
                 click.secho(f'{"-" * 57}', fg='bright_blue')
@@ -234,3 +237,5 @@ class Retraction:
                                        which_tier=which_tier)
                 if self.post_pub_retraction:
                     self.old_false_mgs = false_mgs
+
+

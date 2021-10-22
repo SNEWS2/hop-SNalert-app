@@ -25,6 +25,7 @@ class Retraction:
         self.pub = Publish_Alert(env_path=env_path, use_local=use_local)
         self.times = TimeStuff(env_path=env_path)
         self.post_pub_retraction = False
+        self.old_false_mgs = None
 
     def update_alert_item(self, alert_item, ind):
         """
@@ -43,7 +44,7 @@ class Retraction:
         alert_item.pop(ind)
         return alert_item
 
-    def id_retraction(self, false_id):
+    def id_retraction(self, false_id, which_detector):
         """
         This method checks for a specific false message id, finds it in a mongo OBS collection 
         , deletes it from the collection, and then publishes the new alert 
@@ -68,19 +69,22 @@ class Retraction:
 
         for alert in alert_collection.find().sort('sent_time'):
             ids = alert['ids']
+            events = alert['detector_events']
             index = 0
+            print(events)
             for mgs_id in ids:
                 if mgs_id == false_id:
                     print(f'found it in alert {alert["_id"]}!!')
                     query = {'_id': alert['_id']}
-                    updated_alert = self.retract_all_false_items(alert, index)
+                    events.update({which_detector: events[which_detector] - 1})
+                    updated_alert = self.retract_all_false_items(alert=alert, ind=index, events=events, detector_name=which_detector)
                     alert_collection.update_one(filter=query, update={"$set": updated_alert})
                     self.publish_retract(alert)
                     self.post_pub_retraction = True
 
                 index += 1
 
-    def latest_retraction(self, N_retract_latest, which_tier, which_detector):
+    def latest_retraction(self, n_retract_latest, which_tier, which_detector):
         """
         This methods will retract the latest messages from 
         """
@@ -88,10 +92,10 @@ class Retraction:
         if which_tier == 'ALL':
             alert_collection = ['CoincidenceTier', 'SigTier', 'TimeTier']
             for alert_type in alert_collection:
-                self.latest_retraction(N_retract_latest=N_retract_latest, which_tier=alert_type,
+                self.latest_retraction(n_retract_latest=n_retract_latest, which_tier=alert_type,
                                        which_detector=which_detector)
 
-        if N_retract_latest == None:
+        if n_retract_latest == 0:
             pass
 
         if which_tier != 'ALL' and self.db_coll[f'{which_tier}Alert'].count() == 0:
@@ -102,25 +106,33 @@ class Retraction:
             click.secho(f'Parsing through {which_tier} Alerts'.upper(), fg='red')
             drop_detector_id = get_detector(detector=which_detector).id
             for alert in self.storage.get_alert_collection(which_tier=which_tier):
+                if which_detector not in alert['detector_events'].keys():
+                    print(f'No messages to retract for {which_detector}')
+                    continue
                 ids = alert['ids']
                 ind = len(ids) - 1
-                n_drop = N_retract_latest
+                n_drop = n_retract_latest
                 if n_drop == 'ALL':
-                    n_drop = len(ids) - 1
+                    n_drop = alert['detector_events'][which_detector]
                 query = {'_id': alert['_id']}
+                print(f'Dropping {n_drop} messages from {which_detector}')
+                events = alert['detector_events']
                 for id in reversed(ids):
-                    detector_id = id.split('_')[0]
+                    detector_id = int(id.split('_')[0])
                     if detector_id == drop_detector_id:
                         n_drop -= 1
-                        updated_alert = self.retract_all_false_items(alert=alert, ind=ind, n_drop=n_drop)
-                        alert_collection.update_one(filter=query, update={"$set": updated_alert})
+                        events.update({which_detector: events[which_detector] - 1})
+                        updated_alert = self.retract_all_false_items(alert=alert, ind=ind, n_drop=n_drop,
+                                                                     events=events, detector_name=which_detector)
+                        self.storage.coll_list[f'{which_tier}Alert'].update_one(filter=query,
+                                                                                update={"$set": updated_alert})
+                        self.publish_retract(alert)
+                        self.post_pub_retraction = True
                     if n_drop == 0:
                         break
                     ind -= 1
-                self.publish_retract(alert)
-                self.post_pub_retraction = True
 
-    def retract_all_false_items(self, alert, ind, n_drop):
+    def retract_all_false_items(self, alert, ind, n_drop, events, detector_name):
         """
         Parses alert dict,pops the items belonging to the false observation,
         determines if the alert is still valid and updates it.
@@ -132,12 +144,22 @@ class Retraction:
             SNEWS alert dictionary
         ind: 'int'
             index of false observation
+        n_drop: 'int'
+            number of retracted events
+        events: 'dict'
+            updated detector_events dict from the alert messages
+        detector_name: 'str'
+            name of detector
+
+        Returns
+        -------
+        updated alert
 
         """
 
         alert.update(
             {
-                'detector_names': self.update_alert_item(alert['detector_names'], ind),
+                'detector_events': events,
                 'ids': self.update_alert_item(alert['ids'], ind),
                 'neutrino_times': self.update_alert_item(alert['neutrino_times'], ind),
                 'machine_times': self.update_alert_item(alert['machine_times'], ind),
@@ -146,8 +168,14 @@ class Retraction:
 
             }
         )
+        print(f"detector events: {alert['detector_events']}")
         validity = 0
-        if len(np.unique(alert['detector_names'])) > 1:
+        if alert['detector_events'][detector_name] == 0:
+            alert['detector_events'].pop(detector_name, None)
+            print(alert['detector_events'])
+            alert.update({'detector_events': alert['detector_events']})
+
+        if len(alert['detector_events'].keys()) > 1:
             validity = 1
         alert.update({'VALID_ALERT??': validity})
         alert.update({'Events_retracted': n_drop})
@@ -164,8 +192,10 @@ class Retraction:
             SNEWS alert dictionary
 
         """
+        print(alert)
         self.pub.publish_retraction(retracted_mgs=alert)
-    def delete_old_false_warning(self, false_mgs):
+
+    def delete_old_false_warning(self):
         """
         Deletes false warning after it's used for retraction.
 
@@ -174,21 +204,12 @@ class Retraction:
         false_mgs: 'dict'
             false warning message
         """
-        if self.post_pub_retraction:
-            print('deleting false message')
-            query = {'_id': false_mgs['_id']}
+        if self.post_pub_retraction and self.old_false_mgs != None:
+            print('Deleting old false message')
+            query = {'_id': self.old_false_mgs['_id']}
             self.false_coll.delete_one(query)
-            if self.false_coll.count() == 0:
-                self.check_for_false()
 
-    def maintain_stream(self):
-        curr_false_message_count = self.storage.false_warnings.count()
-
-        while curr_false_message_count == self.storage.false_warnings.count():
-            pass
-
-
-    def check_for_false(self):
+    def run_retraction(self):
         """
         Main body, this method sets up stream using the fasle message collection.
         For each false message the method will the loop through all alert_collection that have been published.
@@ -206,9 +227,10 @@ class Retraction:
                 which_tier = false_mgs['which_tier'] or false_mgs['_id'].split('_')[1]
                 click.secho(f'{"-" * 57}', fg='bright_blue')
                 click.secho(f'Received a false warning... checking alerts'.upper(), fg='bright_blue')
-                self.id_retraction(false_id=false_mgs['false_id'])
+                self.delete_old_false_warning()
+                self.id_retraction(false_id=false_mgs['false_id'], which_detector=false_mgs['detector_name'])
                 self.latest_retraction(which_detector=false_mgs['detector_name'],
-                                       N_retract_latest=false_mgs['N_retract_latest'],
+                                       n_retract_latest=false_mgs['N_retract_latest'],
                                        which_tier=which_tier)
-                self.delete_old_false_warning(false_mgs)
-
+                if self.post_pub_retraction:
+                    self.old_false_mgs = false_mgs

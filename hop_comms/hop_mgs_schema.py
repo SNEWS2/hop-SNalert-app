@@ -109,6 +109,7 @@ class Message_Schema:
                                 'false_id': data['false_id'],
                                 'which_tier': data['which_tier'],
                                 'N_retract_latest': data['N_retract_latest'],
+                                'retraction_reason':data['retraction_reason'],
                                 'sent_time': sent_time}
 
         message = messages[msg_type]
@@ -146,7 +147,7 @@ class Message_Schema:
 
         """
         base = {"_id": self.id_format("ALERT", f'{msg_type}'),
-                "detector_names": data['detectors'],
+                "detector_events": data['detector_events'],
                 "ids": data['ids'],
                 "sent_time": sent_time,
                 "neutrino_times": data['neutrino_times'],

@@ -226,7 +226,7 @@ def display_gif():
 
 def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
              detector_status=None, false_mgs_id=None, which_tier=None,
-             N_retract_latest=0, **kwargs):
+             N_retract_latest=0, retraction_reason=None, **kwargs):
     """ Default observation message data
         
         Parameters
@@ -248,6 +248,8 @@ def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
         N_retract_latest: 'int' or 'str'
             Tells retraction methods to look for N  latest message sent by a detector. can also pass 'ALL'
             to retract all messages in a OBS tier.
+        retraction_reason: 'str"
+            Reason for message(s) retraction
         **kwargs 
             Any other key-value pair desired to be published. Notice,
             these additional arguments will be prepended with ^.
@@ -259,9 +261,9 @@ def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
 
     """
     keys = ['machine_time', 'neutrino_time', 'p_value', 'timing_series', 'detector_status', 'false_id',
-            'N_retract_latest', 'which_tier']
+            'N_retract_latest', 'which_tier', 'retraction_reason']
     values = [machine_time, nu_time, p_value, timing_series, detector_status, false_mgs_id, N_retract_latest,
-              which_tier]
+              which_tier, retraction_reason]
     # allow for keyword-args
     for k, v in kwargs.items():
         keys.append(k)
@@ -271,7 +273,7 @@ def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
     return data_dict
 
 
-def data_alert(p_vals=None, detectors=None, t_series=None, nu_times=None,
+def data_alert(p_vals=None, detector_events=None, t_series=None, nu_times=None,
                ids=None, locs=None, status=None, machine_times=None):
     """ Default alert message data
         
@@ -279,8 +281,8 @@ def data_alert(p_vals=None, detectors=None, t_series=None, nu_times=None,
         ----------
         p_vals : `list`
             list with p-values of the observations involved in the alert
-        detectors : `list`
-            list of detectors involved in the alert
+        detectors_events : `dict`
+            dict of detectors and their number of events involved in the alert
         t_series : `list`
             list of timeseries (if applicable)
         nu_time : `list`
@@ -300,8 +302,8 @@ def data_alert(p_vals=None, detectors=None, t_series=None, nu_times=None,
                 dictionary of the complete alert data
 
     """
-    keys = ['p_vals', 'detectors', 't_series', 'neutrino_times', 'ids', 'locs', 'status', 'machine_times']
-    values = [p_vals, detectors, t_series, nu_times, ids, locs, status, machine_times]
+    keys = ['p_vals', 'detector_events', 't_series', 'neutrino_times', 'ids', 'locs', 'status', 'machine_times']
+    values = [p_vals, detector_events, t_series, nu_times, ids, locs, status, machine_times]
     return dict(zip(keys, values))
 
 # Note from from Seb: :(

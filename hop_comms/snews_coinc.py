@@ -50,6 +50,7 @@ class CoincDecider:
         self.nu_times = []
         self.machine_times = []
         self.p_vals = []
+        self.detector_events = {}
 
         self.coinc_broken = False
 
@@ -66,6 +67,7 @@ class CoincDecider:
         """
         self.nu_times.append(mgs['neutrino_time'])
         self.detectors.append(mgs['detector_name'])
+        self.count_detector_events(detector_name=mgs['detector_name'], add_or_pop=1)
         self.machine_times.append(mgs['machine_time'])
         self.p_vals.append(mgs['p_value'])
         self.ids.append(mgs['_id'])
@@ -81,10 +83,11 @@ class CoincDecider:
         if self.coinc_broken:
             self.ids = []
             self.delta_ts = []
-            self.detectors = []
             self.nu_times = []
             self.machine_times = []
             self.p_vals = []
+            self.detector_events = {}
+            self.detectors = []
         else:
             pass
 
@@ -109,7 +112,7 @@ class CoincDecider:
         else:
             pass
 
-    def kill_false_element(self, index):
+    def kill_false_element(self, detector_name, index):
         """ Remove the information at a given index
 
         Parameters
@@ -118,12 +121,13 @@ class CoincDecider:
             The index in which the information is removed
 
         """
-        self.detectors.pop(index)
+        self.count_detector_events(detector_name=detector_name, add_or_pop=-1)
         self.ids.pop(index)
         self.nu_times.pop(index)
         self.delta_ts.pop(index)
         self.p_vals.pop(index)
         self.machine_times.pop(index)
+        self.detectors.pop(index)
 
     def reset_cache(self):
         """ Resets mongo cache and all coincidence arrays if coincidence is broken
@@ -231,7 +235,6 @@ class CoincDecider:
             if self.storage.coincidence_tier_cache.count() == 0:
                 self.run_coincidence()
 
-
     def in_cache_retract(self):
         """ 
         loops through false warnings collection looks for 
@@ -257,12 +260,12 @@ class CoincDecider:
                 delete_n_many = mgs['N_retract_latest']
                 if mgs['N_retract_latest'] == 'ALL':
                     delete_n_many = self.detectors.count(drop_detector)
-                print(
-                    f'\nDropping latest message(s) from {drop_detector}\nRetracting: {delete_n_many} messages')
+
+                print(f'\nDropping latest message(s) from {drop_detector}\nRetracting: {delete_n_many} messages')
                 for detector_name in reversed(self.detectors):
                     if delete_n_many > 0 and detector_name == drop_detector:
                         delete_n_many -= 1
-                        self.kill_false_element(index=i)
+                        self.kill_false_element(index=i, detector_name=drop_detector)
                     i -= 1
                 query = {'_id': mgs['_id']}
                 self.storage.false_warnings.delete_one(query)
@@ -273,13 +276,21 @@ class CoincDecider:
                 i = 0
                 for id in self.ids:
                     if false_id == id:
-                        self.kill_false_element(index=i)
+                        self.kill_false_element(index=i, detector_name=mgs['detector_name'])
                         print(f'\nFalse mgs found {id}\nPurging it from coincidence list\n')
                         break
                         # print(f'\nNew list of coincident detectors:\n{self.detectors}')
                     i += 1
                 query = {'_id': mgs['_id']}
                 self.storage.false_warnings.delete_one(query)
+
+    def count_detector_events(self, detector_name, add_or_pop):
+        if detector_name in self.detector_events.keys():
+            self.detector_events[detector_name] += add_or_pop
+        else:
+            self.detector_events[detector_name] = 1
+        if self.detector_events[detector_name] == 0:
+            self.detector_events.pop(detector_name, None)
 
     def pub_alert(self):
         """ When the coincidence is broken publish alert
@@ -290,7 +301,7 @@ class CoincDecider:
         unique_detectors = np.unique(self.detectors).tolist()
         if self.coinc_broken and len(unique_detectors) > 1:
             click.secho(f'{"=" * 57}', fg='bright_red')
-            alert_data = snews_utils.data_alert(detectors=unique_detectors,
+            alert_data = snews_utils.data_alert(detector_events=self.detector_events,
                                                 ids=self.ids,
                                                 p_vals=self.p_vals,
                                                 nu_times=self.nu_times,

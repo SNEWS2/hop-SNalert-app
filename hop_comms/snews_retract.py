@@ -206,10 +206,7 @@ class Retraction:
             print('Deleting old false message')
             query = {'_id': self.old_false_mgs['_id']}
             self.false_coll.delete_one(query)
-    def protect_stream(self, old_cache_count):
-        print(self.false_coll.count())
-        if old_cache_count > self.false_coll.count():
-            self.run_retraction()
+
     def run_retraction(self):
         """
         Main body, this method sets up stream using the fasle message collection.
@@ -224,18 +221,22 @@ class Retraction:
                 click.secho(f'{"-" * 57}', fg='bright_blue')
                 print('No false warnings')
             for doc in stream:
-                if self.storage.empty_false_warnings():
+
+                if 'fullDocument' not in doc.keys():
+                    print('Stream is empty')
                     self.run_retraction()
+                print(doc)
                 false_mgs = doc['fullDocument']
                 which_tier = false_mgs['which_tier'] or false_mgs['_id'].split('_')[1]
                 click.secho(f'{"-" * 57}', fg='bright_blue')
                 click.secho(f'Received a false warning... checking alerts'.upper(), fg='bright_blue')
-                self.delete_old_false_warning()
+
                 self.id_retraction(false_id=false_mgs['false_id'], which_detector=false_mgs['detector_name'])
                 self.latest_retraction(which_detector=false_mgs['detector_name'],
                                        n_retract_latest=false_mgs['N_retract_latest'],
                                        which_tier=which_tier)
                 if self.post_pub_retraction:
                     self.old_false_mgs = false_mgs
+                self.delete_old_false_warning()
 
 

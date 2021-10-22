@@ -20,9 +20,9 @@ class CoincDecider:
     
     """
 
-    def __init__(self, env_path=None, use_local=False):
+    def __init__(self, env_path=None, use_local=False, hype_mode_ON=False):
         snews_utils.set_env(env_path)
-
+        self.hype_mode_ON = hype_mode_ON
         self.storage = Storage(drop_db=False, use_local=use_local)
         self.topic_type = "CoincidenceTierAlert"
         self.coinc_threshold = float(os.getenv('COINCIDENCE_THRESHOLD'))
@@ -143,6 +143,21 @@ class CoincDecider:
         else:
             pass
 
+    def hype_mode_publish(self, old_unique_count):
+        """
+        This method will publish an alert every time a new detector
+        """
+        if self.hype_mode_ON and old_unique_count < len(np.unique(self.detectors).tolist()):
+            click.secho(f'{"=" * 57}', fg='bright_red')
+            alert_data = snews_utils.data_alert(detector_events=self.detector_events,
+                                                ids=self.ids,
+                                                p_vals=self.p_vals,
+                                                nu_times=self.nu_times,
+                                                machine_times=self.machine_times)
+            self.alert.publish(msg_type=self.topic_type, data=alert_data)
+            click.secho('Published an Alert!!!'.upper(), bg='bright_green', fg='red')
+            click.secho(f'{"=" * 57}', fg='bright_red')
+
     def check_for_coinc(self, mgs):
         """ 
         Checks new message in the stream, 
@@ -169,8 +184,10 @@ class CoincDecider:
 
             if self.delta_t <= self.coinc_threshold:
                 self.append_arrs(mgs)
+                unique_detectors = np.unique(self.detectors).tolist()
                 click.secho('got something'.upper(), fg='white', bg='red')
                 print(f'{self.delta_ts}')
+                self.hype_mode_publish(old_unique_count=unique_detectors)
                 # self.counter += 1
             # should the same experiment sends two messages one after the other
             # the coincidence would break since curr_loc == old_loc
@@ -325,7 +342,7 @@ class CoincDecider:
                 print('Nothing here, please wait...')
 
             for doc in stream:
-                if self.storage.empty_coinc_cache():
+                if 'fullDocument' not in doc.keys():
                     self.run_coincidence()
                 snews_message = doc['fullDocument']
                 click.secho(f'{"-" * 57}', fg='bright_blue')

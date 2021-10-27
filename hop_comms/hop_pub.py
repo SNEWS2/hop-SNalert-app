@@ -150,9 +150,9 @@ class Publish_Alert:
         stream = Stream(persist=False)
         with stream.open(self.alert_topic, "w") as s:
             s.write(alert_schema)
-        self.storage.insert_mgs(alert_schema)
-        for k, v in alert_schema.items():
-            print(f'{k:<20s}:{v}')
+            self.storage.insert_mgs(alert_schema)
+        # for k, v in alert_schema.items():
+        #     print(f'{k:<20s}:{v}')
 
     def publish_retraction(self, retracted_mgs):
         """

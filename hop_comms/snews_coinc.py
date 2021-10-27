@@ -143,11 +143,11 @@ class CoincDecider:
         else:
             pass
 
-    def hype_mode_publish(self, old_unique_count):
+    def hype_mode_publish(self, n_old_unique_count):
         """
         This method will publish an alert every time a new detector
         """
-        if self.hype_mode_ON and old_unique_count < len(np.unique(self.detectors).tolist()):
+        if self.hype_mode_ON and n_old_unique_count < len(np.unique(self.detectors)) and n_old_unique_count > 1:
             click.secho(f'{"=" * 57}', fg='bright_red')
             alert_data = snews_utils.data_alert(detector_events=self.detector_events,
                                                 ids=self.ids,
@@ -184,14 +184,9 @@ class CoincDecider:
 
             if self.delta_t <= self.coinc_threshold:
                 self.append_arrs(mgs)
-                unique_detectors = np.unique(self.detectors).tolist()
                 click.secho('got something'.upper(), fg='white', bg='red')
-                print(f'{self.delta_ts}')
-                self.hype_mode_publish(old_unique_count=unique_detectors)
-                # self.counter += 1
-            # should the same experiment sends two messages one after the other
-            # the coincidence would break since curr_loc == old_loc
-            # do we want this?
+                # print(f'{self.delta_ts}')
+                self.counter += 1
             elif self.delta_t > self.coinc_threshold:
                 if self.delta_t > self.coinc_threshold:
                     print('Outside SN window')
@@ -298,8 +293,10 @@ class CoincDecider:
                         break
                         # print(f'\nNew list of coincident detectors:\n{self.detectors}')
                     i += 1
-                query = {'_id': mgs['_id']}
-                self.storage.false_warnings.delete_one(query)
+
+                if not self.hype_mode_ON:
+                    query = {'_id': mgs['_id']}
+                    self.storage.false_warnings.delete_one(query)
 
     def count_detector_events(self, detector_name, add_or_pop):
         if detector_name in self.detector_events.keys():
@@ -315,8 +312,7 @@ class CoincDecider:
             given coincidence window
 
         """
-        unique_detectors = np.unique(self.detectors).tolist()
-        if self.coinc_broken and len(unique_detectors) > 1:
+        if self.coinc_broken and len(self.detector_events.keys()) > 1:
             click.secho(f'{"=" * 57}', fg='bright_red')
             alert_data = snews_utils.data_alert(detector_events=self.detector_events,
                                                 ids=self.ids,
@@ -348,6 +344,8 @@ class CoincDecider:
                 click.secho(f'{"-" * 57}', fg='bright_blue')
                 click.secho('Incoming message !!!'.upper(), bold=True, fg='red')
                 click.secho(f'{snews_message["_id"]}'.upper(), fg='bright_green')
+                n_unique_detectors = len(np.unique(self.detectors))
                 self.set_initial_signal(snews_message)
                 self.check_for_coinc(snews_message)
+                self.hype_mode_publish(n_old_unique_count=n_unique_detectors)
                 self.waited_long_enough()

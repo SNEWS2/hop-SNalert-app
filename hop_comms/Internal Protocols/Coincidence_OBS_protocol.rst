@@ -78,7 +78,9 @@ As of 11/02/21 has agreed to use the following schema.
 #. ``p_val`` float number representing the p-value of the neutrino event. 
 
 
+
 5. When to Publish to Coincidence Tier ?? 
+-----------------------------------------
 
 Note: See `SNEWS_PT Publishing tutorial <>`_ for a guide on how use the publishing method. 
 

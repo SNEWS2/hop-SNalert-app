@@ -83,8 +83,7 @@ class Message_Schema:
                 "detector_name": self.detector_name,
                 "sent_time": sent_time,
                 "machine_time": data['machine_time'],
-                "location": self.detector_loc,
-                "detector_status": data['detector_status']}
+               }
 
         messages = {}
         messages['Heartbeat'] = base.copy()

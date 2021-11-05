@@ -19,13 +19,11 @@ class Message_Schema:
     """
 
     def __init__(self, env_path=None, detector_key='TEST', alert=False):
-        if alert:
-            self.times = TimeStuff(env_path)
-        else:
+        self.times = TimeStuff(env_path)
+        if not alert:
             self.detector = snews_utils.get_detector(detector_key)
             self.detector_name = self.detector.name
             self.detector_loc = self.detector.location
-            self.times = TimeStuff(env_path)
 
     def id_format(self, topic_state, topic_type):
         """ Returns formatted message ID

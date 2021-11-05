@@ -24,7 +24,7 @@ def get_commit_message(bypass, topic):
 
     """
     header = "\n# Modify the message as desired\n\n\n#"+30*"-"+"\n"
-    curr_time = snews_utils.TimeStuff().get_snews_time()
+    curr_time = snews_utils.TimeStuff().get_snews_time("%H:%M:%S:%f")
 
     if topic == 'A':
         editables = snews_utils.data_alert()
@@ -73,7 +73,8 @@ def main(env):
 @click.option('--tier','-ti', type=str, default="CoincidenceTier", show_default='Coincidence Tier')
 @click.option('--bypass/--no-bypass', default=True, show_default='True', help='if False, asks user to modify the content of a message')
 @click.option('--env', default=None, show_default='test-config.env', help='environment file containing the configurations')
-def publish(topic, broker, experiment, tier, bypass, env):
+@click.option('--local/--no-local', default=False, show_default='False', help='Whether to use local database server or take from the env file')
+def publish(topic, broker, experiment, tier, bypass, env, local):
     """ Publish a message using hop_pub
 
     Notes
@@ -90,7 +91,7 @@ def publish(topic, broker, experiment, tier, bypass, env):
     # get the message
     data = get_commit_message(bypass, topic)
     if topic.upper()=='A':
-        pub = hop_pub.Publish_Alert()
+        pub = hop_pub.Publish_Alert(use_local=local)
         topic_col = 'red'
         append = ''
         contents = (tier+'Alert', data)
@@ -111,6 +112,7 @@ def publish(topic, broker, experiment, tier, bypass, env):
 @click.option('--env', default=None, show_default='test-config.env', help='environment file containing the configurations')
 @click.option('--experiment','-e', type=str, default="TEST", show_default='test experiment properties')
 @click.option('--rate','-r', default=60, nargs=1, help='rate in sec to send heartbeat messages')
+@click.option('--local/--no-local', default=False, show_default='False', help='Whether to use local database server or take from the env file')
 def publish_heartbeat(broker, env, experiment, rate):
     if broker == 'None': broker = set_topic('H', env)
     click.secho(f'>> You are publishing Heartbeat messages to {broker}\n>> with {rate} seconds intervals', fg='white', bg='blue', bold=False)
@@ -138,12 +140,13 @@ def run_coincidence(rate):
 @click.option('--broker','-b', type=str, default='None', show_default='from env variables', help='Selected kafka topic')
 @click.option('--env', default=None, show_default='test-config.env', help='environment file containing the configurations')
 @click.option('--verbose/--no-verbose', default=True, help='verbose output')
-def subscribe(topic, broker, env, verbose):
+@click.option('--local/--no-local', default=False, show_default='False', help='Whether to use local database server or take from the env file')
+def subscribe(topic, broker, env, verbose, local):
     """ subscribe to a topic
         If a broker
     """
     click.clear()
-    sub = hop_sub.HopSubscribe()
+    sub = hop_sub.HopSubscribe(use_local=local)
     # if no explicit broker is given, set topic with env
     # if env is also None, this uses default env.
     if broker == 'None': _ = set_topic(topic, env)

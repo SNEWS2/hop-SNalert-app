@@ -6,16 +6,13 @@
 ## Prevent unauthorized to publish alert topics? (likely not needed)
 
 # https://click.palletsprojects.com/en/8.0.x/utils/
-import click, os
-from collections import namedtuple
-
+import click
 from . import __version__
 from . import hop_pub
 from . import hop_sub
 from . import snews_utils
-from . import hop_mgs_schema
 from . import snews_coinc
-from . import snews_db
+from . import snews_retract
 
 # Kara: Testing PyCharm - Git interface
 def get_commit_message(bypass, topic):
@@ -119,8 +116,12 @@ def publish_heartbeat(broker, env, experiment, rate):
     pub.publish()
 
 @main.command()
-def retract():
-    click.echo('Not implemented yet!')
+@click.option('--local/--no-local', default=False, show_default='False', help='Whether to use local database server or take from the env file')
+def retract(local):
+    retraction = snews_retract.Retraction(local)
+    retraction.run_retraction()
+    ### This should not work like this. Instead, it should submit a message using publish.
+    ### with FalseOBS as its tier
 
 
 @main.command()
@@ -132,7 +133,9 @@ def run_coincidence(local, hype):
     click.echo('Initial implementation. Likely to change')
     # # Initiate Coincidence Decider
     coinc = snews_coinc.CoincDecider(use_local=local, hype_mode_ON=hype)
-    coinc.run_coincidence()
+    try: coinc.run_coincidence()
+    except KeyboardInterrupt: pass
+    finally: click.secho(f'\n{"="*30}DONE{"="*30}', fg='white', bg='green')
 
 
 @main.command()
@@ -153,7 +156,9 @@ def subscribe(topic, broker, env, verbose, local):
     # if a broker is also given, overwrite and use the given broker
     if broker != 'None': topic = broker    
     # click.secho(f'You are subscribing to '+click.style(top, fg='white', bg='bright_blue', bold=True))
-    sub.subscribe(which_topic=topic, verbose=verbose)
+    try: sub.subscribe(which_topic=topic, verbose=verbose)
+    except KeyboardInterrupt:  pass
+    finally: click.secho(f'\n{"="*30}DONE{"="*30}', fg='white', bg='green')
 
 @main.command()
 @click.option('--rate','-r', default=1, nargs=1, help='rate to send observation messages in sec')

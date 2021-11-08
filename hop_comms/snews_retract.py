@@ -10,14 +10,12 @@ import numpy as np
 
 # TODO Need implement retract latest
 class Retraction:
-    """
-    This class is incharge of looking for false observations and retracting alerts
+    """ This class is in charge of looking for false observations and retracting alerts
 
     """
 
     def __init__(self, env_path=None, use_local=False):
-        """
-        Constructor method
+        """ Constructor method
         """
         self.storage = Storage(drop_db=False, use_local=use_local)
         self.false_coll = self.storage.false_warnings
@@ -32,9 +30,9 @@ class Retraction:
         Takes in alert item (must be a list!) and removes the desired entry
         Parameters
         ----------
-        alert_item: 'list'
+        alert_item: `list`
             item from SNEWS alert
-        ind: 'int'
+        ind: `int`
             index of false observation
         Returns
         -------
@@ -51,11 +49,12 @@ class Retraction:
 
         Parameters
         __________
-        false_id: 'str'
+        false_id: `str`
             message id of false OBS
+        which_detector : `str`
+            for which detector to retract the message
 
         """
-
         if false_id != None:
             obs_type = false_id.split('_')[1]
             alert_collection = self.db_coll[f'{obs_type}Alert']
@@ -85,10 +84,9 @@ class Retraction:
                 index += 1
 
     def latest_retraction(self, n_retract_latest, which_tier, which_detector):
-        """
-        This methods will retract the latest messages from 
-        """
+        """ This methods will retract the latest messages from
 
+        """
         if which_tier == 'ALL':
             alert_collection = ['CoincidenceTier', 'SigTier', 'TimeTier']
             for alert_type in alert_collection:
@@ -140,15 +138,15 @@ class Retraction:
 
         Parameters
         ----------
-        alert: 'dict'
+        alert: `dict`
             SNEWS alert dictionary
-        ind: 'int'
+        ind: `int`
             index of false observation
-        n_drop: 'int'
+        n_drop: `int`
             number of retracted events
-        events: 'dict'
+        events: `dict`
             updated detector_events dict from the alert messages
-        detector_name: 'str'
+        detector_name: `str`
             name of detector
 
         Returns
@@ -156,7 +154,6 @@ class Retraction:
         updated alert
 
         """
-
         alert.update(
             {
                 'detector_events': events,
@@ -165,7 +162,6 @@ class Retraction:
                 'machine_times': self.update_alert_item(alert['machine_times'], ind),
                 # 'locations': self.update_alert_item(alert['locations'], ind),
                 'time_of_retraction': self.times.get_snews_time(),
-
             }
         )
         print(f"detector events: {alert['detector_events']}")
@@ -182,25 +178,24 @@ class Retraction:
         return alert
 
     def publish_retract(self, alert):
-        """
-        Publishes the retracted alert
+        """ Publishes the retracted alert
 
         Parameters
         ----------
-        alert: 'dict'
+        alert: `dict`
             SNEWS alert dictionary
 
         """
         self.pub.publish_retraction(retracted_mgs=alert)
 
     def delete_old_false_warning(self):
-        """
-        Deletes false warning after it's used for retraction.
+        """ Deletes false warning after it's used for retraction.
 
         Parameters
         ----------
-        false_mgs: 'dict'
+        false_mgs: `dict`
             false warning message
+
         """
         if self.post_pub_retraction and self.old_false_mgs != None:
             print('Deleting old false message')
@@ -238,5 +233,4 @@ class Retraction:
                 if self.post_pub_retraction:
                     self.old_false_mgs = false_mgs
                 self.delete_old_false_warning()
-
 

@@ -14,13 +14,13 @@ class CoincDecider:
         
     Parameters
     ----------
-    env_path : str, optional
+    env_path : `str`, optional
         user can give the path a specific SNEWS env file, 
         defaults to None ./auxiliary/test-config.env)
     
     """
 
-    def __init__(self, env_path=None, use_local=False, hype_mode_ON=False):
+    def __init__(self, env_path=None, use_local=False, hype_mode_ON=True):
         snews_utils.set_env(env_path)
         self.hype_mode_ON = hype_mode_ON
         self.storage = Storage(drop_db=False, use_local=use_local)
@@ -152,7 +152,7 @@ class CoincDecider:
             n_old_unique_count : `int`
                 the least number of detectors required for the hype publish
         """
-        if self.hype_mode_ON and n_old_unique_count < len(np.unique(self.detectors)) and n_old_unique_count > 1:
+        if self.hype_mode_ON and n_old_unique_count < len(np.unique(self.detectors)):
             click.secho(f'{"=" * 57}', fg='bright_red')
             alert_data = snews_utils.data_alert(detector_events=self.detector_events,
                                                 ids=self.ids,
@@ -182,22 +182,16 @@ class CoincDecider:
 
         if self.counter != 0:
             self.curr_nu_time = self.times.str_to_hr(mgs['neutrino_time'])
-            # self.curr_loc = mgs['location']
-            # self.old_detector = mgs['detector_name']
             self.delta_t = (self.curr_nu_time - self.initial_nu_time).total_seconds()
 
             if self.delta_t <= self.coinc_threshold:
                 self.append_arrs(mgs)
                 click.secho('got something'.upper(), fg='white', bg='red')
-                # print(f'{self.delta_ts}')
                 self.counter += 1
 
             # the conditional below, repeats itself
             elif self.delta_t > self.coinc_threshold:
-                if self.delta_t > self.coinc_threshold:
-                    print('Outside SN window')
-
-                # coincidence should be broken if the deta_t <= threshold. So, below should be one indent inner?
+                print('Outside SN window')
                 print('Coincidence is broken, checking to see if an ALERT can be published...\n\n')
                 self.coinc_broken = True
                 self.pub_alert()
@@ -356,6 +350,6 @@ class CoincDecider:
                 click.secho(f'{snews_message["_id"]}'.upper(), fg='bright_green')
                 n_unique_detectors = len(np.unique(self.detectors))
                 self.set_initial_signal(snews_message)
-                self.check_for_coinc(snews_message)
+                self.check_for_coinc(snews_message) # adds +1 detector
                 self.hype_mode_publish(n_old_unique_count=n_unique_detectors)
                 self.waited_long_enough()

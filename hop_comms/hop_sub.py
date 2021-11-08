@@ -130,7 +130,7 @@ def publish_format(which_topic, message):
                 click.echo(f'# {k:<20s}:{v:<36} #')
         click.echo('#'.center(61, '#'))
     elif which_topic == 'A':
-        click.echo(click.style('ALERT MESSAGE'.center(65, '_'), bg='bright_red'))
+        click.echo(click.style('ALERT MESSAGE'.center(65, '_'), bg='red', bold=True))
         for k, v in message.items():
             if type(v) == type(None): v = 'None'
             if type(v) == int:

@@ -35,12 +35,12 @@ class CoincDecider:
         self.counter = 0
 
         self.initial_nu_time = None
-        self.old_detector = None
+        # self.old_detector = None
         self.old_loc = None
 
         self.curr_nu_time = None
         self.curr_detector = None
-        self.curr_loc = None
+        # self.curr_loc = None
 
         self.delta_t = None
 
@@ -103,8 +103,8 @@ class CoincDecider:
         if self.counter == 0:
             print('Setting initial values')
             self.initial_nu_time = self.times.str_to_hr(mgs['neutrino_time'])
-            self.old_loc = mgs['location']
-            self.old_detector = mgs['detector_name']
+            # self.old_loc = mgs['location']
+            # self.old_detector = mgs['detector_name']
             self.append_arrs(mgs)
             # self.delta_t = 0
             self.coinc_broken = False
@@ -144,8 +144,13 @@ class CoincDecider:
             pass
 
     def hype_mode_publish(self, n_old_unique_count):
-        """
-        This method will publish an alert every time a new detector
+        """ This method will publish an alert every time a new detector
+            submits an observation message
+
+            Parameters
+            ----------
+            n_old_unique_count : `int`
+                the least number of detectors required for the hype publish
         """
         if self.hype_mode_ON and n_old_unique_count < len(np.unique(self.detectors)) and n_old_unique_count > 1:
             click.secho(f'{"=" * 57}', fg='bright_red')
@@ -155,7 +160,7 @@ class CoincDecider:
                                                 nu_times=self.nu_times,
                                                 machine_times=self.machine_times)
             self.alert.publish(msg_type=self.topic_type, data=alert_data)
-            click.secho('Published an Alert!!!'.upper(), bg='bright_green', fg='red')
+            click.secho(f'{"Published an Alert!!!".upper():^100}\n', bg='bright_green', fg='red')
             click.secho(f'{"=" * 57}', fg='bright_red')
 
     def check_for_coinc(self, mgs):
@@ -164,13 +169,12 @@ class CoincDecider:
         if message is within SN time window (10sec) 
         it is added to the coincidence list, if not 
         coincidence is broken. Then the publish method is called. 
-        Finally a new stream and coincicede list is made
+        Finally a new stream and coincidence list is made.
 
         Parameters
         ----------
         mgs : `dict`
             dictionary of the SNEWS message
-
 
         """
         if self.cache_reset:
@@ -178,8 +182,8 @@ class CoincDecider:
 
         if self.counter != 0:
             self.curr_nu_time = self.times.str_to_hr(mgs['neutrino_time'])
-            self.curr_loc = mgs['location']
-            self.old_detector = mgs['detector_name']
+            # self.curr_loc = mgs['location']
+            # self.old_detector = mgs['detector_name']
             self.delta_t = (self.curr_nu_time - self.initial_nu_time).total_seconds()
 
             if self.delta_t <= self.coinc_threshold:
@@ -187,9 +191,13 @@ class CoincDecider:
                 click.secho('got something'.upper(), fg='white', bg='red')
                 # print(f'{self.delta_ts}')
                 self.counter += 1
+
+            # the conditional below, repeats itself
             elif self.delta_t > self.coinc_threshold:
                 if self.delta_t > self.coinc_threshold:
                     print('Outside SN window')
+
+                # coincidence should be broken if the deta_t <= threshold. So, below should be one indent inner?
                 print('Coincidence is broken, checking to see if an ALERT can be published...\n\n')
                 self.coinc_broken = True
                 self.pub_alert()
@@ -201,8 +209,6 @@ class CoincDecider:
                 click.secho('Starting new stream..'.upper(), bold=True, fg='bright_white', underline=True)
                 self.counter += 1
                 self.run_coincidence()
-
-
         else:
             pass
 
@@ -220,7 +226,7 @@ class CoincDecider:
         while stagnant_cache:
             t1 = time.time()
             delta_t = t1 - t0
-            self.in_cache_retract()
+            self.in_cache_retract() # first, check for false messages and clean
             if self.storage.coincidence_tier_cache.count() > curr_cache_len and delta_t < self.mgs_expiration:
                 self.counter += 1
                 break
@@ -294,11 +300,15 @@ class CoincDecider:
                         # print(f'\nNew list of coincident detectors:\n{self.detectors}')
                     i += 1
 
-                if not self.hype_mode_ON:
+                if not self.hype_mode_ON: # what if it is ON ?
                     query = {'_id': mgs['_id']}
                     self.storage.false_warnings.delete_one(query)
 
     def count_detector_events(self, detector_name, add_or_pop):
+        """ Count the events from detectors.
+            If no events exists, remove the detector from dict.
+
+        """
         if detector_name in self.detector_events.keys():
             self.detector_events[detector_name] += add_or_pop
         else:
@@ -334,7 +344,7 @@ class CoincDecider:
         with self.coinc_cache.watch() as stream:
             # should it be: for mgs in stream ?
             if self.storage.empty_coinc_cache():
-                click.secho(f'{"-" * 57}', fg='bright_blue')
+                # click.secho(f'{"-" * 57}', fg='bright_blue')
                 print('Nothing here, please wait...')
 
             for doc in stream:

@@ -8,6 +8,7 @@ __pycache__/
 doc/_build/
 *.pyc
 .coverage
+*test*.ipynb
 
 # configuration
 .env

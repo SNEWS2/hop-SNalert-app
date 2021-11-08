@@ -98,9 +98,6 @@ class Message_Schema:
         messages['CoincidenceTier']['neutrino_time'] = data['neutrino_time']
         messages['CoincidenceTier']['p_value'] = data['p_value']
 
-
-
-
         messages['FalseOBS'] = {'_id': self.id_format("OBS", "FalseOBS"),
                                 'detector_name': self.detector_name,
                                 'false_id': data['false_id'],
@@ -158,10 +155,3 @@ class Message_Schema:
         messages['TimeTierAlert'] = base.copy()
         messages['TimeTierAlert']['timing_series'] = data['t_series']
         return messages[msg_type]
-
-### comment from Melih:
-### get_alert_schema is almost the same as the get_obs_schema
-### the only difference comes in when formatting the ID. 
-### Since both these functions are backhand, we can easily merge them
-###-----------
-### Moreover, why do the ALERT messages have detector ids or status?

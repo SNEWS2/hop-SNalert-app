@@ -112,7 +112,6 @@ def publish(topic, broker, experiment, tier, bypass, env, local):
 @click.option('--env', default=None, show_default='test-config.env', help='environment file containing the configurations')
 @click.option('--experiment','-e', type=str, default="TEST", show_default='test experiment properties')
 @click.option('--rate','-r', default=60, nargs=1, help='rate in sec to send heartbeat messages')
-@click.option('--local/--no-local', default=False, show_default='False', help='Whether to use local database server or take from the env file')
 def publish_heartbeat(broker, env, experiment, rate):
     if broker == 'None': broker = set_topic('H', env)
     click.secho(f'>> You are publishing Heartbeat messages to {broker}\n>> with {rate} seconds intervals', fg='white', bg='blue', bold=False)
@@ -125,14 +124,15 @@ def retract():
 
 
 @main.command()
-@click.option('--rate','-r', default=60, help='rate in sec to send heartbeat messages')
-def run_coincidence(rate):
+@click.option('--local/--no-local', default=False, show_default='False', help='Whether to use local database server or take from the env file')
+@click.option('--hype/--no-hype', default=False, show_default='False', help='Whether to run in hype mode')
+def run_coincidence(local, hype):
     """ 
     """
     click.echo('Initial implementation. Likely to change')
     # # Initiate Coincidence Decider
-    coinc = snews_coinc.CoincDecider()
-    coinc.run_coincidence() 
+    coinc = snews_coinc.CoincDecider(use_local=local, hype_mode_ON=hype)
+    coinc.run_coincidence()
 
 
 @main.command()
@@ -169,7 +169,7 @@ def simulate(rate, alert_probability):
     try:
         while True:
             detector = np.random.choice(list(detectors.keys()))
-            if np.random.random() > alert_probability:
+            if np.random.random() < alert_probability:
                 data = get_commit_message(True, topic='O')
                 pub = hop_pub.Publish_Tier_Obs()
                 pub.publish(detector, 'CoincidenceTier', data)

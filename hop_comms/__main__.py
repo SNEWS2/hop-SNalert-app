@@ -70,7 +70,7 @@ def main(env):
 @click.option('--tier','-ti', type=str, default="CoincidenceTier", show_default='Coincidence Tier')
 @click.option('--bypass/--no-bypass', default=True, show_default='True', help='if False, asks user to modify the content of a message')
 @click.option('--env', default=None, show_default='test-config.env', help='environment file containing the configurations')
-@click.option('--local/--no-local', default=False, show_default='False', help='Whether to use local database server or take from the env file')
+@click.option('--local/--no-local', default=True, show_default='True', help='Whether to use local database server or take from the env file')
 def publish(topic, broker, experiment, tier, bypass, env, local):
     """ Publish a message using hop_pub
 
@@ -116,7 +116,7 @@ def publish_heartbeat(broker, env, experiment, rate):
     pub.publish()
 
 @main.command()
-@click.option('--local/--no-local', default=False, show_default='False', help='Whether to use local database server or take from the env file')
+@click.option('--local/--no-local', default=True, show_default='True', help='Whether to use local database server or take from the env file')
 def retract(local):
     retraction = snews_retract.Retraction(local)
     retraction.run_retraction()
@@ -125,7 +125,7 @@ def retract(local):
 
 
 @main.command()
-@click.option('--local/--no-local', default=False, show_default='False', help='Whether to use local database server or take from the env file')
+@click.option('--local/--no-local', default=True, show_default='True', help='Whether to use local database server or take from the env file')
 @click.option('--hype/--no-hype', default=False, show_default='False', help='Whether to run in hype mode')
 def run_coincidence(local, hype):
     """ 
@@ -143,7 +143,7 @@ def run_coincidence(local, hype):
 @click.option('--broker','-b', type=str, default='None', show_default='from env variables', help='Selected kafka topic')
 @click.option('--env', default=None, show_default='test-config.env', help='environment file containing the configurations')
 @click.option('--verbose/--no-verbose', default=True, help='verbose output')
-@click.option('--local/--no-local', default=False, show_default='False', help='Whether to use local database server or take from the env file')
+@click.option('--local/--no-local', default=True, show_default='True', help='Whether to use local database server or take from the env file')
 def subscribe(topic, broker, env, verbose, local):
     """ subscribe to a topic
         If a broker

@@ -7,6 +7,7 @@ from .hop_pub import Publish_Alert
 import numpy as np
 import pandas as pd
 
+
 # TODO Need to turn detector names into a unique arr
 # TODO Implement silver/gold
 class CoincDecider:
@@ -37,21 +38,14 @@ class CoincDecider:
         self.curr_nu_time = None
         self.delta_t = None
 
-        self.cache_df = pd.DataFrame(columns=['_id','detector_name','sent_time','machine_time','neutrino_time','p_value','nu_delta_t'])
-
-        self.ids = []
-        self.delta_ts = []
-        self.detectors = []
-        self.nu_times = []
-        self.machine_times = []
-        self.p_vals = []
-        self.detector_events = {}
+        self.cache_df = pd.DataFrame(
+            columns=['_id', 'detector_name', 'sent_time', 'machine_time', 'neutrino_time', 'p_value', 'nu_delta_t'])
 
         self.coinc_broken = False
 
         self.cache_reset = False
 
-    def append_arrs(self, mgs):
+    def append_df(self, mgs):
         """ Appends coincidence arrays when there is a coincident signal
 
         Parameters
@@ -60,29 +54,18 @@ class CoincDecider:
             dictionary of the SNEWS message
 
         """
-        self.nu_times.append(mgs['neutrino_time'])
-        self.detectors.append(mgs['detector_name'])
-        self.count_detector_events(detector_name=mgs['detector_name'], add_or_pop=1)
-        self.machine_times.append(mgs['machine_time'])
-        self.p_vals.append(mgs['p_value'])
-        self.ids.append(mgs['_id'])
+        self.cache_df.append(mgs)
         if self.counter == 0:
-            self.delta_ts.append(0)
+            self.cache_d.at[self.counter, 'nu_delta_t'] = 0
         elif self.counter != 0:
-            self.delta_ts.append(self.delta_t)
+            self.cache_d.at[self.counter, 'nu_delta_t'] = self.delta_t
 
-    def reset_arr(self):
+    def reset_df(self):
         """ Resets coincidence arrays if coincidence is broken
 
         """
         if self.coinc_broken:
-            self.ids = []
-            self.delta_ts = []
-            self.nu_times = []
-            self.machine_times = []
-            self.p_vals = []
-            self.detector_events = {}
-            self.detectors = []
+            del self.cache_df
         else:
             pass
 
@@ -100,14 +83,14 @@ class CoincDecider:
             self.initial_nu_time = self.times.str_to_hr(mgs['neutrino_time'])
             # self.old_loc = mgs['location']
             # self.old_detector = mgs['detector_name']
-            self.append_arrs(mgs)
+            self.append_df(mgs)
             # self.delta_t = 0
             self.coinc_broken = False
             self.cache_reset = False
         else:
             pass
 
-    def kill_false_element(self, detector_name, index):
+    def kill_false_signal(self, detector_name, index):
         """ Remove the information at a given index
 
         Parameters
@@ -130,11 +113,13 @@ class CoincDecider:
         """
         if self.coinc_broken:
             self.counter = 0
-            self.reset_arr()
+            self.reset_df()
             self.storage.purge_cache(coll='CoincidenceTier')
             self.coinc_broken = False
             self.delta_t = None
             self.cache_reset = True
+            self.cache_df = pd.DataFrame(
+                columns=['_id', 'detector_name', 'sent_time', 'machine_time', 'neutrino_time', 'p_value', 'nu_delta_t'])
         else:
             pass
 
@@ -180,7 +165,7 @@ class CoincDecider:
             self.delta_t = (self.curr_nu_time - self.initial_nu_time).total_seconds()
 
             if self.delta_t <= self.coinc_threshold:
-                self.append_arrs(mgs)
+                self.append_df(mgs)
                 click.secho('got something'.upper(), fg='white', bg='red')
                 self.counter += 1
 
@@ -272,7 +257,7 @@ class CoincDecider:
                 for detector_name in reversed(self.detectors):
                     if delete_n_many > 0 and detector_name == drop_detector:
                         delete_n_many -= 1
-                        self.kill_false_element(index=i, detector_name=drop_detector)
+                        self.kill_false_signal(detector_name=drop_detector, index=i)
                     i -= 1
                 query = {'_id': mgs['_id']}
                 self.storage.false_warnings.delete_one(query)
@@ -283,7 +268,7 @@ class CoincDecider:
                 i = 0
                 for id in self.ids:
                     if false_id == id:
-                        self.kill_false_element(index=i, detector_name=mgs['detector_name'])
+                        self.kill_false_signal(detector_name=mgs['detector_name'], index=i)
                         print(f'\nFalse mgs found {id}\nPurging it from coincidence list\n')
                         break
                         # print(f'\nNew list of coincident detectors:\n{self.detectors}')

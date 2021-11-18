@@ -9,14 +9,6 @@ from pathlib import Path
 import sys
 
 
-def check_mongo_connection():
-    pass
-
-
-def check_hop_connection():
-    pass
-
-
 def set_env(env_path=None):
     """ Set environment parameters
 
@@ -64,7 +56,7 @@ class TimeStuff:
         """ string to datetime hour object """
         return datetime.strptime(nu_time, fmt)
 
-
+# TODO: do not need
 def set_topic_state(which_topic, env_path=None):
     """ Set the topic path based on which_topic
 
@@ -88,7 +80,7 @@ def set_topic_state(which_topic, env_path=None):
     }
     return topics[which_topic.upper()]
 
-
+# TODO: Retrive is not needed
 def retrieve_detectors(detectors_path=os.path.dirname(__file__) + "/auxiliary/detector_properties.json"):
     ''' Retrieve the name-ID-location of the participating detectors.
 
@@ -138,7 +130,7 @@ def get_detector(detector, detectors_path=os.path.dirname(__file__) +
             print(f'{detector} is not a valid detector!')
             return detectors['TEST']
 
-
+#  TODO: dump
 def summarize(detector, topic_type_, env_path=None):
     """ Summarize the current configuration (DEPRECATED)
 
@@ -191,7 +183,7 @@ def isnotebook():
     except NameError:
         return False  # Probably standard Python interpreter
 
-
+# TODO: needs work
 def get_logger(scriptname, logfile_name):
     """ Logger
 
@@ -224,6 +216,7 @@ def display_gif():
         display(HTML(f'<img src={giphy_snews}>'))
 
 
+# TODO: dump
 def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
              detector_status=None, false_mgs_id=None, which_tier=None,
              N_retract_latest=0, retraction_reason=None, **kwargs):
@@ -272,7 +265,7 @@ def data_obs(machine_time=None, nu_time=None, p_value=None, timing_series=None,
     data_dict = dict(zip_iterator)
     return data_dict
 
-
+# TODO: Change to SNEWS_PT struc
 def data_alert(p_vals=None, detector_events=None, t_series=None, nu_times=None,
                ids=None, locs=None, status=None, machine_times=None):
     """ Default alert message data

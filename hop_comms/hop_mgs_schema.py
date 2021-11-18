@@ -21,6 +21,7 @@ class Message_Schema:
     def __init__(self, env_path=None, detector_key='TEST', alert=False):
         self.times = TimeStuff(env_path)
         if not alert:
+            # TODO: ditch detector.
             self.detector = snews_utils.get_detector(detector_key)
             self.detector_name = self.detector.name
             self.detector_loc = self.detector.location
@@ -47,6 +48,7 @@ class Message_Schema:
                 The formatted id as a string
             
         """
+        # TODO: ditch obs id format
         date_time = self.times.get_snews_time(fmt="%y/%m/%d_%H:%M:%S:%f")
         if topic_state == 'OBS':
             return f'{self.detector.id}_{topic_type}_{date_time}'
@@ -54,7 +56,7 @@ class Message_Schema:
             return f'SNEWS_{topic_type}_{date_time}'
         else:
             sys.exit(f'{topic_state} is not valid!\nOptions are ["OBS","ALERT","FalseOBS"]')
-
+    # TODO: ditch obs
     def get_obs_schema(self, msg_type, data, sent_time):
         """ Create a message schema for given topic type.
             Internally called in hop_pub

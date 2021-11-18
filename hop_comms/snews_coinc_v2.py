@@ -9,8 +9,20 @@ import pandas as pd
 from hop import Stream
 
 
-# TODO Need to turn detector names into a unique arr
-# TODO Implement silver/gold
+# TODO: Implement confidence level on coincidence list.
+# TODO: Archive old cache and parse it
+# TODO: Archive Melih's Lonely Signals
+#  TODO: stash
+# TODO: pandas failsafe
+
+#  have 3 coinc detectors (5,10,23)
+#  get bs signal outside SN window
+#  normally this would kill coinc
+#  coinc_list.confidence_lvl()
+#  0.0-1.0 and if above c_l ignore bs signals
+
+
+
 class CoincDecider:
     """ CoincDecider class for Supernova alerts (Coincidence Tier)
         
@@ -99,12 +111,10 @@ class CoincDecider:
         if self.coinc_broken:
             self.counter = 0
             self.reset_df()
-            self.storage.purge_cache(coll='CoincidenceTier')
+            # self.storage.purge_cache(coll='CoincidenceTier')
             self.coinc_broken = False
             self.delta_t = None
             self.cache_reset = True
-            self.cache_df = pd.DataFrame(
-                columns=['_id', 'detector_name', 'sent_time', 'machine_time', 'neutrino_time', 'p_value', 'nu_delta_t'])
         else:
             pass
 
@@ -117,6 +127,8 @@ class CoincDecider:
             n_old_unique_count : `int`
                 the least number of detectors required for the hype publish
         """
+        # TODO: change alert pub to SNEWS_PT like
+        # TODO: can use set()
         if self.hype_mode_ON and n_old_unique_count < len(np.unique(self.detectors)):
             click.secho(f'{"=" * 57}', fg='bright_red')
             alert_data = snews_utils.data_alert(detector_events=self.detector_events,
@@ -152,7 +164,7 @@ class CoincDecider:
             if self.delta_t <= self.coinc_threshold:
                 self.append_df(mgs)
                 click.secho('got something'.upper(), fg='white', bg='red')
-                self.counter += 1
+                # self.counter += 1
 
             # the conditional below, repeats itself
             elif self.delta_t > self.coinc_threshold:
@@ -163,7 +175,7 @@ class CoincDecider:
                 print('Resetting the cache')
                 self.reset_cache()
                 self.set_initial_signal(mgs)
-                self.storage.coincidence_tier_cache.insert_one(mgs)
+                # self.storage.coincidence_tier_cache.insert_one(mgs)
                 # Start recursion
                 click.secho('Starting new stream..'.upper(), bold=True, fg='bright_white', underline=True)
                 self.counter += 1
@@ -267,7 +279,7 @@ class CoincDecider:
         if self.detector_events[detector_name] == 0:
             self.detector_events.pop(detector_name, None)
 
-    # df update
+    # TODO: df update
     def pub_alert(self):
         """ When the coincidence is broken publish alert
             if there were more than 1 detectors in the 
@@ -292,7 +304,8 @@ class CoincDecider:
         ''' Main body of the class.
 
         '''
-
+        #  Pipeline: sub->Mongo->coinc->alert-> :)
+        #  New Pipeline: sub->coinc->(DB stash)->alert
         stream = Stream(persist=True)
         with stream.open(self.observation_topic, "r") as s:
             print('Nothing here, please wait...')

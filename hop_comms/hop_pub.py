@@ -20,7 +20,7 @@ from .snews_db import Storage
 
 # Detector = namedtuple("Detector", ["name", "id", "location"])
 
-
+# TODO: Ditch obs, HB, and have alert mimic SNEWS_PT struc.
 class Publish_Heartbeat:
     """ Class to publish heartbeat messages continuously
 
